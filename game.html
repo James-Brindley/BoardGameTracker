@@ -5,6 +5,7 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
 <header class="header-compact">
   <h1>🎮</h1>
   <nav>
@@ -19,25 +20,40 @@
 
   <img id="image" class="game-image">
 
-  <!-- Plays -->
-  <div class="plays-row">
-    <div class="play-count" id="plays"></div>
-    <div class="play-controls">
-      <button id="minus">−</button>
-      <button id="plus">+</button>
-    </div>
-  </div>
-
-  <!-- Review -->
+  <!-- REVIEW + STATS -->
   <div class="card">
+
+    <!-- STATS -->
+    <div class="game-stats">
+      <div class="stat">
+        <span class="stat-label">Play Time</span>
+        <span id="playTime" class="stat-value"></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Players</span>
+        <span id="playerCount" class="stat-value"></span>
+      </div>
+    </div>
+
+    <!-- PLAYS -->
+    <div class="plays-row">
+      <div class="play-count" id="plays"></div>
+      <div class="play-controls">
+        <button id="minus">−</button>
+        <button id="plus">+</button>
+      </div>
+    </div>
+
+    <!-- REVIEW -->
     <div class="review-header">
       <h2>Review</h2>
       <span id="ratingView" class="rating-inline"></span>
     </div>
+
     <p id="reviewView" class="review-text"></p>
   </div>
 
-  <!-- Edit -->
+  <!-- EDIT -->
   <button id="editToggle" class="edit-toggle">Edit Game</button>
 
   <div id="editPanel" class="card" style="display:none">
@@ -45,6 +61,12 @@
       <h3>Game Details</h3>
       <input id="name" placeholder="Game name">
       <input id="imageUrl" placeholder="Image URL">
+    </div>
+
+    <div class="edit-section">
+      <h3>Statistics</h3>
+      <input id="playTimeInput" placeholder="Play time (e.g. 45–60 mins)">
+      <input id="playerCountInput" placeholder="Player count (e.g. 2–4)">
     </div>
 
     <div class="edit-section">
