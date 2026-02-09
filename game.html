@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Details</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <h1 id="gameName"></h1>
+  <nav>
+    <a href="index.html">Stats</a>
+    <a href="catalogue.html">Catalogue</a>
+  </nav>
+</header>
+
+<main>
+  <p><strong>Plays:</strong> <span id="plays"></span></p>
+  <button id="logPlay">Log a Play</button>
+
+  <h3>Review</h3>
+  <textarea id="review"></textarea>
+
+  <h3>Rating (0–10)</h3>
+  <input type="number" id="rating" min="0" max="10">
+
+  <button id="save">💾 Save</button>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
