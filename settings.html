@@ -46,22 +46,42 @@
   });
 
   /* ---------- ACCENT COLOUR ---------- */
+  const ACCENT_COLORS = [
+    "#e63232",
+    "#f3722c",
+    "#f8961e",
+    "#ffd043",
+    "#7fc96b",
+    "#43aa8b",
+    "#277da1",
+    "#3b498e",
+    "#66418a"
+  ];
+
   const accentPicker = document.getElementById("accentPicker");
-  const savedAccent = localStorage.getItem("accent");
+  const currentAccent = localStorage.getItem("accent");
 
-  if (savedAccent) {
-    document.documentElement.style.setProperty("--accent", savedAccent);
-    accentPicker.value = savedAccent;
-  } else {
-    accentPicker.value = getComputedStyle(document.documentElement)
-      .getPropertyValue("--accent")
-      .trim();
-  }
+  ACCENT_COLORS.forEach(color => {
+    const swatch = document.createElement("div");
+    swatch.className = "accent-swatch";
+    swatch.style.background = color;
 
-  accentPicker.addEventListener("input", (e) => {
-    const colour = e.target.value;
-    document.documentElement.style.setProperty("--accent", colour);
-    localStorage.setItem("accent", colour);
+    if (color === currentAccent) {
+      swatch.classList.add("active");
+    }
+
+    swatch.addEventListener("click", () => {
+      localStorage.setItem("accent", color);
+      document.documentElement.style.setProperty("--accent", color);
+
+      document
+        .querySelectorAll(".accent-swatch")
+        .forEach(s => s.classList.remove("active"));
+
+      swatch.classList.add("active");
+    });
+
+    accentPicker.appendChild(swatch);
   });
 
   /* ---------- RESET ---------- */
