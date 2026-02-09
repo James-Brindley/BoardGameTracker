@@ -1,39 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Game Details</title>
+  <title>Game</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
 <header>
-  <h1 id="gameName"></h1>
+  <h1 id="title"></h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
+    <a href="settings.html">Settings</a>
   </nav>
 </header>
 
-<div class="card">
-  <img id="gameImage" style="width:100%;border-radius:16px;margin-bottom:1rem;">
-  <input type="file" id="imageInput" accept="image/*">
-</div>
-
 <main>
-  <p><strong>Plays:</strong> <span id="plays"></span></p>
-  <button id="logPlay">Log a Play</button>
+  <div class="card">
+    <img id="image" style="width:100%;border-radius:18px;margin-bottom:1rem;">
+    <div class="stat-number" id="plays"></div>
+    <button id="play">Log Play</button>
+  </div>
 
-  <h3>Review</h3>
-  <textarea id="review"></textarea>
-
-  <h3>Rating (0–10)</h3>
-  <input type="number" id="rating" min="0" max="10">
-
-  <button id="save">💾 Save</button>
+  <div class="card" style="margin-top:1.5rem">
+    <textarea id="review" placeholder="Review..."></textarea>
+    <input type="number" id="rating" min="0" max="10" placeholder="Rating 0–10">
+    <button id="save">Save</button>
+  </div>
 </main>
 
 <script src="js/data.js"></script>
+<script src="js/theme.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>
