@@ -1,5 +1,4 @@
 const GAME_KEY = "boardGames";
-const THEME_KEY = "theme";
 
 function getGames() {
   return JSON.parse(localStorage.getItem(GAME_KEY)) || [];
