@@ -15,12 +15,26 @@
 </header>
 
 <main>
-  <section class="podium" id="podium"></section>
+
+  <div class="card">
+    <div class="tracker-header">
+      <button id="prevMonth">←</button>
+      <strong id="monthLabel"></strong>
+      <button id="nextMonth">→</button>
+    </div>
+    <div class="tracker-grid" id="globalTracker"></div>
+  </div>
 
   <section class="card">
-    <h2>Top 10 Most Played</h2>
+    <h2>Top 10 All-Time</h2>
     <div id="top10"></div>
   </section>
+
+  <section class="card">
+    <h2>Top 5 This Month</h2>
+    <div id="topMonth"></div>
+  </section>
+
 </main>
 
 <script src="js/data.js"></script>
