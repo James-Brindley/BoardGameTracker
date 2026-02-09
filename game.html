@@ -37,10 +37,22 @@
     <button id="editToggle">Edit Game</button>
 
     <div id="editPanel" style="display:none">
-      <input id="name">
-      <input id="imageUrl">
-      <input id="rating" type="number" min="0" max="10">
-      <textarea id="review"></textarea>
+      <div class="edit-section">
+        <h3>Game Details</h3>
+        <input id="name" placeholder="Game name">
+        <input id="imageUrl" placeholder="Image URL">
+      </div>
+
+      <div class="edit-section">
+        <h3>Scoring</h3>
+        <input id="rating" type="number" min="0" max="10" placeholder="Rating">
+      </div>
+
+      <div class="edit-section">
+        <h3>Review</h3>
+        <textarea id="review"></textarea>
+      </div>
+
       <button id="save">Save</button>
     </div>
   </div>
