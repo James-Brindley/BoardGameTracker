@@ -6,7 +6,9 @@ function render() {
   const key = sort.value;
 
   games.sort((a,b) =>
-    key === "name" ? a.name.localeCompare(b.name) : (b[key]||0)-(a[key]||0)
+    key === "name"
+      ? a.name.localeCompare(b.name)
+      : (b[key] || 0) - (a[key] || 0)
   );
 
   list.innerHTML = "";
@@ -26,10 +28,11 @@ function render() {
 
 document.getElementById("addGame").onclick = () => {
   const name = prompt("Game name?");
-  const image = prompt("Image URL?");
   if (!name) return;
 
+  const image = prompt("Image URL (optional)");
   const games = getGames();
+
   games.push({
     id: Date.now(),
     name,
@@ -38,6 +41,7 @@ document.getElementById("addGame").onclick = () => {
     rating: null,
     review: ""
   });
+
   saveGames(games);
   render();
 };
