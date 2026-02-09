@@ -1,39 +1,46 @@
 const id = Number(new URLSearchParams(location.search).get("id"));
 const games = getGames();
-const game = games.find(g => g.id === id);
+const game = games.find(g=>g.id===id);
 
 const title = document.getElementById("title");
 const image = document.getElementById("image");
-const nameInput = document.getElementById("name");
-const imageInput = document.getElementById("imageUrl");
-const playsEl = document.getElementById("plays");
-const reviewEl = document.getElementById("review");
-const ratingEl = document.getElementById("rating");
+const plays = document.getElementById("plays");
 
-function render() {
+function render(){
   title.textContent = game.name;
-  nameInput.value = game.name;
-  image.src = game.image || "https://via.placeholder.com/400";
-  imageInput.value = game.image || "";
-  playsEl.textContent = game.plays;
-  reviewEl.value = game.review;
-  ratingEl.value = game.rating ?? "";
+  image.src = game.image || "https://via.placeholder.com/600";
+  plays.textContent = game.plays;
 }
 
-document.getElementById("play").onclick = () => {
+document.getElementById("plus").onclick = ()=>{
   game.plays++;
-  playsEl.textContent = game.plays;
-};
-
-document.getElementById("save").onclick = () => {
-  game.name = nameInput.value.trim();
-  game.image = imageInput.value.trim();
-  game.review = reviewEl.value;
-  game.rating = Number(ratingEl.value);
-
   saveGames(games);
   render();
-  alert("Saved");
 };
+
+document.getElementById("minus").onclick = ()=>{
+  game.plays = Math.max(0, game.plays-1);
+  saveGames(games);
+  render();
+};
+
+document.getElementById("edit").onclick = ()=>{
+  editPanel.style.display =
+    editPanel.style.display === "none" ? "block" : "none";
+
+  name.value = game.name;
+  imageUrl.value = game.image || "";
+  review.value = game.review || "";
+  rating.value = game.rating ?? "";
+};
+
+["name","imageUrl","review","rating"].forEach(id=>{
+  document.getElementById(id).oninput = ()=>{
+    game[id==="imageUrl"?"image":id] =
+      document.getElementById(id).value;
+    saveGames(games);
+    render();
+  };
+});
 
 render();
