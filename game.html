@@ -18,7 +18,6 @@
 
 <main>
   <h1 class="game-title" id="title"></h1>
-
   <img id="image" class="game-image">
 
   <div class="card stats-card">
@@ -27,10 +26,12 @@
         <span class="stat-label">Play Time</span>
         <span id="playTime" class="stat-value"></span>
       </div>
+
       <div class="stat">
         <span class="stat-label">Players</span>
         <span id="playerCount" class="stat-value"></span>
       </div>
+
       <div class="stat">
         <span class="stat-label">Plays</span>
         <span id="plays" class="stat-value"></span>
@@ -44,16 +45,18 @@
     <p id="reviewView" class="review-text"></p>
   </div>
 
+  <!-- GAME TRACKER -->
   <div class="card">
     <h2>Play Tracker</h2>
+    <div class="tracker-header">
+      <button id="prevMonth">←</button>
+      <strong id="monthLabel"></strong>
+      <button id="nextMonth">→</button>
+    </div>
     <div id="gameTracker" class="tracker-grid small"></div>
-    <p style="font-size:0.85rem; opacity:0.6; margin-top:0.5rem;">
-      Click a date to add/remove a play.
-    </p>
   </div>
 
   <button id="editToggle" class="edit-toggle">Edit Game</button>
-
   <div id="editPanel" class="card" style="display:none">
     <div class="edit-section">
       <h3>Game Details</h3>
