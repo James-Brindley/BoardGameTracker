@@ -1,28 +1,14 @@
-<header>
-  <h1 id="gameName"></h1>
-  <nav>
-    <a href="index.html">Stats</a>
-    <a href="catalogue.html">Catalogue</a>
-  </nav>
-</header>
+const image = document.getElementById("gameImage");
+image.src = game.image || "";
 
-<main>
-  <div class="card">
-    <h2>Plays</h2>
-    <div class="stat-number" id="plays">0</div>
-    <button id="logPlay">Log Play</button>
-  </div>
+document.getElementById("imageInput").onchange = e => {
+  const file = e.target.files[0];
+  const reader = new FileReader();
 
-  <div class="card section">
-    <h2>Review</h2>
-    <textarea id="review" placeholder="Your thoughts..."></textarea>
+  reader.onload = () => {
+    game.image = reader.result;
+    image.src = reader.result;
+  };
 
-    <h2>Rating</h2>
-    <input type="number" id="rating" min="0" max="10" placeholder="0–10">
-
-    <button id="save">Save</button>
-  </div>
-</main>
-
-<script src="js/data.js"></script>
-<script src="js/game.js"></script>
+  reader.readAsDataURL(file);
+};
