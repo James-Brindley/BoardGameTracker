@@ -7,11 +7,26 @@
 <body>
 <header>
   <h1>⚙️ Settings</h1>
+  <nav>
+    <a href="index.html">Stats</a>
+    <a href="catalogue.html">Catalogue</a>
+    <a href="settings.html">Settings</a>
+  </nav>
 </header>
 
 <main>
-  <div class="card">
-    <button onclick="toggleTheme()">Toggle Dark Mode</button>
+  <div class="card settings-section">
+    <h2>Appearance</h2>
+    <p>Control how the app looks.</p>
+    <button id="themeToggle">Toggle Dark Mode</button>
+  </div>
+
+  <div class="card settings-section">
+    <h2>Data</h2>
+    <p>Manage your stored board game data.</p>
+    <button onclick="localStorage.clear(); location.reload();">
+      Reset All Data
+    </button>
   </div>
 </main>
 
