@@ -1,3 +1,5 @@
+import { getGames, saveGames } from "./data.js";
+
 const list = document.getElementById("list");
 const search = document.getElementById("search");
 const sort = document.getElementById("sort");
@@ -19,27 +21,34 @@ function render() {
   );
 
   list.innerHTML = "";
+
+  if (!games.length) {
+    list.innerHTML = `<p style="opacity:0.6">No games yet</p>`;
+    return;
+  }
+
   games.forEach(g => {
-  const card = document.createElement("div");
-  card.className = "card game-card";
-  card.innerHTML = `
-    <img src="${g.image || 'https://via.placeholder.com/400'}" alt="${g.name}">
-    <div class="card-header">
-      <strong>${g.name}</strong>
-      <span>⭐ ${g.rating ?? "—"}</span>
-    </div>
-    <div class="card-stats">
-      <span>${g.playerCount ?? 0} players</span>
-      <span>${g.playTime ?? 0} mins</span>
-    </div>
-    <div>${g.plays} plays</div>
-  `;
-  card.onclick = () => location.href = `game.html?id=${g.id}`;
-  list.appendChild(card);
-});
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.innerHTML = `
+      <img src="${g.image || "https://via.placeholder.com/400x200"}">
+      <div class="card-header">
+        <strong>${g.name}</strong>
+        <span>⭐ ${g.rating ?? "—"}</span>
+      </div>
+      <div class="card-stats">
+        <span>${g.playerCount || 0} players</span>
+        <span>${g.playTime || 0} mins</span>
+      </div>
+      <div>${g.plays || 0} plays</div>
+    `;
+    card.onclick = () => {
+      location.href = `game.html?id=${g.id}`;
+    };
+    list.appendChild(card);
+  });
 }
 
-// Add Game Modal
 document.getElementById("addGame").onclick = () => {
   modal.innerHTML = `
     <div class="modal-backdrop">
@@ -54,15 +63,13 @@ document.getElementById("addGame").onclick = () => {
     </div>
   `;
 
-  const closeBtn = modal.querySelector(".close-button");
-  closeBtn.onclick = () => (modal.innerHTML = "");
+  modal.querySelector(".close-button").onclick = () => {
+    modal.innerHTML = "";
+  };
 
   document.getElementById("create").onclick = () => {
     const name = document.getElementById("newName").value.trim();
     if (!name) return;
-
-    const playerCount = Number(document.getElementById("newPlayers").value) || 0;
-    const playTime = Number(document.getElementById("newTime").value) || 0;
 
     const games = getGames();
     games.push({
@@ -72,9 +79,10 @@ document.getElementById("addGame").onclick = () => {
       rating: null,
       review: "",
       image: "",
-      playerCount,
-      playTime
+      playerCount: Number(document.getElementById("newPlayers").value) || 0,
+      playTime: Number(document.getElementById("newTime").value) || 0
     });
+
     saveGames(games);
     modal.innerHTML = "";
     render();
