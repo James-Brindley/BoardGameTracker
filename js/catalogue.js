@@ -7,17 +7,22 @@ function render() {
   const sort = sortSelect.value;
   games.sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);
-    return b[sort] - a[sort];
+    return (b[sort] || 0) - (a[sort] || 0);
   });
 
   list.innerHTML = "";
   games.forEach(game => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <a href="game.html?id=${game.id}">
-        ${game.name} – Plays: ${game.plays} – ⭐ ${game.rating ?? "—"}
-      </a>`;
-    list.appendChild(li);
+    const div = document.createElement("div");
+    div.className = "game-card";
+    div.innerHTML = `
+      <h3>${game.name}</h3>
+      <div class="meta">🎲 Plays: ${game.plays}</div>
+      <div class="meta">⭐ Rating: ${game.rating ?? "—"}</div>
+    `;
+    div.onclick = () => {
+      window.location.href = `game.html?id=${game.id}`;
+    };
+    list.appendChild(div);
   });
 }
 
