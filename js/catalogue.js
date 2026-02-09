@@ -20,22 +20,23 @@ function render() {
 
   list.innerHTML = "";
   games.forEach(g => {
-    const card = document.createElement("div");
-    card.className = "card game-card";
-    card.innerHTML = `
-      <div class="card-header">
-        <strong>${g.name}</strong>
-        <span>⭐ ${g.rating ?? "—"}</span>
-      </div>
-      <div class="card-stats">
-        <span>${g.playerCount ?? 0} players</span>
-        <span>${g.playTime ?? 0} mins</span>
-      </div>
-      <div>${g.plays} plays</div>
-    `;
-    card.onclick = () => location.href = `game.html?id=${g.id}`;
-    list.appendChild(card);
-  });
+  const card = document.createElement("div");
+  card.className = "card game-card";
+  card.innerHTML = `
+    <img src="${g.image || 'https://via.placeholder.com/400'}" alt="${g.name}">
+    <div class="card-header">
+      <strong>${g.name}</strong>
+      <span>⭐ ${g.rating ?? "—"}</span>
+    </div>
+    <div class="card-stats">
+      <span>${g.playerCount ?? 0} players</span>
+      <span>${g.playTime ?? 0} mins</span>
+    </div>
+    <div>${g.plays} plays</div>
+  `;
+  card.onclick = () => location.href = `game.html?id=${g.id}`;
+  list.appendChild(card);
+});
 }
 
 // Add Game Modal
