@@ -18,7 +18,7 @@ function render() {
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/600";
   plays.textContent = `${game.plays} plays`;
-  ratingView.textContent = game.rating ?? "—";
+  ratingView.textContent = game.rating != null ? `${game.rating} / 10` : "—";
   reviewView.textContent = game.review || "No review yet";
 
   nameInput.value = game.name;
