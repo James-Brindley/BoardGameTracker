@@ -17,6 +17,7 @@
   <div class="game-hero">
     <img id="image">
     <h1 id="title"></h1>
+
     <div class="play-controls">
       <button id="minus">−</button>
       <span id="plays"></span>
@@ -25,12 +26,13 @@
   </div>
 
   <div class="card">
-    <button id="edit">Edit Game</button>
+    <button id="editToggle">Edit Game</button>
+
     <div id="editPanel" class="edit-panel" style="display:none">
-      <input id="name">
-      <input id="imageUrl">
-      <textarea id="review"></textarea>
-      <input type="number" id="rating" min="0" max="10">
+      <input id="name" placeholder="Game name">
+      <input id="imageUrl" placeholder="Image URL">
+      <textarea id="review" placeholder="Review"></textarea>
+      <input id="rating" type="number" min="0" max="10" placeholder="Rating">
     </div>
   </div>
 </main>
