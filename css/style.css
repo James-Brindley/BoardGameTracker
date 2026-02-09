@@ -311,3 +311,44 @@ button {
 .danger {
   background: #ff3b30;
 }
+
+/* ---------- CATALOGUE CONTROLS FIX ---------- */
+.controls {
+  display: flex;
+  align-items: center; /* vertical alignment of children */
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.controls input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #555;
+  font-size: 1rem;
+  height: 42px; /* fix height to match buttons */
+}
+
+.control-group {
+  display: flex;
+  align-items: center; /* vertical align buttons & select */
+  gap: 0.6rem;
+}
+
+.controls select {
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #555;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.95rem;
+  height: 42px; /* match input height */
+}
+
+.controls button {
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  height: 42px; /* same height as input/select */
+}
