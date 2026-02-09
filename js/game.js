@@ -15,11 +15,9 @@ if (!game) {
 /* ---------- ELEMENTS ---------- */
 const title = document.getElementById("title");
 const image = document.getElementById("image");
-
 const plays = document.getElementById("plays");
 const ratingView = document.getElementById("ratingView");
 const reviewView = document.getElementById("reviewView");
-
 const playTime = document.getElementById("playTime");
 const playerCount = document.getElementById("playerCount");
 
@@ -36,25 +34,20 @@ const monthLabel = document.getElementById("monthLabel");
 const prevMonthBtn = document.getElementById("prevMonth");
 const nextMonthBtn = document.getElementById("nextMonth");
 
-let view = new Date();
+let currentView = new Date();
+
+/* ---------- INITIALIZE PLAY HISTORY ---------- */
+if (!game.playHistory) game.playHistory = {}; // { "YYYY-MM-DD": count }
 
 /* ---------- RENDER ---------- */
 function render() {
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/600x320";
-
   plays.textContent = game.plays ?? 0;
-  ratingView.textContent =
-    game.rating != null ? `${game.rating}/10` : "—";
-
-  reviewView.textContent =
-    game.review?.trim() || "No review yet";
-
-  playTime.textContent =
-    game.playTime != null ? `${game.playTime} mins` : "—";
-
-  playerCount.textContent =
-    game.playerCount?.toString() || "—";
+  ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
+  reviewView.textContent = game.review?.trim() || "No review yet";
+  playTime.textContent = game.playTime != null ? `${game.playTime} mins` : "—";
+  playerCount.textContent = game.playerCount?.toString() || "—";
 
   nameInput.value = game.name;
   imageInput.value = game.image || "";
@@ -70,58 +63,50 @@ function render() {
 function renderTracker() {
   trackerGrid.innerHTML = "";
 
-  const year = view.getFullYear();
-  const month = view.getMonth();
-  monthLabel.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
+  const year = currentView.getFullYear();
+  const month = currentView.getMonth();
+  monthLabel.textContent = currentView.toLocaleString("default", { month: "long", year: "numeric" });
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   for (let d = 1; d <= daysInMonth; d++) {
-    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    const count = game.playHistory?.[dateKey] || 0;
+    const dateKey = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const count = game.playHistory[dateKey] || 0;
 
     const dayCell = document.createElement("div");
     dayCell.className = "tracker-day";
-    if (count) {
-      dayCell.classList.add(`level-${Math.min(3, count)}`);
-    }
-
+    if (count > 0) dayCell.classList.add(`level-${Math.min(3,count)}`);
     dayCell.innerHTML = `<div class="tracker-tooltip">${count ? count + " plays" : "No plays"}<br>${dateKey}</div>`;
 
     dayCell.onclick = () => {
       // Toggle play
-      if (!game.playHistory) game.playHistory = {};
       if (game.playHistory[dateKey]) {
         game.playHistory[dateKey]--;
-        if (game.playHistory[dateKey] <= 0) delete game.playHistory[dateKey];
-        game.plays = Math.max(0, (game.plays || 0) - 1);
+        game.plays = Math.max(0, game.plays - 1);
+        if (game.playHistory[dateKey] === 0) delete game.playHistory[dateKey];
       } else {
         game.playHistory[dateKey] = 1;
         game.plays = (game.plays || 0) + 1;
       }
       saveGames(games);
-      renderTracker();
-      plays.textContent = game.plays;
+      render();
     };
 
     trackerGrid.appendChild(dayCell);
   }
 }
 
-/* ---------- EDIT ---------- */
+/* ---------- EDIT PANEL ---------- */
 document.getElementById("editToggle").onclick = () => {
-  editPanel.style.display =
-    editPanel.style.display === "none" ? "block" : "none";
+  editPanel.style.display = editPanel.style.display === "none" ? "block" : "none";
 };
 
 document.getElementById("save").onclick = () => {
   game.name = nameInput.value.trim() || game.name;
   game.image = imageInput.value.trim();
-  game.rating =
-    ratingInput.value !== "" ? Number(ratingInput.value) : null;
+  game.rating = ratingInput.value !== "" ? Number(ratingInput.value) : null;
   game.review = reviewInput.value.trim();
-  game.playTime =
-    playTimeInput.value !== "" ? Number(playTimeInput.value) : null;
+  game.playTime = playTimeInput.value !== "" ? Number(playTimeInput.value) : null;
   game.playerCount = playerCountInput.value.trim();
 
   saveGames(games);
@@ -131,7 +116,7 @@ document.getElementById("save").onclick = () => {
 
 /* ---------- DELETE ---------- */
 document.getElementById("deleteGame").onclick = () => {
-  if (!confirm(`Delete "${game.name}"?\nThis cannot be undone.`)) return;
+  if (!confirm(`Delete "${game.name}"? This cannot be undone.`)) return;
 
   games.splice(gameIndex, 1);
   saveGames(games);
@@ -139,13 +124,7 @@ document.getElementById("deleteGame").onclick = () => {
 };
 
 /* ---------- MONTH NAV ---------- */
-prevMonthBtn.onclick = () => {
-  view.setMonth(view.getMonth() - 1);
-  renderTracker();
-};
-nextMonthBtn.onclick = () => {
-  view.setMonth(view.getMonth() + 1);
-  renderTracker();
-};
+prevMonthBtn.onclick = () => { currentView.setMonth(currentView.getMonth() - 1); renderTracker(); };
+nextMonthBtn.onclick = () => { currentView.setMonth(currentView.getMonth() + 1); renderTracker(); };
 
 render();
