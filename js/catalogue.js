@@ -1,14 +1,17 @@
 const list = document.getElementById("list");
+const games = getGames();
 
-getGames().forEach(g=>{
+games.forEach(game => {
   const card = document.createElement("div");
   card.className = "card game-card";
   card.innerHTML = `
-    <img src="${g.image || 'https://via.placeholder.com/400'}">
-    <strong>${g.name}</strong>
-    <div>🎲 ${g.plays} plays</div>
-    <div>⭐ ${g.rating ?? "—"}</div>
+    <img src="${game.image || 'https://via.placeholder.com/400'}">
+    <strong>${game.name}</strong>
+    <div>🎲 ${game.plays} plays</div>
+    <div>⭐ ${game.rating ?? "—"}</div>
   `;
-  card.onclick = ()=>location.href=`game.html?id=${g.id}`;
+  card.onclick = () => {
+    location.href = `game.html?id=${game.id}`;
+  };
   list.appendChild(card);
 });
