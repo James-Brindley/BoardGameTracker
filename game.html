@@ -16,15 +16,22 @@
 
 <main>
   <div class="card">
-    <img id="image" style="width:100%;border-radius:18px;margin-bottom:1rem;">
+    <img id="image" class="game-image">
+
+    <label>Game Name</label>
+    <input id="name">
+
+    <label>Image URL</label>
+    <input id="imageUrl">
+
     <div class="stat-number" id="plays"></div>
     <button id="play">Log Play</button>
   </div>
 
-  <div class="card" style="margin-top:1.5rem">
+  <div class="card section">
     <textarea id="review" placeholder="Review..."></textarea>
     <input type="number" id="rating" min="0" max="10" placeholder="Rating 0–10">
-    <button id="save">Save</button>
+    <button id="save">Save Changes</button>
   </div>
 </main>
 
