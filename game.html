@@ -20,31 +20,28 @@
 
   <img id="image" class="game-image">
 
-  <!-- REVIEW + STATS -->
-  <div class="card">
+  <!-- MAIN INFO CARD -->
+  <div class="card stats-card">
 
-    <!-- STATS -->
+    <button id="addPlay" class="add-play">＋</button>
+
     <div class="game-stats">
       <div class="stat">
         <span class="stat-label">Play Time</span>
         <span id="playTime" class="stat-value"></span>
       </div>
+
       <div class="stat">
         <span class="stat-label">Players</span>
         <span id="playerCount" class="stat-value"></span>
       </div>
-    </div>
 
-    <!-- PLAYS -->
-    <div class="plays-row">
-      <div class="play-count" id="plays"></div>
-      <div class="play-controls">
-        <button id="minus">−</button>
-        <button id="plus">+</button>
+      <div class="stat">
+        <span class="stat-label">Plays</span>
+        <span id="plays" class="stat-value"></span>
       </div>
     </div>
 
-    <!-- REVIEW -->
     <div class="review-header">
       <h2>Review</h2>
       <span id="ratingView" class="rating-inline"></span>
@@ -65,8 +62,9 @@
 
     <div class="edit-section">
       <h3>Statistics</h3>
-      <input id="playTimeInput" placeholder="Play time (e.g. 45–60 mins)">
+      <input id="playTimeInput" type="number" placeholder="Play time (minutes)">
       <input id="playerCountInput" placeholder="Player count (e.g. 2–4)">
+      <button id="removePlay" class="danger">− Remove Play</button>
     </div>
 
     <div class="edit-section">
