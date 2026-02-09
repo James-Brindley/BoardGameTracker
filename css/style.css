@@ -580,3 +580,6 @@ input[type="color"] {
 .podium-2 { background: #C0C0C0; } /* Soft Silver */
 .podium-3 { background: #C79B56; } /* Soft Bronze */
 
+.tracker-day {
+  cursor: pointer; /* clickable */
+}
