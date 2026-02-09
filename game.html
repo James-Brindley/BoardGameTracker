@@ -5,8 +5,8 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<header>
-  <h1>🎮 Game</h1>
+<header class="header-compact">
+  <h1>🎮</h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
@@ -19,42 +19,45 @@
 
   <img id="image" class="game-image">
 
-  <div class="play-count" id="plays"></div>
-  <div class="play-controls">
-    <button id="minus">−</button>
-    <button id="plus">+</button>
+  <!-- Plays -->
+  <div class="plays-row">
+    <div class="play-count" id="plays"></div>
+    <div class="play-controls">
+      <button id="minus">−</button>
+      <button id="plus">+</button>
+    </div>
   </div>
 
+  <!-- Review -->
   <div class="card">
     <div class="review-header">
       <h2>Review</h2>
-      <span id="ratingView"></span>
+      <span id="ratingView" class="rating-inline"></span>
     </div>
-    <p id="reviewView"></p>
+    <p id="reviewView" class="review-text"></p>
   </div>
 
-  <div class="card">
-    <button id="editToggle">Edit Game</button>
+  <!-- Edit -->
+  <button id="editToggle" class="edit-toggle">Edit Game</button>
 
-    <div id="editPanel" style="display:none">
-      <div class="edit-section">
-        <h3>Game Details</h3>
-        <input id="name" placeholder="Game name">
-        <input id="imageUrl" placeholder="Image URL">
-      </div>
-
-      <div class="edit-section">
-        <h3>Scoring</h3>
-        <input id="rating" type="number" min="0" max="10" placeholder="Rating">
-      </div>
-
-      <div class="edit-section">
-        <h3>Review</h3>
-        <textarea id="review"></textarea>
-      </div>
-
-      <button id="save">Save</button>
+  <div id="editPanel" class="card" style="display:none">
+    <div class="edit-section">
+      <h3>Game Details</h3>
+      <input id="name" placeholder="Game name">
+      <input id="imageUrl" placeholder="Image URL">
     </div>
+
+    <div class="edit-section">
+      <h3>Scoring</h3>
+      <input id="rating" type="number" min="0" max="10" placeholder="Rating">
+    </div>
+
+    <div class="edit-section">
+      <h3>Review</h3>
+      <textarea id="review"></textarea>
+    </div>
+
+    <button id="save">Save</button>
   </div>
 </main>
 
