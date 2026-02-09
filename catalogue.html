@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Catalogue</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <h1>📚 Game Catalogue</h1>
+  <nav>
+    <a href="index.html">Stats</a>
+    <a href="catalogue.html">Catalogue</a>
+  </nav>
+</header>
+
+<main>
+  <button id="addGameBtn">➕ Add Game</button>
+
+  <select id="sort">
+    <option value="name">Sort by Name</option>
+    <option value="plays">Sort by Plays</option>
+    <option value="rating">Sort by Rating</option>
+  </select>
+
+  <ul id="gameList"></ul>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/catalogue.js"></script>
+</body>
+</html>
