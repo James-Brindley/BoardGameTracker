@@ -16,10 +16,14 @@ const reviewInput = document.getElementById("review");
 
 function render() {
   title.textContent = game.name;
-  image.src = game.image || "https://via.placeholder.com/600";
+  image.src = game.image || "https://via.placeholder.com/600x320";
   plays.textContent = `${game.plays} plays`;
-  ratingView.textContent = game.rating != null ? `${game.rating} / 10` : "—";
-  reviewView.textContent = game.review || "No review yet";
+
+  ratingView.textContent =
+    game.rating != null ? `${game.rating}/10` : "—";
+
+  reviewView.textContent =
+    game.review || "No review yet";
 
   nameInput.value = game.name;
   imageInput.value = game.image || "";
@@ -47,8 +51,9 @@ document.getElementById("editToggle").onclick = () => {
 document.getElementById("save").onclick = () => {
   game.name = nameInput.value;
   game.image = imageInput.value;
-  game.rating = Number(ratingInput.value);
+  game.rating = ratingInput.value !== "" ? Number(ratingInput.value) : null;
   game.review = reviewInput.value;
+
   saveGames(games);
   editPanel.style.display = "none";
   render();
