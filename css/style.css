@@ -575,7 +575,8 @@ input[type="color"] {
   margin: 2rem 0;
 }
 
-/* ---------- PODIUM COLORS ---------- */
-.podium-1 { background: linear-gradient(145deg, #FFD700, #FFEB99); } /* Soft Gold */
-.podium-2 { background: linear-gradient(145deg, #C0C0C0, #E0E0E0); } /* Soft Silver */
-.podium-3 { background: linear-gradient(145deg, #CD7F32, #E0A070); } /* Soft Bronze */
+/* ---------- PODIUM COLORS (SOLID) ---------- */
+.podium-1 { background: #FFD700; } /* Soft Gold */
+.podium-2 { background: #C0C0C0; } /* Soft Silver */
+.podium-3 { background: #CD7F32; } /* Soft Bronze */
+
