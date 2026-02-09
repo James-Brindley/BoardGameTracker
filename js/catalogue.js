@@ -1,46 +1,46 @@
-const list = document.getElementById("gameList");
-const sortSelect = document.getElementById("sort");
+const list = document.getElementById("list");
+const sort = document.getElementById("sort");
 
 function render() {
   let games = getGames();
+  const key = sort.value;
 
-  const sort = sortSelect.value;
-  games.sort((a, b) => {
-    if (sort === "name") return a.name.localeCompare(b.name);
-    return (b[sort] || 0) - (a[sort] || 0);
-  });
+  games.sort((a,b) =>
+    key === "name" ? a.name.localeCompare(b.name) : (b[key]||0)-(a[key]||0)
+  );
 
   list.innerHTML = "";
-  games.forEach(game => {
+  games.forEach(g => {
     const div = document.createElement("div");
-    div.className = "game-card";
+    div.className = "card game-card";
     div.innerHTML = `
-      <h3>${game.name}</h3>
-      <div class="meta">🎲 Plays: ${game.plays}</div>
-      <div class="meta">⭐ Rating: ${game.rating ?? "—"}</div>
+      <img src="${g.image || 'https://via.placeholder.com/400'}">
+      <h3>${g.name}</h3>
+      <div>🎲 ${g.plays} plays</div>
+      <div>⭐ ${g.rating ?? "—"}</div>
     `;
-    div.onclick = () => {
-      window.location.href = `game.html?id=${game.id}`;
-    };
+    div.onclick = () => location.href = `game.html?id=${g.id}`;
     list.appendChild(div);
   });
 }
 
-document.getElementById("addGameBtn").onclick = () => {
+document.getElementById("addGame").onclick = () => {
   const name = prompt("Game name?");
+  const image = prompt("Image URL?");
   if (!name) return;
 
   const games = getGames();
   games.push({
     id: Date.now(),
     name,
+    image,
     plays: 0,
-    review: "",
-    rating: null
+    rating: null,
+    review: ""
   });
   saveGames(games);
   render();
 };
 
-sortSelect.onchange = render;
+sort.onchange = render;
 render();
