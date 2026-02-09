@@ -401,17 +401,27 @@ button {
   cursor: pointer;
 }
 
+/* --- CLOSE BUTTON CIRCLE --- */
 .modal .close-button {
   position: absolute;
-  top: 0.8rem;
-  right: 0.8rem;
-  background: transparent;
+  top: -12px;
+  left: -12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid #ccc;
+  font-size: 18px;
+  line-height: 26px;
+  text-align: center;
   color: var(--muted);
-  font-size: 1.3rem;
-  border: none;
   cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: all 0.2s;
 }
 
 .modal .close-button:hover {
-  color: var(--accent);
+  background: var(--accent);
+  color: white;
+  transform: scale(1.1);
 }
