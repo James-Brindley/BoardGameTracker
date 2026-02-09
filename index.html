@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Board Game Stats</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-
 <header>
-  <h1>🎲 My Board Game Stats</h1>
+  <h1>🎲 Board Game Dashboard</h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
@@ -16,23 +7,23 @@
 </header>
 
 <main>
-  <section class="card">
-    <h2>Total Games</h2>
-    <p id="totalGames">0</p>
-  </section>
+  <div class="stats-grid">
+    <div class="card">
+      <h2>Total Games</h2>
+      <div class="stat-number" id="totalGames">0</div>
+    </div>
 
-  <section class="card">
-    <h2>Total Plays</h2>
-    <p id="totalPlays">0</p>
-  </section>
+    <div class="card">
+      <h2>Total Plays</h2>
+      <div class="stat-number" id="totalPlays">0</div>
+    </div>
 
-  <section class="card">
-    <h2>Most Played</h2>
-    <p id="mostPlayed">—</p>
-  </section>
+    <div class="card">
+      <h2>Most Played</h2>
+      <div class="stat-number" id="mostPlayed">—</div>
+    </div>
+  </div>
 </main>
 
 <script src="js/data.js"></script>
 <script src="js/stats.js"></script>
-</body>
-</html>
