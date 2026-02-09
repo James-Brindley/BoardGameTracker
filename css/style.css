@@ -437,3 +437,12 @@ button:hover {
 .settings-section button:hover {
   background: #005fcc;
 }
+
+input[type="color"] {
+  width: 56px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+}
