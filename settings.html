@@ -1,17 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Settings</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 <header>
   <h1>⚙️ Settings</h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
+    <a href="settings.html">Settings</a>
   </nav>
 </header>
 
 <main>
-  <div class="card">
-    <h2>Appearance</h2>
-    <button id="themeToggle">Toggle Dark Mode</button>
+  <div class="card setting-row">
+    <div>
+      <h2>Dark Mode</h2>
+      <p style="color:var(--muted)">Toggle theme</p>
+    </div>
+    <button onclick="toggleTheme()">Toggle</button>
   </div>
 </main>
 
 <script src="js/theme.js"></script>
-<script src="js/settings.js"></script>
+</body>
+</html>
