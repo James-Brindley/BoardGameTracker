@@ -6,7 +6,6 @@
 </head>
 <body>
 <header>
-  <h1 id="title"></h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
@@ -15,23 +14,24 @@
 </header>
 
 <main>
-  <div class="card">
-    <img id="image" class="game-image">
-
-    <label>Game Name</label>
-    <input id="name">
-
-    <label>Image URL</label>
-    <input id="imageUrl">
-
-    <div class="stat-number" id="plays"></div>
-    <button id="play">Log Play</button>
+  <div class="game-hero">
+    <img id="image">
+    <h1 id="title"></h1>
+    <div class="play-controls">
+      <button id="minus">−</button>
+      <span id="plays"></span>
+      <button id="plus">+</button>
+    </div>
   </div>
 
-  <div class="card section">
-    <textarea id="review" placeholder="Review..."></textarea>
-    <input type="number" id="rating" min="0" max="10" placeholder="Rating 0–10">
-    <button id="save">Save Changes</button>
+  <div class="card">
+    <button id="edit">Edit Game</button>
+    <div id="editPanel" class="edit-panel" style="display:none">
+      <input id="name">
+      <input id="imageUrl">
+      <textarea id="review"></textarea>
+      <input type="number" id="rating" min="0" max="10">
+    </div>
   </div>
 </main>
 
