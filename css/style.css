@@ -310,3 +310,49 @@ textarea, input {
   padding: 0.25rem 0.55rem;
   font-size: 0.65rem;
 }
+
+/* --- STATS CARD --- */
+.stats-card {
+  position: relative;
+}
+
+.add-play {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  font-size: 1.1rem;
+  padding: 0.4rem 0.8rem;
+}
+
+/* --- GAME STATS --- */
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
+  margin-bottom: 1.8rem;
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+/* --- REVIEW --- */
+.review-text {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+/* --- EDIT --- */
+.danger {
+  background: #ff3b30;
+  margin-top: 0.6rem;
+}
+
