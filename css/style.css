@@ -472,3 +472,52 @@ input[type="color"] {
 .accent-swatch.active {
   border: 3px solid var(--text);
 }
+
+/* ---------- ACTIVITY TRACKER ---------- */
+.tracker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tracker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.tracker-day {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: #e5e5e5;
+  position: relative;
+}
+
+[data-theme="dark"] .tracker-day {
+  background: #2a2a2c;
+}
+
+.tracker-day.level-1 { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.tracker-day.level-2 { background: color-mix(in srgb, var(--accent) 60%, transparent); }
+.tracker-day.level-3 { background: var(--accent); }
+
+.tracker-tooltip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  white-space: nowrap;
+  display: none;
+  z-index: 10;
+}
+
+.tracker-day:hover .tracker-tooltip {
+  display: block;
+}
