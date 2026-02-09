@@ -7,7 +7,9 @@ function render() {
   let games = getGames();
 
   const query = search.value.toLowerCase();
-  if (query) games = games.filter(g => g.name.toLowerCase().includes(query));
+  if (query) {
+    games = games.filter(g => g.name.toLowerCase().includes(query));
+  }
 
   const key = sort.value;
   games.sort((a, b) =>
@@ -21,14 +23,13 @@ function render() {
     const card = document.createElement("div");
     card.className = "card game-card";
     card.innerHTML = `
-      <img src="${g.image || 'https://via.placeholder.com/400x160'}">
       <div class="card-header">
-        <span>${g.name}</span>
+        <strong>${g.name}</strong>
         <span>⭐ ${g.rating ?? "—"}</span>
       </div>
       <div class="card-stats">
-        <span>${g.playerCount || "—"} players</span>
-        <span>${g.playTime != null ? g.playTime + " mins" : "—"}</span>
+        <span>${g.playerCount ?? 0} players</span>
+        <span>${g.playTime ?? 0} mins</span>
       </div>
       <div>${g.plays} plays</div>
     `;
@@ -37,25 +38,30 @@ function render() {
   });
 }
 
-
-// --- ADD GAME MODAL ---
+// Add Game Modal
 document.getElementById("addGame").onclick = () => {
   modal.innerHTML = `
     <div class="modal-backdrop">
-      <div class="card modal">
-        <button class="close-modal">×</button>
+      <div class="modal">
+        <div class="close-button">&times;</div>
         <h2>Add Game</h2>
         <input id="newName" placeholder="Game name">
+        <input id="newPlayers" type="number" placeholder="Player count">
+        <input id="newTime" type="number" placeholder="Play time (mins)">
         <button id="create">Create</button>
       </div>
     </div>
   `;
 
-  document.querySelector(".close-modal").onclick = () => (modal.innerHTML = "");
+  const closeBtn = modal.querySelector(".close-button");
+  closeBtn.onclick = () => (modal.innerHTML = "");
 
   document.getElementById("create").onclick = () => {
     const name = document.getElementById("newName").value.trim();
     if (!name) return;
+
+    const playerCount = Number(document.getElementById("newPlayers").value) || 0;
+    const playTime = Number(document.getElementById("newTime").value) || 0;
 
     const games = getGames();
     games.push({
@@ -65,8 +71,8 @@ document.getElementById("addGame").onclick = () => {
       rating: null,
       review: "",
       image: "",
-      playTime: null,
-      playerCount: ""
+      playerCount,
+      playTime
     });
     saveGames(games);
     modal.innerHTML = "";
