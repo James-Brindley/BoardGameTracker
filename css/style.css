@@ -14,7 +14,9 @@
   --accent: #0a84ff;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -37,7 +39,9 @@ nav a {
   font-weight: 500;
 }
 
-nav a:hover { color: var(--accent); }
+nav a:hover {
+  color: var(--accent);
+}
 
 main {
   max-width: 1100px;
@@ -64,10 +68,10 @@ button {
 }
 
 /* ---------- CATALOGUE CONTROLS ---------- */
-
 .controls {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   margin-bottom: 2rem;
 }
@@ -77,10 +81,12 @@ button {
   padding: 0.7rem 1rem;
   border-radius: 999px;
   border: 1px solid #555;
+  font-size: 1rem;
 }
 
 .control-group {
   display: flex;
+  align-items: center;
   gap: 0.6rem;
 }
 
@@ -90,26 +96,64 @@ button {
   border: 1px solid #555;
   background: var(--card);
   color: var(--text);
+  font-size: 0.95rem;
 }
 
 /* ---------- CATALOGUE CARDS ---------- */
-
 .game-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1.5rem;
 }
 
+.game-card {
+  cursor: pointer;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
 .game-card img {
   width: 100%;
-  height: 180px;
+  height: 160px;
   object-fit: cover;
-  border-radius: 16px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.card-stats {
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.6rem;
   margin-bottom: 0.6rem;
 }
 
-/* ---------- STATS ---------- */
+.game-card > div:last-child {
+  padding: 0 1rem 1rem 1rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+}
 
+/* ---------- STATS ---------- */
 .podium {
   display: flex;
   justify-content: center;
@@ -140,8 +184,6 @@ button {
   font-weight: 700;
 }
 
-/* ---------- TOP 10 ---------- */
-
 .top10-row {
   display: flex;
   align-items: center;
@@ -164,11 +206,11 @@ button {
 }
 
 /* ---------- GAME PAGE ---------- */
-
 .game-title {
   text-align: center;
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  font-size: 3.4rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
 }
 
 .game-image {
@@ -180,66 +222,10 @@ button {
 }
 
 .play-count {
-  text-align: center;
-  font-size: 1.6rem;
-  margin-bottom: 0.3rem;
-}
-
-.play-controls {
-  display: flex;
-  justify-content: center;
-  gap: 0.6rem;
-  font-size: 0.85rem;
-  margin-bottom: 1.5rem;
-}
-
-textarea, input {
-  width: 100%;
-  padding: 0.7rem;
-  border-radius: 14px;
-  border: 1px solid #555;
-  background: var(--card);
-  color: var(--text);
-  margin-bottom: 0.8rem;
-}
-
-/* ---------- EDIT HEADERS ---------- */
-
-.edit-section {
-  margin-bottom: 1.5rem;
-}
-
-.edit-section h3 {
-  margin-bottom: 0.4rem;
-  font-size: 1.1rem;
-  color: var(--muted);
-}
-
-/* --- HEADER --- */
-.header-compact {
-  padding: 0.8rem 2rem;
-}
-
-/* --- GAME TITLE --- */
-.game-title {
-  text-align: center;
-  font-size: 3.4rem;
+  font-size: 1.8rem;
   font-weight: 800;
-  margin-bottom: 1.2rem;
-}
-
-/* --- PLAYS ROW --- */
-.plays-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.8rem;
-}
-
-.play-count {
-  font-size: 1.4rem;
-  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.3rem;
 }
 
 .play-controls {
@@ -248,11 +234,31 @@ textarea, input {
 }
 
 .play-controls button {
-  padding: 0.3rem 0.7rem;
-  font-size: 0.75rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.65rem;
 }
 
-/* --- REVIEW --- */
+/* ---------- GAME STATS ---------- */
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
+  margin-bottom: 1.8rem;
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+/* ---------- REVIEW ---------- */
 .review-header {
   display: flex;
   justify-content: space-between;
@@ -274,89 +280,29 @@ textarea, input {
   color: var(--muted);
 }
 
-/* --- EDIT BUTTON --- */
+/* ---------- EDIT HEADERS ---------- */
+.edit-section {
+  margin-bottom: 1.5rem;
+}
+
+.edit-section h3 {
+  margin-bottom: 0.4rem;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+/* ---------- HEADER COMPACT ---------- */
+.header-compact {
+  padding: 0.8rem 2rem;
+}
+
+/* ---------- EDIT BUTTON ---------- */
 .edit-toggle {
   display: block;
   margin: 2rem auto 1rem;
 }
 
-/* --- GAME STATS --- */
-.game-stats {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  margin-bottom: 1.4rem;
-  text-align: center;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.stat-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-/* --- PLAYS --- */
-.play-count {
-  font-size: 1.8rem;
-  font-weight: 800;
-}
-
-.play-controls button {
-  padding: 0.25rem 0.55rem;
-  font-size: 0.65rem;
-}
-
-/* --- STATS CARD --- */
-.stats-card {
-  position: relative;
-}
-
-.add-play {
-  position: absolute;
-  top: 1.2rem;
-  right: 1.2rem;
-  font-size: 1.1rem;
-  padding: 0.4rem 0.8rem;
-}
-
-/* --- GAME STATS --- */
-.game-stats {
-  display: flex;
-  justify-content: center;
-  gap: 4rem;
-  margin-bottom: 1.8rem;
-  text-align: center;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 800;
-}
-
-/* --- REVIEW --- */
-.review-text {
-  font-size: 0.95rem;
-  color: var(--muted);
-}
-
-/* --- EDIT --- */
-.danger {
-  background: #ff3b30;
-  margin-top: 0.6rem;
-}
-
-/* --- DANGER ZONE --- */
+/* ---------- DANGER ZONE ---------- */
 .danger-zone {
   border-top: 1px solid rgba(255,255,255,0.08);
   padding-top: 1rem;
@@ -364,182 +310,4 @@ textarea, input {
 
 .danger {
   background: #ff3b30;
-}
-
-/* --- CONTROLS INLINE --- */
-.controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.controls input {
-  flex: 1;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
-  border: 1px solid #555;
-}
-
-/* --- CONTROL GROUP INLINE --- */
-.control-group {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-/* --- MODAL --- */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal {
-  width: 360px;
-  padding: 1.5rem;
-  position: relative;
-}
-
-.close-modal {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.8rem;
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  color: var(--muted);
-}
-
-.close-modal:hover {
-  color: var(--accent);
-}
-
-/* --- GAME CARD LAYOUT --- */
-.game-card {
-  cursor: pointer;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.4rem;
-  font-weight: 700;
-}
-
-.card-stats {
-  font-size: 0.9rem;
-  color: var(--muted);
-  margin-bottom: 0.6rem;
-  display: flex;
-  gap: 0.6rem;
-}
-
-/* --- IMAGE --- */
-.game-card img {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 16px;
-  margin-bottom: 0.6rem;
-}
-
-/* ---------- CATALOGUE CARDS ---------- */
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem;
-}
-
-.game-card {
-  cursor: pointer;
-  border-radius: 22px;
-  overflow: hidden;
-  background: var(--card);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-}
-
-.game-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
-
-.game-card img {
-  width: 100%;
-  height: 160px; /* fixed rectangle */
-  object-fit: cover;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.8rem 1rem;
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-
-.card-stats {
-  padding: 0 1rem;
-  font-size: 0.9rem;
-  color: var(--muted);
-  display: flex;
-  gap: 0.6rem;
-  margin-bottom: 0.6rem;
-}
-
-.game-card > div:last-child {
-  padding: 0 1rem 1rem 1rem;
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--text);
-}
-
-/* ---------- CATALOGUE CONTROLS ---------- */
-.controls {
-  display: flex;
-  align-items: center;   /* vertical alignment */
-  justify-content: space-between; /* push sort & button to the right */
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.controls input {
-  flex: 1;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
-  border: 1px solid #555;
-  font-size: 1rem;
-}
-
-.control-group {
-  display: flex;
-  align-items: center; /* align sort and button vertically */
-  gap: 0.6rem;
-}
-
-.controls select {
-  padding: 0.6rem 1rem;
-  border-radius: 999px;
-  border: 1px solid #555;
-  background: var(--card);
-  color: var(--text);
-  font-size: 0.95rem;
-}
-
-.controls button {
-  padding: 0.6rem 1.2rem;
-  font-weight: 600;
-  border-radius: 999px;
-  font-size: 0.95rem;
 }
