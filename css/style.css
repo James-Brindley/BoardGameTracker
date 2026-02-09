@@ -451,3 +451,41 @@ button {
   color: white;
   transform: scale(1.1);
 }
+
+/* ---------- GAME MENU SETTINGS ---------- */
+.settings-section {
+  background: var(--card);
+  border-radius: 22px;
+  padding: 1.8rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.settings-section h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+
+.settings-section p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.settings-section button {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-section button:hover {
+  background: #005fcc; /* slightly darker accent on hover */
+}
