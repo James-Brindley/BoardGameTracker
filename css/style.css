@@ -575,46 +575,7 @@ input[type="color"] {
   margin: 2rem 0;
 }
 
-/* ---------- PODIUM ---------- */
-.podium {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 1rem;
-  margin: 1rem 0;
-}
-
-.podium-card {
-  text-align: center;
-  cursor: pointer;
-  width: 100px;
-  border-radius: 12px;
-  padding: 0.5rem;
-  color: white;
-  font-weight: 600;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: transform 0.2s;
-}
-
-.podium-card:hover {
-  transform: translateY(-5px);
-}
-
-/* Podium Heights */
-.podium-1 { height: 180px; background: linear-gradient(145deg, #FFD700, #FFC700); } /* Gold */
-.podium-2 { height: 160px; background: linear-gradient(145deg, #C0C0C0, #A9A9A9); } /* Silver */
-.podium-3 { height: 140px; background: linear-gradient(145deg, #CD7F32, #B87333); } /* Bronze */
-
-/* Optional: add small shadow under podium for depth */
-.podium-card::after {
-  content: '';
-  display: block;
-  width: 80%;
-  height: 6px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 50%;
-  margin-top: auto;
-}
+/* ---------- PODIUM COLORS ---------- */
+.podium-1 { background: linear-gradient(145deg, #FFD700, #FFEB99); } /* Soft Gold */
+.podium-2 { background: linear-gradient(145deg, #C0C0C0, #E0E0E0); } /* Soft Silver */
+.podium-3 { background: linear-gradient(145deg, #CD7F32, #E0A070); } /* Soft Bronze */
