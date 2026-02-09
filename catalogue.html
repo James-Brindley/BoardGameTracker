@@ -1,24 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Catalogue</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 <header>
-  <h1>📚 My Games</h1>
+  <h1>📚 Games</h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
+    <a href="settings.html">Settings</a>
   </nav>
 </header>
 
 <main>
   <div class="controls">
-    <button id="addGameBtn">➕ Add Game</button>
-
+    <button id="addGame">Add Game</button>
     <select id="sort">
       <option value="name">Name</option>
-      <option value="plays">Most Played</option>
+      <option value="plays">Plays</option>
       <option value="rating">Rating</option>
     </select>
   </div>
 
-  <div class="game-grid" id="gameList"></div>
+  <div class="game-grid" id="list"></div>
 </main>
 
 <script src="js/data.js"></script>
+<script src="js/theme.js"></script>
 <script src="js/catalogue.js"></script>
+</body>
+</html>
