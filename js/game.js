@@ -1,8 +1,18 @@
-const id = Number(new URLSearchParams(location.search).get("id"));
+import { getGames, saveGames, addPlay } from "./data.js";
+
+const params = new URLSearchParams(location.search);
+const id = Number(params.get("id"));
+
 const games = getGames();
 const gameIndex = games.findIndex(g => g.id === id);
 const game = games[gameIndex];
 
+if (!game) {
+  alert("Game not found.");
+  location.href = "catalogue.html";
+}
+
+/* ---------- ELEMENTS ---------- */
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 
@@ -21,28 +31,33 @@ const reviewInput = document.getElementById("review");
 const playTimeInput = document.getElementById("playTimeInput");
 const playerCountInput = document.getElementById("playerCountInput");
 
+/* ---------- RENDER ---------- */
 function render() {
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/600x320";
 
-  plays.textContent = game.plays;
-  ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
-  reviewView.textContent = game.review || "No review yet";
+  plays.textContent = game.plays ?? 0;
+  ratingView.textContent =
+    game.rating != null ? `${game.rating}/10` : "—";
+
+  reviewView.textContent =
+    game.review?.trim() || "No review yet";
 
   playTime.textContent =
     game.playTime != null ? `${game.playTime} mins` : "—";
-  playerCount.textContent = game.playerCount || "—";
+
+  playerCount.textContent =
+    game.playerCount?.toString() || "—";
 
   nameInput.value = game.name;
   imageInput.value = game.image || "";
   ratingInput.value = game.rating ?? "";
   reviewInput.value = game.review || "";
   playTimeInput.value = game.playTime ?? "";
-  playerCountInput.value = game.playerCount || "";
+  playerCountInput.value = game.playerCount ?? "";
 }
 
-import { addPlay, saveGames } from "./data.js";
-
+/* ---------- PLAYS ---------- */
 document.getElementById("addPlay").onclick = () => {
   addPlay(game);
   saveGames(games);
@@ -50,35 +65,37 @@ document.getElementById("addPlay").onclick = () => {
 };
 
 document.getElementById("removePlay").onclick = () => {
-  game.plays = Math.max(0, game.plays - 1);
+  game.plays = Math.max(0, (game.plays || 0) - 1);
   saveGames(games);
   render();
 };
 
+/* ---------- EDIT ---------- */
 document.getElementById("editToggle").onclick = () => {
   editPanel.style.display =
     editPanel.style.display === "none" ? "block" : "none";
 };
 
 document.getElementById("save").onclick = () => {
-  game.name = nameInput.value;
-  game.image = imageInput.value;
-  game.rating = ratingInput.value !== "" ? Number(ratingInput.value) : null;
-  game.review = reviewInput.value;
+  game.name = nameInput.value.trim() || game.name;
+  game.image = imageInput.value.trim();
+  game.rating =
+    ratingInput.value !== "" ? Number(ratingInput.value) : null;
+  game.review = reviewInput.value.trim();
   game.playTime =
     playTimeInput.value !== "" ? Number(playTimeInput.value) : null;
-  game.playerCount = playerCountInput.value;
+  game.playerCount = playerCountInput.value.trim();
 
   saveGames(games);
   editPanel.style.display = "none";
   render();
 };
 
+/* ---------- DELETE ---------- */
 document.getElementById("deleteGame").onclick = () => {
   const confirmed = confirm(
-    `Are you sure you want to delete "${game.name}"?\nThis cannot be undone.`
+    `Delete "${game.name}"?\nThis cannot be undone.`
   );
-
   if (!confirmed) return;
 
   games.splice(gameIndex, 1);
