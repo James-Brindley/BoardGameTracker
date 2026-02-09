@@ -574,3 +574,76 @@ input[type="color"] {
   gap: 1.5rem;
   margin: 2rem 0;
 }
+
+/* ---------- SECTIONS ---------- */
+.section-card {
+  padding: 1rem;
+  margin-bottom: 2rem;
+  background-color: var(--card);
+}
+
+/* ---------- TRACKER SMALL ---------- */
+.tracker-card {
+  margin-top: 1rem;
+}
+.tracker-grid.small {
+  grid-template-columns: repeat(14, 1fr);
+  gap: 2px;
+}
+
+.tracker-day {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: #ddd;
+  position: relative;
+}
+
+.level-1 { background: #9be9a8; }
+.level-2 { background: #40c463; }
+.level-3 { background: #216e39; }
+
+.tracker-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  color: var(--text);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.tracker-day:hover .tracker-tooltip {
+  display: block;
+}
+
+/* ---------- PODIUM ---------- */
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.podium-card {
+  text-align: center;
+  cursor: pointer;
+}
+
+.podium-1 { height: 180px; }
+.podium-2 { height: 140px; }
+.podium-3 { height: 120px; }
+
+/* ---------- SECTION HEADER ---------- */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
