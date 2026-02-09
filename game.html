@@ -6,6 +6,7 @@
 </head>
 <body>
 <header>
+  <h1>🎮 Game</h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
@@ -14,25 +15,31 @@
 </header>
 
 <main>
-  <div class="game-hero">
-    <img id="image">
-    <h1 id="title"></h1>
+  <h1 class="game-title" id="title"></h1>
 
-    <div class="play-controls">
-      <button id="minus">−</button>
-      <span id="plays"></span>
-      <button id="plus">+</button>
-    </div>
+  <img id="image" class="game-image">
+
+  <div class="play-count" id="plays"></div>
+  <div class="play-controls">
+    <button id="minus">−</button>
+    <button id="plus">+</button>
   </div>
 
   <div class="card">
-    <button id="editToggle">Edit Game</button>
+    <strong>Rating</strong>
+    <div id="ratingView"></div>
 
-    <div id="editPanel" class="edit-panel" style="display:none">
-      <input id="name" placeholder="Game name">
-      <input id="imageUrl" placeholder="Image URL">
-      <textarea id="review" placeholder="Review"></textarea>
-      <input id="rating" type="number" min="0" max="10" placeholder="Rating">
+    <strong>Review</strong>
+    <div id="reviewView"></div>
+
+    <button id="editToggle">Edit</button>
+
+    <div id="editPanel" style="display:none">
+      <input id="name">
+      <input id="imageUrl">
+      <input id="rating" type="number" min="0" max="10">
+      <textarea id="review"></textarea>
+      <button id="save">Save</button>
     </div>
   </div>
 </main>
