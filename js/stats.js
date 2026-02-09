@@ -1,23 +1,30 @@
-const stats = document.getElementById("stats");
-const games = getGames();
+const games = getGames().sort((a,b)=>b.plays-a.plays);
+const podium = document.getElementById("podium");
+const top10 = document.getElementById("top10");
 
-if (games.length) {
-  const mostPlayed = games.reduce((a, b) => a.plays > b.plays ? a : b);
-
+games.slice(0,3).forEach((g,i)=>{
   const card = document.createElement("div");
-  card.className = "card stat-card";
+  card.className = "card";
   card.innerHTML = `
-    <img src="${mostPlayed.image || 'https://via.placeholder.com/300'}">
+    <h2>${["🥈","🥇","🥉"][i]}</h2>
+    <img src="${g.image || 'https://via.placeholder.com/400'}">
+    <strong>${g.name}</strong>
+    <div>${g.plays} plays</div>
+  `;
+  card.onclick = ()=>location.href=`game.html?id=${g.id}`;
+  podium.appendChild(card);
+});
+
+games.slice(0,10).forEach(g=>{
+  const row = document.createElement("div");
+  row.className = "card stat-row";
+  row.innerHTML = `
+    <img src="${g.image || 'https://via.placeholder.com/400'}">
     <div>
-      <h2>Most Played</h2>
-      <div class="stat-number">${mostPlayed.plays}</div>
-      <div>${mostPlayed.name}</div>
+      <strong>${g.name}</strong>
+      <div>${g.plays} plays</div>
     </div>
   `;
-
-  card.onclick = () => {
-    location.href = `game.html?id=${mostPlayed.id}`;
-  };
-
-  stats.appendChild(card);
-}
+  row.onclick = ()=>location.href=`game.html?id=${g.id}`;
+  top10.appendChild(row);
+});
