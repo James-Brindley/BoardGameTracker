@@ -76,21 +76,27 @@ function renderTracker() {
     const dayCell = document.createElement("div");
     dayCell.className = "tracker-day";
     if (count > 0) dayCell.classList.add(`level-${Math.min(3,count)}`);
-    dayCell.innerHTML = `<div class="tracker-tooltip">${count ? count + " plays" : "No plays"}<br>${dateKey}</div>`;
+    dayCell.innerHTML = `<div class="tracker-tooltip">${count} plays<br>${dateKey}</div>`;
 
-    dayCell.onclick = () => {
-      // Toggle play
+    // LEFT CLICK = ADD PLAY
+    dayCell.addEventListener("click", (e) => {
+      game.playHistory[dateKey] = (game.playHistory[dateKey] || 0) + 1;
+      game.plays = (game.plays || 0) + 1;
+      saveGames(games);
+      render();
+    });
+
+    // RIGHT CLICK = REMOVE PLAY
+    dayCell.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
       if (game.playHistory[dateKey]) {
         game.playHistory[dateKey]--;
         game.plays = Math.max(0, game.plays - 1);
         if (game.playHistory[dateKey] === 0) delete game.playHistory[dateKey];
-      } else {
-        game.playHistory[dateKey] = 1;
-        game.plays = (game.plays || 0) + 1;
+        saveGames(games);
+        render();
       }
-      saveGames(games);
-      render();
-    };
+    });
 
     trackerGrid.appendChild(dayCell);
   }
