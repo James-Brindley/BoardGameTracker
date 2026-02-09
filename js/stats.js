@@ -2,10 +2,19 @@ import { getGames } from "./data.js";
 
 const tracker = document.getElementById("globalTracker");
 const label = document.getElementById("monthLabel");
+
+const monthPodium = document.getElementById("monthPodium");
+const monthRest = document.getElementById("monthRest");
+
+const allTimePodium = document.getElementById("allTimePodium");
 const top10 = document.getElementById("top10");
-const topMonth = document.getElementById("topMonth");
 
 let view = new Date();
+
+/* ---------- HELPERS ---------- */
+function monthKey() {
+  return `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
+}
 
 /* ---------- TRACKER ---------- */
 function renderTracker() {
@@ -19,97 +28,105 @@ function renderTracker() {
   const games = getGames();
 
   for (let d = 1; d <= days; d++) {
-    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const date = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
     let total = 0;
-    let names = [];
+    let details = [];
 
     games.forEach(g => {
-      const count = g.playHistory?.[dateKey] || 0;
+      const count = g.playHistory?.[date] || 0;
       if (count) {
         total += count;
-        names.push(`${g.name} (${count})`);
+        details.push(`${g.name} (${count})`);
       }
     });
 
     const cell = document.createElement("div");
-    cell.className = "tracker-day " + (total ? `level-${Math.min(3, total)}` : "");
+    cell.className = `tracker-day ${total ? `level-${Math.min(3, total)}` : ""}`;
 
     if (total) {
-      cell.innerHTML = `<div class="tracker-tooltip">${names.join("<br>")}</div>`;
+      cell.innerHTML = `
+        <div class="tracker-tooltip">
+          <strong>${date}</strong><br>
+          ${details.join("<br>")}
+        </div>`;
     }
 
     tracker.appendChild(cell);
   }
 }
 
-/* ---------- TOP 10 ALL TIME ---------- */
-function renderTop10() {
-  const games = getGames()
-    .filter(g => g.plays > 0)
-    .sort((a, b) => b.plays - a.plays)
-    .slice(0, 10);
+/* ---------- MONTHLY DATA ---------- */
+function monthlyStats() {
+  const key = monthKey();
 
-  top10.innerHTML = "";
-
-  if (!games.length) {
-    top10.innerHTML = `<p style="opacity:0.6">No plays yet</p>`;
-    return;
-  }
-
-  games.forEach((g, i) => {
-    const row = document.createElement("div");
-    row.className = "top10-row";
-    row.innerHTML = `
-      <div class="top10-rank">${i + 1}</div>
-      <img src="${g.image || "https://via.placeholder.com/200x120"}">
-      <div>
-        <strong>${g.name}</strong><br>
-        ${g.plays} plays
-      </div>
-    `;
-    row.onclick = () => location.href = `game.html?id=${g.id}`;
-    top10.appendChild(row);
-  });
-}
-
-/* ---------- TOP MONTH ---------- */
-function renderTopMonth() {
-  const year = view.getFullYear();
-  const month = view.getMonth() + 1;
-  const prefix = `${year}-${String(month).padStart(2, "0")}`;
-
-  const games = getGames()
+  return getGames()
     .map(g => {
       const plays = Object.entries(g.playHistory || {})
-        .filter(([k]) => k.startsWith(prefix))
+        .filter(([d]) => d.startsWith(key))
         .reduce((a, [, v]) => a + v, 0);
+
       return { ...g, monthPlays: plays };
     })
     .filter(g => g.monthPlays > 0)
-    .sort((a, b) => b.monthPlays - a.monthPlays)
-    .slice(0, 5);
+    .sort((a, b) => b.monthPlays - a.monthPlays);
+}
 
-  topMonth.innerHTML = "";
+/* ---------- PODIUM ---------- */
+function renderPodium(container, games, valueKey) {
+  container.innerHTML = "";
 
-  if (!games.length) {
-    topMonth.innerHTML = `<p style="opacity:0.6">No plays this month</p>`;
-    return;
-  }
+  const order = [1, 0, 2];
+  const heights = ["podium-2", "podium-1", "podium-3"];
 
-  games.forEach((g, i) => {
+  order.forEach((i, v) => {
+    const g = games[i];
+    if (!g) return;
+
+    const card = document.createElement("div");
+    card.className = `card podium-card ${heights[v]}`;
+    card.innerHTML = `
+      <div class="rank">#${i + 1}</div>
+      <img src="${g.image || "https://via.placeholder.com/400"}">
+      <strong>${g.name}</strong>
+      <div>${g[valueKey]} plays</div>
+    `;
+    card.onclick = () => location.href = `game.html?id=${g.id}`;
+    container.appendChild(card);
+  });
+}
+
+/* ---------- LIST ---------- */
+function renderList(container, games, start, valueKey) {
+  container.innerHTML = "";
+
+  games.slice(start).forEach((g, i) => {
     const row = document.createElement("div");
     row.className = "top10-row";
     row.innerHTML = `
-      <div class="top10-rank">${i + 1}</div>
-      <img src="${g.image || "https://via.placeholder.com/200x120"}">
+      <div class="top10-rank">${start + i + 1}</div>
+      <img src="${g.image || "https://via.placeholder.com/200"}">
       <div>
         <strong>${g.name}</strong><br>
-        ${g.monthPlays} plays
+        ${g[valueKey]} plays
       </div>
     `;
     row.onclick = () => location.href = `game.html?id=${g.id}`;
-    topMonth.appendChild(row);
+    container.appendChild(row);
   });
+}
+
+/* ---------- ALL ---------- */
+function renderAll() {
+  renderTracker();
+
+  const monthGames = monthlyStats();
+  renderPodium(monthPodium, monthGames, "monthPlays");
+  renderList(monthRest, monthGames, 3, "monthPlays");
+
+  const all = getGames().filter(g => g.plays > 0).sort((a, b) => b.plays - a.plays);
+  renderPodium(allTimePodium, all, "plays");
+  renderList(top10, all, 3, "plays");
 }
 
 /* ---------- NAV ---------- */
@@ -122,11 +139,5 @@ document.getElementById("nextMonth").onclick = () => {
   view.setMonth(view.getMonth() + 1);
   renderAll();
 };
-
-function renderAll() {
-  renderTracker();
-  renderTop10();
-  renderTopMonth();
-}
 
 renderAll();
