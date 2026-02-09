@@ -1,32 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Catalogue</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
 <header>
-  <h1>Catalogue</h1>
-  <button id="addGame">Add Game</button>
+  <h1>📚 Games</h1>
+  <nav>
+    <a href="index.html">Stats</a>
+    <a href="catalogue.html">Catalogue</a>
+    <a href="settings.html">Settings</a>
+  </nav>
 </header>
 
 <main>
   <div class="controls">
     <input id="search" placeholder="Search games">
-    <select id="sort">
-      <option value="name">Name</option>
-      <option value="plays">Plays</option>
-      <option value="rating">Rating</option>
-    </select>
+
+    <div class="control-group">
+      <select id="sort">
+        <option value="name">Name</option>
+        <option value="plays">Plays</option>
+        <option value="rating">Rating</option>
+      </select>
+      <button id="addGame">Add Game</button>
+    </div>
   </div>
 
-  <div id="list" class="game-grid"></div>
+  <div class="game-grid" id="list"></div>
 </main>
 
+<!-- Modal placeholder -->
 <div id="modal"></div>
 
-<script type="module" src="js/catalog.js"></script>
+<script type="module" src="js/data.js"></script>
+<script type="module" src="js/theme.js"></script>
+<script type="module" src="js/catalogue.js"></script>
 </body>
 </html>
