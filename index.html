@@ -18,23 +18,36 @@
 
 <main>
 
+  <!-- MONTH NAV -->
   <div class="card">
     <div class="tracker-header">
       <button id="prevMonth">←</button>
       <strong id="monthLabel"></strong>
       <button id="nextMonth">→</button>
     </div>
-    <div class="tracker-grid" id="globalTracker"></div>
   </div>
 
+  <!-- MONTHLY PODIUM -->
+  <section class="podium" id="monthPodium"></section>
+
+  <!-- MONTHLY 4–5 -->
   <section class="card">
-    <h2>Top 10 All-Time</h2>
-    <div id="top10"></div>
+    <h2>Monthly Ranks</h2>
+    <div id="monthRest"></div>
   </section>
 
+  <!-- TRACKER -->
+  <section class="card tracker-card">
+    <div class="tracker-grid small" id="globalTracker"></div>
+  </section>
+
+  <!-- ALL TIME PODIUM -->
+  <section class="podium" id="allTimePodium"></section>
+
+  <!-- ALL TIME 4–10 -->
   <section class="card">
-    <h2>Top 5 This Month</h2>
-    <div id="topMonth"></div>
+    <h2>All-Time Ranks</h2>
+    <div id="top10"></div>
   </section>
 
 </main>
