@@ -425,3 +425,29 @@ button {
   color: white;
   transform: scale(1.1);
 }
+
+/* --- CLOSE BUTTON CIRCLE FIX --- */
+.modal .close-button {
+  position: absolute;
+  top: -14px; /* slightly above the modal */
+  left: -14px; /* slightly to the left */
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid #ccc;
+  font-size: 18px;
+  line-height: 28px;
+  text-align: center;
+  color: var(--muted);
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  padding: 0;  /* prevent inherited padding */
+  margin: 0;   /* prevent inherited margin */
+}
+
+.modal .close-button:hover {
+  background: var(--accent);
+  color: white;
+  transform: scale(1.1);
+}
