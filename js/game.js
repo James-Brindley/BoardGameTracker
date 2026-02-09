@@ -24,28 +24,30 @@ function render() {
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/600x320";
 
-  plays.textContent = `${game.plays} plays`;
+  plays.textContent = game.plays;
   ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
   reviewView.textContent = game.review || "No review yet";
 
-  playTime.textContent = game.playTime || "—";
+  playTime.textContent =
+    game.playTime != null ? `${game.playTime} mins` : "—";
+
   playerCount.textContent = game.playerCount || "—";
 
   nameInput.value = game.name;
   imageInput.value = game.image || "";
   ratingInput.value = game.rating ?? "";
   reviewInput.value = game.review || "";
-  playTimeInput.value = game.playTime || "";
+  playTimeInput.value = game.playTime ?? "";
   playerCountInput.value = game.playerCount || "";
 }
 
-document.getElementById("plus").onclick = () => {
+document.getElementById("addPlay").onclick = () => {
   game.plays++;
   saveGames(games);
   render();
 };
 
-document.getElementById("minus").onclick = () => {
+document.getElementById("removePlay").onclick = () => {
   game.plays = Math.max(0, game.plays - 1);
   saveGames(games);
   render();
@@ -61,7 +63,8 @@ document.getElementById("save").onclick = () => {
   game.image = imageInput.value;
   game.rating = ratingInput.value !== "" ? Number(ratingInput.value) : null;
   game.review = reviewInput.value;
-  game.playTime = playTimeInput.value;
+  game.playTime =
+    playTimeInput.value !== "" ? Number(playTimeInput.value) : null;
   game.playerCount = playerCountInput.value;
 
   saveGames(games);
