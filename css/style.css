@@ -450,3 +450,57 @@ textarea, input {
   border-radius: 16px;
   margin-bottom: 0.6rem;
 }
+
+/* ---------- CATALOGUE CARDS ---------- */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.game-card {
+  cursor: pointer;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.game-card img {
+  width: 100%;
+  height: 160px; /* fixed rectangle */
+  object-fit: cover;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.card-stats {
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.game-card > div:last-child {
+  padding: 0 1rem 1rem 1rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+}
