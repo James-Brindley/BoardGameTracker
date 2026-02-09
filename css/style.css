@@ -214,3 +214,69 @@ textarea, input {
   font-size: 1.1rem;
   color: var(--muted);
 }
+
+/* --- HEADER --- */
+.header-compact {
+  padding: 0.8rem 2rem;
+}
+
+/* --- GAME TITLE --- */
+.game-title {
+  text-align: center;
+  font-size: 3.4rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+}
+
+/* --- PLAYS ROW --- */
+.plays-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.8rem;
+}
+
+.play-count {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.play-controls {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.play-controls button {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+/* --- REVIEW --- */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.review-header h2 {
+  margin: 0;
+}
+
+.rating-inline {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.review-text {
+  margin-top: 0.6rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+/* --- EDIT BUTTON --- */
+.edit-toggle {
+  display: block;
+  margin: 2rem auto 1rem;
+}
+
