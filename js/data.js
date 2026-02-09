@@ -14,9 +14,7 @@ export function todayKey() {
 
 export function addPlay(game) {
   if (!game.playHistory) game.playHistory = {};
-
   const today = todayKey();
   game.playHistory[today] = (game.playHistory[today] || 0) + 1;
-
   game.plays = Object.values(game.playHistory).reduce((a, b) => a + b, 0);
 }
