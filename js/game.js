@@ -41,8 +41,10 @@ function render() {
   playerCountInput.value = game.playerCount || "";
 }
 
+import { addPlay, saveGames } from "./data.js";
+
 document.getElementById("addPlay").onclick = () => {
-  game.plays++;
+  addPlay(game);
   saveGames(games);
   render();
 };
