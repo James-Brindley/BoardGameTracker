@@ -1,4 +1,4 @@
-import { getGames, saveGames, addPlay } from "./data.js";
+import { getGames, saveGames } from "./data.js";
 
 const params = new URLSearchParams(location.search);
 const id = Number(params.get("id"));
@@ -15,11 +15,9 @@ if (!game) {
 /* ---------- ELEMENTS ---------- */
 const title = document.getElementById("title");
 const image = document.getElementById("image");
-
 const plays = document.getElementById("plays");
 const ratingView = document.getElementById("ratingView");
 const reviewView = document.getElementById("reviewView");
-
 const playTime = document.getElementById("playTime");
 const playerCount = document.getElementById("playerCount");
 
@@ -30,6 +28,8 @@ const ratingInput = document.getElementById("rating");
 const reviewInput = document.getElementById("review");
 const playTimeInput = document.getElementById("playTimeInput");
 const playerCountInput = document.getElementById("playerCountInput");
+
+const trackerGrid = document.getElementById("gameTracker");
 
 /* ---------- RENDER ---------- */
 function render() {
@@ -55,20 +55,44 @@ function render() {
   reviewInput.value = game.review || "";
   playTimeInput.value = game.playTime ?? "";
   playerCountInput.value = game.playerCount ?? "";
+
+  renderTracker();
 }
 
-/* ---------- PLAYS ---------- */
-document.getElementById("addPlay").onclick = () => {
-  addPlay(game);
-  saveGames(games);
-  render();
-};
+/* ---------- GAME TRACKER ---------- */
+function renderTracker() {
+  trackerGrid.innerHTML = "";
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth(), 1);
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
 
-document.getElementById("removePlay").onclick = () => {
-  game.plays = Math.max(0, (game.plays || 0) - 1);
-  saveGames(games);
-  render();
-};
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(today.getFullYear(), today.getMonth(), d);
+    const dateKey = date.toISOString().split("T")[0];
+
+    const count = game.playHistory?.[dateKey] || 0;
+
+    const cell = document.createElement("div");
+    cell.className = "tracker-day " + (count ? `level-${Math.min(3, count)}` : "");
+    cell.title = `${dateKey} — ${count} plays`;
+
+    cell.onclick = () => {
+      if (!game.playHistory) game.playHistory = {};
+      if (count > 0) {
+        game.playHistory[dateKey]--;
+        game.plays = Math.max(0, game.plays - 1);
+        if (game.playHistory[dateKey] === 0) delete game.playHistory[dateKey];
+      } else {
+        game.playHistory[dateKey] = 1;
+        game.plays = (game.plays || 0) + 1;
+      }
+      saveGames(games);
+      render();
+    };
+
+    trackerGrid.appendChild(cell);
+  }
+}
 
 /* ---------- EDIT ---------- */
 document.getElementById("editToggle").onclick = () => {
@@ -76,31 +100,4 @@ document.getElementById("editToggle").onclick = () => {
     editPanel.style.display === "none" ? "block" : "none";
 };
 
-document.getElementById("save").onclick = () => {
-  game.name = nameInput.value.trim() || game.name;
-  game.image = imageInput.value.trim();
-  game.rating =
-    ratingInput.value !== "" ? Number(ratingInput.value) : null;
-  game.review = reviewInput.value.trim();
-  game.playTime =
-    playTimeInput.value !== "" ? Number(playTimeInput.value) : null;
-  game.playerCount = playerCountInput.value.trim();
-
-  saveGames(games);
-  editPanel.style.display = "none";
-  render();
-};
-
-/* ---------- DELETE ---------- */
-document.getElementById("deleteGame").onclick = () => {
-  const confirmed = confirm(
-    `Delete "${game.name}"?\nThis cannot be undone.`
-  );
-  if (!confirmed) return;
-
-  games.splice(gameIndex, 1);
-  saveGames(games);
-  location.href = "catalogue.html";
-};
-
-render();
+documen
