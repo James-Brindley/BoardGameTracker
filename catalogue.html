@@ -17,24 +17,168 @@
 <main>
   <div class="controls">
     <input id="search" placeholder="Search games">
-
-    <div class="control-group">
-      <select id="sort">
-        <option value="name">Name</option>
-        <option value="plays">Plays</option>
-        <option value="rating">Rating</option>
-      </select>
-      <button id="addGame">Add Game</button>
-    </div>
+    <select id="sort">
+      <option value="name">Name</option>
+      <option value="plays">Plays</option>
+      <option value="rating">Rating</option>
+    </select>
+    <button id="addGame">Add Game</button>
   </div>
 
   <div class="game-grid" id="list"></div>
 </main>
 
+<!-- Add Game Modal -->
 <div id="modal"></div>
 
 <script src="js/data.js"></script>
 <script src="js/theme.js"></script>
-<script src="js/catalogue.js"></script>
+<script>
+const list = document.getElementById("list");
+const search = document.getElementById("search");
+const sort = document.getElementById("sort");
+const modal = document.getElementById("modal");
+
+function render() {
+  let games = getGames();
+
+  const query = search.value.toLowerCase();
+  if (query) games = games.filter(g => g.name.toLowerCase().includes(query));
+
+  const key = sort.value;
+  games.sort((a,b) => key==="name" ? a.name.localeCompare(b.name) : (b[key]||0) - (a[key]||0));
+
+  list.innerHTML = "";
+  games.forEach(g => {
+    const card = document.createElement("div");
+    card.className = "card game-card";
+    card.innerHTML = `
+      <div class="card-header">
+        <strong class="game-name">${g.name}</strong>
+        <span class="game-rating">⭐ ${g.rating ?? "—"}</span>
+      </div>
+      <div class="card-body">
+        <div>Players: ${g.playerCount || "—"}</div>
+        <div>Time: ${g.playTime != null ? g.playTime+" mins" : "—"}</div>
+        <div>${g.plays} plays</div>
+      </div>
+    `;
+    card.onclick = () => location.href = `game.html?id=${g.id}`;
+    list.appendChild(card);
+  });
+}
+
+// Add Game Modal
+document.getElementById("addGame").onclick = () => {
+  modal.innerHTML = `
+    <div class="modal-backdrop">
+      <div class="card modal">
+        <button id="closeModal" class="close-modal">×</button>
+        <h2>Add Game</h2>
+        <input id="newName" placeholder="Game name">
+        <button id="create">Create</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("closeModal").onclick = () => { modal.innerHTML = ""; };
+
+  document.getElementById("create").onclick = () => {
+    const name = document.getElementById("newName").value.trim();
+    if (!name) return;
+
+    const games = getGames();
+    games.push({
+      id: Date.now(),
+      name,
+      plays: 0,
+      rating: null,
+      review: "",
+      image: "",
+      playerCount: "",
+      playTime: null
+    });
+    saveGames(games);
+    modal.innerHTML = "";
+    render();
+  };
+};
+
+search.oninput = render;
+sort.onchange = render;
+render();
+</script>
+
+<style>
+/* --- CONTROLS INLINE --- */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+}
+
+.controls input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #555;
+}
+
+.controls select, .controls button {
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #555;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* --- MODAL --- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  max-width: 360px;
+  width: 90%;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.close-modal {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.8rem;
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* --- GAME CARD --- */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.game-name { font-weight: 700; font-size: 1.1rem; }
+.game-rating { font-weight: 700; }
+
+.card-body {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.4rem;
+}
+</style>
 </body>
 </html>
