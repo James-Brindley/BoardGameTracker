@@ -1,6 +1,7 @@
 const id = Number(new URLSearchParams(location.search).get("id"));
 const games = getGames();
-const game = games.find(g => g.id === id);
+const gameIndex = games.findIndex(g => g.id === id);
+const game = games[gameIndex];
 
 const title = document.getElementById("title");
 const image = document.getElementById("image");
@@ -30,7 +31,6 @@ function render() {
 
   playTime.textContent =
     game.playTime != null ? `${game.playTime} mins` : "—";
-
   playerCount.textContent = game.playerCount || "—";
 
   nameInput.value = game.name;
@@ -70,6 +70,18 @@ document.getElementById("save").onclick = () => {
   saveGames(games);
   editPanel.style.display = "none";
   render();
+};
+
+document.getElementById("deleteGame").onclick = () => {
+  const confirmed = confirm(
+    `Are you sure you want to delete "${game.name}"?\nThis cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  games.splice(gameIndex, 1);
+  saveGames(games);
+  location.href = "catalogue.html";
 };
 
 render();
