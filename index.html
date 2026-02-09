@@ -18,35 +18,36 @@
 
 <main>
 
-  <!-- MONTH NAV -->
-  <div class="card">
-    <div class="tracker-header">
+  <!-- MONTHLY SECTION -->
+  <section class="card section-card">
+    <header class="section-header">
       <button id="prevMonth">←</button>
-      <strong id="monthLabel"></strong>
+      <h2 id="monthLabel">Month</h2>
       <button id="nextMonth">→</button>
-    </div>
-  </div>
+    </header>
 
-  <!-- MONTHLY PODIUM -->
-  <section class="podium" id="monthPodium"></section>
+    <!-- Monthly Podium -->
+    <div class="podium" id="monthPodium"></div>
 
-  <!-- MONTHLY 4–5 -->
-  <section class="card">
-    <h2>Monthly Ranks</h2>
+    <!-- Monthly 4–5 -->
     <div id="monthRest"></div>
+
+    <!-- Monthly Tracker -->
+    <div class="tracker-card">
+      <div class="tracker-grid small" id="globalTracker"></div>
+    </div>
   </section>
 
-  <!-- TRACKER -->
-  <section class="card tracker-card">
-    <div class="tracker-grid small" id="globalTracker"></div>
-  </section>
+  <!-- ALL-TIME SECTION -->
+  <section class="card section-card">
+    <header class="section-header">
+      <h2>All-Time Top Games</h2>
+    </header>
 
-  <!-- ALL TIME PODIUM -->
-  <section class="podium" id="allTimePodium"></section>
+    <!-- All-Time Podium -->
+    <div class="podium" id="allTimePodium"></div>
 
-  <!-- ALL TIME 4–10 -->
-  <section class="card">
-    <h2>All-Time Ranks</h2>
+    <!-- All-Time 4–10 -->
     <div id="top10"></div>
   </section>
 
