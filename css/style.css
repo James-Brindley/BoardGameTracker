@@ -280,3 +280,33 @@ textarea, input {
   margin: 2rem auto 1rem;
 }
 
+/* --- GAME STATS --- */
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 1.4rem;
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* --- PLAYS --- */
+.play-count {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.play-controls button {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.65rem;
+}
