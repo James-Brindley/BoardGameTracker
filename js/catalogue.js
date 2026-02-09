@@ -21,12 +21,13 @@ function render() {
     const card = document.createElement("div");
     card.className = "card game-card";
     card.innerHTML = `
+      <img src="${g.image || 'https://via.placeholder.com/400x160'}">
       <div class="card-header">
-        <strong>${g.name}</strong>
+        <span>${g.name}</span>
         <span>⭐ ${g.rating ?? "—"}</span>
       </div>
       <div class="card-stats">
-        <span>${g.playerCount || "—"} players</span> ·
+        <span>${g.playerCount || "—"} players</span>
         <span>${g.playTime != null ? g.playTime + " mins" : "—"}</span>
       </div>
       <div>${g.plays} plays</div>
@@ -35,6 +36,7 @@ function render() {
     list.appendChild(card);
   });
 }
+
 
 // --- ADD GAME MODAL ---
 document.getElementById("addGame").onclick = () => {
