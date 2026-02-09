@@ -73,14 +73,15 @@ function monthlyStats() {
 }
 
 /* ---------- PODIUM ---------- */
-function renderPodium(container, games, valueKey) {
+function renderPodium(container, games, valueKey, maxPodium = 3) {
   container.innerHTML = "";
 
-  const order = [1, 0, 2];
+  const podiumGames = games.slice(0, maxPodium);
+  const order = [1, 0, 2]; // for visual podium: middle is 1st
   const heights = ["podium-2", "podium-1", "podium-3"];
 
   order.forEach((i, v) => {
-    const g = games[i];
+    const g = podiumGames[i];
     if (!g) return;
 
     const card = document.createElement("div");
@@ -97,10 +98,10 @@ function renderPodium(container, games, valueKey) {
 }
 
 /* ---------- LIST ---------- */
-function renderList(container, games, start, valueKey) {
+function renderList(container, games, start, end, valueKey) {
   container.innerHTML = "";
-
-  games.slice(start).forEach((g, i) => {
+  const slice = games.slice(start, end);
+  slice.forEach((g, i) => {
     const row = document.createElement("div");
     row.className = "top10-row";
     row.innerHTML = `
@@ -116,17 +117,17 @@ function renderList(container, games, start, valueKey) {
   });
 }
 
-/* ---------- ALL ---------- */
+/* ---------- RENDER ALL ---------- */
 function renderAll() {
   renderTracker();
 
   const monthGames = monthlyStats();
-  renderPodium(monthPodium, monthGames, "monthPlays");
-  renderList(monthRest, monthGames, 3, "monthPlays");
+  renderPodium(monthPodium, monthGames, "monthPlays", 3);
+  renderList(monthRest, monthGames, 3, 5, "monthPlays"); // max 5 total
 
-  const all = getGames().filter(g => g.plays > 0).sort((a, b) => b.plays - a.plays);
-  renderPodium(allTimePodium, all, "plays");
-  renderList(top10, all, 3, "plays");
+  const allGames = getGames().filter(g => g.plays > 0).sort((a, b) => b.plays - a.plays);
+  renderPodium(allTimePodium, allGames, "plays", 3);
+  renderList(top10, allGames, 3, 10, "plays"); // max 10 total
 }
 
 /* ---------- NAV ---------- */
