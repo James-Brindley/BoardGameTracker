@@ -16,10 +16,11 @@
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, system-ui;
   background: var(--bg);
   color: var(--text);
@@ -65,6 +66,11 @@ button {
   padding: 0.6rem 1.2rem;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background: #005fcc;
 }
 
 /* ---------- CATALOGUE CONTROLS ---------- */
@@ -82,6 +88,7 @@ button {
   border-radius: 999px;
   border: 1px solid #555;
   font-size: 1rem;
+  height: 42px;
 }
 
 .control-group {
@@ -97,6 +104,15 @@ button {
   background: var(--card);
   color: var(--text);
   font-size: 0.95rem;
+  height: 42px;
+}
+
+.controls button {
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  height: 42px;
 }
 
 /* ---------- CATALOGUE CARDS ---------- */
@@ -221,6 +237,7 @@ button {
   margin-bottom: 1.5rem;
 }
 
+/* ---------- PLAYS ---------- */
 .play-count {
   font-size: 1.8rem;
   font-weight: 800;
@@ -312,47 +329,6 @@ button {
   background: #ff3b30;
 }
 
-/* ---------- CATALOGUE CONTROLS FIX ---------- */
-.controls {
-  display: flex;
-  align-items: center; /* vertical alignment of children */
-  justify-content: space-between;
-  margin-bottom: 2rem;
-}
-
-.controls input {
-  flex: 1;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
-  border: 1px solid #555;
-  font-size: 1rem;
-  height: 42px; /* fix height to match buttons */
-}
-
-.control-group {
-  display: flex;
-  align-items: center; /* vertical align buttons & select */
-  gap: 0.6rem;
-}
-
-.controls select {
-  padding: 0.6rem 1rem;
-  border-radius: 999px;
-  border: 1px solid #555;
-  background: var(--card);
-  color: var(--text);
-  font-size: 0.95rem;
-  height: 42px; /* match input height */
-}
-
-.controls button {
-  padding: 0.6rem 1.2rem;
-  font-weight: 600;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  height: 42px; /* same height as input/select */
-}
-
 /* ---------- MODAL ---------- */
 .modal-backdrop {
   position: fixed;
@@ -401,36 +377,11 @@ button {
   cursor: pointer;
 }
 
-/* --- CLOSE BUTTON CIRCLE --- */
+/* ---------- MODAL CLOSE BUTTON CIRCLE ---------- */
 .modal .close-button {
   position: absolute;
   top: -12px;
   left: -12px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--card);
-  border: 1px solid #ccc;
-  font-size: 18px;
-  line-height: 26px;
-  text-align: center;
-  color: var(--muted);
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  transition: all 0.2s;
-}
-
-.modal .close-button:hover {
-  background: var(--accent);
-  color: white;
-  transform: scale(1.1);
-}
-
-/* --- CLOSE BUTTON CIRCLE FIX --- */
-.modal .close-button {
-  position: absolute;
-  top: -14px; /* slightly above the modal */
-  left: -14px; /* slightly to the left */
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -442,8 +393,6 @@ button {
   color: var(--muted);
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  padding: 0;  /* prevent inherited padding */
-  margin: 0;   /* prevent inherited margin */
 }
 
 .modal .close-button:hover {
@@ -483,9 +432,8 @@ button {
   background: var(--accent);
   color: #fff;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 .settings-section button:hover {
-  background: #005fcc; /* slightly darker accent on hover */
+  background: #005fcc;
 }
