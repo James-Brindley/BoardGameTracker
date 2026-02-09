@@ -20,9 +20,7 @@
 
   <img id="image" class="game-image">
 
-  <!-- MAIN INFO CARD -->
   <div class="card stats-card">
-
     <button id="addPlay" class="add-play">＋</button>
 
     <div class="game-stats">
@@ -50,7 +48,6 @@
     <p id="reviewView" class="review-text"></p>
   </div>
 
-  <!-- EDIT -->
   <button id="editToggle" class="edit-toggle">Edit Game</button>
 
   <div id="editPanel" class="card" style="display:none">
@@ -75,6 +72,11 @@
     <div class="edit-section">
       <h3>Review</h3>
       <textarea id="review"></textarea>
+    </div>
+
+    <div class="edit-section danger-zone">
+      <h3>Danger Zone</h3>
+      <button id="deleteGame" class="danger">Delete Game</button>
     </div>
 
     <button id="save">Save</button>
