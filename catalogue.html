@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Game Catalogue</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-
 <header>
-  <h1>📚 Game Catalogue</h1>
+  <h1>📚 My Games</h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
@@ -16,18 +7,18 @@
 </header>
 
 <main>
-  <button id="addGameBtn">➕ Add Game</button>
+  <div class="controls">
+    <button id="addGameBtn">➕ Add Game</button>
 
-  <select id="sort">
-    <option value="name">Sort by Name</option>
-    <option value="plays">Sort by Plays</option>
-    <option value="rating">Sort by Rating</option>
-  </select>
+    <select id="sort">
+      <option value="name">Name</option>
+      <option value="plays">Most Played</option>
+      <option value="rating">Rating</option>
+    </select>
+  </div>
 
-  <ul id="gameList"></ul>
+  <div class="game-grid" id="gameList"></div>
 </main>
 
 <script src="js/data.js"></script>
 <script src="js/catalogue.js"></script>
-</body>
-</html>
