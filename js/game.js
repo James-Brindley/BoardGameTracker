@@ -4,23 +4,27 @@ const game = games.find(g => g.id === id);
 
 const title = document.getElementById("title");
 const image = document.getElementById("image");
-const playsEl = document.getElementById("plays");
+const plays = document.getElementById("plays");
+const ratingView = document.getElementById("ratingView");
+const reviewView = document.getElementById("reviewView");
 
 const editPanel = document.getElementById("editPanel");
 const nameInput = document.getElementById("name");
 const imageInput = document.getElementById("imageUrl");
-const reviewInput = document.getElementById("review");
 const ratingInput = document.getElementById("rating");
+const reviewInput = document.getElementById("review");
 
 function render() {
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/600";
-  playsEl.textContent = game.plays;
+  plays.textContent = `${game.plays} plays`;
+  ratingView.textContent = game.rating ?? "—";
+  reviewView.textContent = game.review || "No review yet";
 
   nameInput.value = game.name;
   imageInput.value = game.image || "";
-  reviewInput.value = game.review || "";
   ratingInput.value = game.rating ?? "";
+  reviewInput.value = game.review || "";
 }
 
 document.getElementById("plus").onclick = () => {
@@ -40,15 +44,14 @@ document.getElementById("editToggle").onclick = () => {
     editPanel.style.display === "none" ? "block" : "none";
 };
 
-[nameInput, imageInput, reviewInput, ratingInput].forEach(input => {
-  input.oninput = () => {
-    game.name = nameInput.value.trim();
-    game.image = imageInput.value.trim();
-    game.review = reviewInput.value;
-    game.rating = Number(ratingInput.value);
-    saveGames(games);
-    render();
-  };
-});
+document.getElementById("save").onclick = () => {
+  game.name = nameInput.value;
+  game.image = imageInput.value;
+  game.rating = Number(ratingInput.value);
+  game.review = reviewInput.value;
+  saveGames(games);
+  editPanel.style.display = "none";
+  render();
+};
 
 render();
