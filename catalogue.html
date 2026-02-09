@@ -15,8 +15,20 @@
 </header>
 
 <main>
+  <div class="controls">
+    <input id="search" placeholder="Search games">
+    <select id="sort">
+      <option value="name">Name</option>
+      <option value="plays">Plays</option>
+      <option value="rating">Rating</option>
+    </select>
+    <button id="addGame">Add Game</button>
+  </div>
+
   <div class="game-grid" id="list"></div>
 </main>
+
+<div id="modal"></div>
 
 <script src="js/data.js"></script>
 <script src="js/theme.js"></script>
