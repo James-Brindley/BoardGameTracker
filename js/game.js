@@ -1,23 +1,28 @@
-const params = new URLSearchParams(window.location.search);
-const id = Number(params.get("id"));
+<header>
+  <h1 id="gameName"></h1>
+  <nav>
+    <a href="index.html">Stats</a>
+    <a href="catalogue.html">Catalogue</a>
+  </nav>
+</header>
 
-let games = getGames();
-let game = games.find(g => g.id === id);
+<main>
+  <div class="card">
+    <h2>Plays</h2>
+    <div class="stat-number" id="plays">0</div>
+    <button id="logPlay">Log Play</button>
+  </div>
 
-document.getElementById("gameName").textContent = game.name;
-document.getElementById("plays").textContent = game.plays;
-document.getElementById("review").value = game.review;
-document.getElementById("rating").value = game.rating ?? "";
+  <div class="card section">
+    <h2>Review</h2>
+    <textarea id="review" placeholder="Your thoughts..."></textarea>
 
-document.getElementById("logPlay").onclick = () => {
-  game.plays++;
-  document.getElementById("plays").textContent = game.plays;
-};
+    <h2>Rating</h2>
+    <input type="number" id="rating" min="0" max="10" placeholder="0–10">
 
-document.getElementById("save").onclick = () => {
-  game.review = document.getElementById("review").value;
-  game.rating = Number(document.getElementById("rating").value);
+    <button id="save">Save</button>
+  </div>
+</main>
 
-  saveGames(games);
-  alert("Saved!");
-};
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
