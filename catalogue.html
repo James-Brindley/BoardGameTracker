@@ -18,6 +18,8 @@
   <div class="controls">
     <input id="search" placeholder="Search games">
 
+    <button id="filtersBtn">Filters</button>
+
     <div class="control-group">
       <select id="sort">
         <option value="name">Name</option>
@@ -28,10 +30,29 @@
     </div>
   </div>
 
+  <!-- FILTER PANEL -->
+  <div class="card" id="filtersPanel" style="display:none">
+    <h3>Filters</h3>
+
+    <label>Player Count</label>
+    <input id="playerFilter" type="number" placeholder="e.g. 3">
+
+    <label>Play Time (mins)</label>
+    <div style="display:flex; gap:.5rem">
+      <input id="timeMin" type="number" placeholder="Min">
+      <input id="timeMax" type="number" placeholder="Max">
+    </div>
+
+    <label>Tags</label>
+    <select id="tagFilter">
+      <option value="">Any</option>
+      <option value="top-month">Top Month</option>
+    </select>
+  </div>
+
   <div class="game-grid" id="list"></div>
 </main>
 
-<!-- Modal placeholder -->
 <div id="modal"></div>
 
 <script type="module" src="js/data.js"></script>
