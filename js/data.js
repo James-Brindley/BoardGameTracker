@@ -1,7 +1,71 @@
 const GAME_KEY = "boardGames";
 
+/* ---------- HELPERS ---------- */
+function parseRange(value) {
+  if (value == null) return null;
+
+  // number → {min,max}
+  if (typeof value === "number") {
+    return { min: value, max: value };
+  }
+
+  // string "2–4" or "2-4"
+  if (typeof value === "string") {
+    const parts = value.split(/[–-]/).map(n => parseInt(n.trim(), 10));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      return { min: parts[0], max: parts[1] };
+    }
+    const single = parseInt(value, 10);
+    if (!isNaN(single)) {
+      return { min: single, max: single };
+    }
+  }
+
+  return null;
+}
+
+function migrateGame(g) {
+  const migrated = { ...g };
+
+  // PLAYERS
+  if (!g.players) {
+    const parsed = parseRange(g.playerCount);
+    migrated.players = parsed || { min: null, max: null };
+  }
+
+  // PLAY TIME
+  if (!g.playTime || typeof g.playTime === "number") {
+    const parsed = parseRange(g.playTime);
+    migrated.playTime = parsed || { min: null, max: null };
+  }
+
+  // TAGS
+  if (!Array.isArray(g.tags)) {
+    migrated.tags = [];
+  }
+
+  // HISTORY SAFETY
+  if (!g.playHistory) migrated.playHistory = {};
+
+  // PLAYS
+  if (typeof g.plays !== "number") {
+    migrated.plays = Object.values(migrated.playHistory).reduce((a, b) => a + b, 0);
+  }
+
+  // CLEAN OLD FIELDS
+  delete migrated.playerCount;
+
+  return migrated;
+}
+
+/* ---------- PUBLIC API ---------- */
 export function getGames() {
-  return JSON.parse(localStorage.getItem(GAME_KEY)) || [];
+  const raw = JSON.parse(localStorage.getItem(GAME_KEY)) || [];
+  const migrated = raw.map(migrateGame);
+
+  // persist migration once
+  localStorage.setItem(GAME_KEY, JSON.stringify(migrated));
+  return migrated;
 }
 
 export function saveGames(games) {
@@ -10,41 +74,4 @@ export function saveGames(games) {
 
 export function todayKey() {
   return new Date().toISOString().split("T")[0];
-}
-
-export function addPlay(game) {
-  if (!game.playHistory) game.playHistory = {};
-  const today = todayKey();
-  game.playHistory[today] = (game.playHistory[today] || 0) + 1;
-  game.plays = Object.values(game.playHistory).reduce((a, b) => a + b, 0);
-}
-
-/* ---------- TAG AWARD ---------- */
-export function awardTopMonthTag(year, month) {
-  const games = getGames();
-  const key = `${year}-${String(month + 1).padStart(2, "0")}`;
-  let top = null;
-
-  games.forEach(g => {
-    const plays = Object.entries(g.playHistory || {})
-      .filter(([d]) => d.startsWith(key))
-      .reduce((a, [, v]) => a + v, 0);
-
-    if (!top || plays > top.plays) {
-      top = { game: g, plays };
-    }
-  });
-
-  if (!top || top.plays === 0) return;
-
-  const label = `Most Played · ${new Date(year, month).toLocaleString("default", {
-    month: "long",
-    year: "numeric"
-  })}`;
-
-  top.game.tags ??= [];
-  if (!top.game.tags.some(t => t.label === label)) {
-    top.game.tags.push({ type: "top-month", label });
-    saveGames(games);
-  }
 }
