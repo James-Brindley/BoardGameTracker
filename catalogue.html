@@ -1,62 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Catalogue</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <title>Game Catalogue</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<header>
-  <h1>📚 Games Catalogue</h1>
-  <nav>
-    <a href="index.html">Stats</a>
-    <a href="catalogue.html">Catalogue</a>
-    <a href="settings.html">Settings</a>
-  </nav>
+
+<header class="top-bar">
+  <input id="search" placeholder="Search games…" />
+  <select id="sort">
+    <option value="name">Name</option>
+    <option value="plays">Plays</option>
+    <option value="rating">Rating</option>
+  </select>
+  <button id="addGame">＋ Add</button>
 </header>
 
-<main>
-  <div class="controls">
-    <input id="search" placeholder="Search games">
-
-    <button id="filtersBtn">Filters</button>
-
-    <div class="control-group">
-      <select id="sort">
-        <option value="name">Name</option>
-        <option value="plays">Plays</option>
-        <option value="rating">Rating</option>
-      </select>
-      <button id="addGame">Add Game</button>
-    </div>
-  </div>
-
-  <!-- FILTER PANEL -->
-  <div class="card" id="filtersPanel" style="display:none">
-    <h3>Filters</h3>
-
-    <label>Player Count</label>
-    <input id="playerFilter" type="number" placeholder="e.g. 3">
-
-    <label>Play Time (mins)</label>
-    <div style="display:flex; gap:.5rem">
-      <input id="timeMin" type="number" placeholder="Min">
-      <input id="timeMax" type="number" placeholder="Max">
-    </div>
-
-    <label>Tags</label>
-    <select id="tagFilter">
+<section class="filters">
+  <div class="filter-group">
+    <label>Players</label>
+    <select id="filterPlayers">
       <option value="">Any</option>
-      <option value="top-month">Top Month</option>
+      <option value="1">1+</option>
+      <option value="2">2+</option>
+      <option value="3">3+</option>
+      <option value="4">4+</option>
+      <option value="5">5+</option>
     </select>
   </div>
 
-  <div class="game-grid" id="list"></div>
-</main>
+  <div class="filter-group">
+    <label>Playtime</label>
+    <select id="filterTime">
+      <option value="">Any</option>
+      <option value="15">≤ 15 mins</option>
+      <option value="30">≤ 30 mins</option>
+      <option value="60">≤ 60 mins</option>
+      <option value="120">≤ 2 hrs</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label>Rating</label>
+    <select id="filterRating">
+      <option value="">Any</option>
+      <option value="6">6+</option>
+      <option value="7">7+</option>
+      <option value="8">8+</option>
+      <option value="9">9+</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label>Status</label>
+    <select id="filterPlayed">
+      <option value="all">All</option>
+      <option value="played">Played</option>
+      <option value="unplayed">Unplayed</option>
+    </select>
+  </div>
+</section>
+
+<main id="list" class="game-grid"></main>
 
 <div id="modal"></div>
 
-<script type="module" src="js/data.js"></script>
-<script type="module" src="js/theme.js"></script>
 <script type="module" src="js/catalogue.js"></script>
 </body>
 </html>
