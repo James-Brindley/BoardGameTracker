@@ -655,3 +655,76 @@ body {
   font-size: 12px;
   opacity: .8;
 }
+
+/* ===============================
+   CATALOGUE PAGE ONLY
+   =============================== */
+
+.catalogue-page main {
+  padding: 1rem;
+}
+
+.catalogue-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.catalogue-toolbar input {
+  flex: 1;
+}
+
+.catalogue-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+}
+
+.filter-group select {
+  padding: 0.4rem;
+}
+
+.catalogue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.catalogue-grid .game-card {
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.catalogue-grid .game-card:hover {
+  transform: translateY(-2px);
+}
+
+.catalogue-grid img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.catalogue-grid .card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.6rem;
+}
+
+.catalogue-grid .card-stats {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.6rem 0.6rem;
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
