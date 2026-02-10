@@ -3,56 +3,35 @@ import { getGames, saveGames } from "./data.js";
 const list = document.getElementById("list");
 const search = document.getElementById("search");
 const sort = document.getElementById("sort");
+const modal = document.getElementById("modal");
 
-const filtersBtn = document.getElementById("filtersBtn");
-const filtersPanel = document.getElementById("filtersPanel");
-const playerFilter = document.getElementById("playerFilter");
-const timeMin = document.getElementById("timeMin");
-const timeMax = document.getElementById("timeMax");
-const tagFilter = document.getElementById("tagFilter");
-
-filtersBtn.onclick = () => {
-  filtersPanel.style.display =
-    filtersPanel.style.display === "none" ? "block" : "none";
-};
+function formatRange(r) {
+  if (!r || r.min == null) return "—";
+  return r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`;
+}
 
 function render() {
   let games = getGames();
 
-  const q = search.value.toLowerCase();
-  if (q) games = games.filter(g => g.name.toLowerCase().includes(q));
-
-  const p = Number(playerFilter.value);
-  if (p) {
-    games = games.filter(g =>
-      g.players && p >= g.players.min && p <= g.players.max
-    );
-  }
-
-  const minT = Number(timeMin.value);
-  const maxT = Number(timeMax.value);
-  if (minT || maxT) {
-    games = games.filter(g => {
-      if (!g.playTime) return false;
-      return (
-        (!minT || g.playTime.max >= minT) &&
-        (!maxT || g.playTime.min <= maxT)
-      );
-    });
-  }
-
-  if (tagFilter.value) {
-    games = games.filter(g =>
-      g.tags?.some(t => t.type === tagFilter.value)
-    );
+  const query = search.value.toLowerCase();
+  if (query) {
+    games = games.filter(g => g.name.toLowerCase().includes(query));
   }
 
   const key = sort.value;
   games.sort((a, b) =>
-    key === "name" ? a.name.localeCompare(b.name) : (b[key] || 0) - (a[key] || 0)
+    key === "name"
+      ? a.name.localeCompare(b.name)
+      : (b[key] || 0) - (a[key] || 0)
   );
 
   list.innerHTML = "";
+
+  if (!games.length) {
+    list.innerHTML = `<p style="opacity:0.6">No games yet</p>`;
+    return;
+  }
+
   games.forEach(g => {
     const card = document.createElement("div");
     card.className = "game-card";
@@ -63,20 +42,71 @@ function render() {
         <span>⭐ ${g.rating ?? "—"}</span>
       </div>
       <div class="card-stats">
-        <span>${g.players.min}${g.players.max > g.players.min ? `–${g.players.max}` : ""} players</span>
-        <span>${g.playTime.min}${g.playTime.max > g.playTime.min ? `–${g.playTime.max}` : ""} mins</span>
+        <span>${formatRange(g.players)} players</span>
+        <span>${formatRange(g.playTime)} mins</span>
       </div>
-      <div class="tag-row">
-        ${(g.tags || []).map(t => `<span class="tag gold">${t.label}</span>`).join("")}
-      </div>
+      <div>${g.plays || 0} plays</div>
     `;
-    card.onclick = () => location.href = `game.html?id=${g.id}`;
+    card.onclick = () => {
+      location.href = `game.html?id=${g.id}`;
+    };
     list.appendChild(card);
   });
 }
 
-[search, sort, playerFilter, timeMin, timeMax, tagFilter].forEach(
-  el => el.oninput = render
-);
+document.getElementById("addGame").onclick = () => {
+  modal.innerHTML = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="close-button">&times;</div>
+        <h2>Add Game</h2>
 
+        <input id="newName" placeholder="Game name">
+
+        <input id="playersMin" type="number" placeholder="Min players">
+        <input id="playersMax" type="number" placeholder="Max players">
+
+        <input id="timeMin" type="number" placeholder="Min playtime (mins)">
+        <input id="timeMax" type="number" placeholder="Max playtime (mins)">
+
+        <button id="create">Create</button>
+      </div>
+    </div>
+  `;
+
+  modal.querySelector(".close-button").onclick = () => modal.innerHTML = "";
+
+  document.getElementById("create").onclick = () => {
+    const name = document.getElementById("newName").value.trim();
+    if (!name) return;
+
+    const games = getGames();
+
+    games.push({
+      id: Date.now(),
+      name,
+      image: "",
+      players: {
+        min: Number(document.getElementById("playersMin").value) || null,
+        max: Number(document.getElementById("playersMax").value) || null
+      },
+      playTime: {
+        min: Number(document.getElementById("timeMin").value) || null,
+        max: Number(document.getElementById("timeMax").value) || null
+      },
+      tags: [],
+      playHistory: {},
+      plays: 0,
+      rating: null,
+      review: ""
+    });
+
+    saveGames(games);
+    modal.innerHTML = "";
+    render();
+  };
+};
+
+search.oninput = render;
+sort.onchange = render;
 render();
