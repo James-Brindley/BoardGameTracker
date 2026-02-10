@@ -15,81 +15,152 @@
 </header>
 
 <main>
+
+  <!-- APPEARANCE -->
   <div class="card settings-section">
     <h2>Appearance</h2>
     <p>Choose how the app looks.</p>
-  
+
     <button id="themeToggle">Toggle Dark Mode</button>
-  
+
     <h3 style="margin-top:1.5rem">Primary Colour</h3>
     <div class="accent-picker" id="accentPicker"></div>
   </div>
 
-
+  <!-- DATA -->
   <div class="card settings-section">
     <h2>Data</h2>
-    <p>Manage your stored board game data.</p>
+    <p>Import, export, or reset your board game data.</p>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:1rem;">
+      <button id="exportData">Export Data</button>
+      <button id="importData">Import Data</button>
+      <input id="importFile" type="file" accept="application/json" hidden>
+    </div>
+
     <button id="resetData" class="danger">Reset All Data</button>
   </div>
+
 </main>
 
 <script>
-  /* ---------- THEME ---------- */
-  const themeToggle = document.getElementById("themeToggle");
-  const savedTheme = localStorage.getItem("theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
+/* ---------- THEME ---------- */
+const themeToggle = document.getElementById("themeToggle");
+const savedTheme = localStorage.getItem("theme") || "light";
+document.documentElement.setAttribute("data-theme", savedTheme);
 
-  themeToggle.addEventListener("click", () => {
-    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    localStorage.setItem("theme", next);
-    document.documentElement.setAttribute("data-theme", next);
-  });
+themeToggle.onclick = () => {
+  const next =
+    document.documentElement.getAttribute("data-theme") === "dark"
+      ? "light"
+      : "dark";
+  localStorage.setItem("theme", next);
+  document.documentElement.setAttribute("data-theme", next);
+};
 
-  /* ---------- ACCENT COLOUR ---------- */
-  const ACCENT_COLORS = [
-    "#e63232",
-    "#f3722c",
-    "#f8961e",
-    "#ffd043",
-    "#7fc96b",
-    "#43aa8b",
-    "#277da1",
-    "#3b498e",
-    "#66418a"
-  ];
+/* ---------- ACCENT ---------- */
+const ACCENT_COLORS = [
+  "#e63232","#f3722c","#f8961e","#ffd043",
+  "#7fc96b","#43aa8b","#277da1","#3b498e","#66418a"
+];
 
-  const accentPicker = document.getElementById("accentPicker");
-  const currentAccent = localStorage.getItem("accent");
+const accentPicker = document.getElementById("accentPicker");
+const currentAccent = localStorage.getItem("accent");
 
-  ACCENT_COLORS.forEach(color => {
-    const swatch = document.createElement("div");
-    swatch.className = "accent-swatch";
-    swatch.style.background = color;
+ACCENT_COLORS.forEach(color => {
+  const swatch = document.createElement("div");
+  swatch.className = "accent-swatch";
+  swatch.style.background = color;
+  if (color === currentAccent) swatch.classList.add("active");
 
-    if (color === currentAccent) {
-      swatch.classList.add("active");
+  swatch.onclick = () => {
+    localStorage.setItem("accent", color);
+    document.documentElement.style.setProperty("--accent", color);
+    document.querySelectorAll(".accent-swatch")
+      .forEach(s => s.classList.remove("active"));
+    swatch.classList.add("active");
+  };
+
+  accentPicker.appendChild(swatch);
+});
+
+/* ---------- EXPORT ---------- */
+document.getElementById("exportData").onclick = () => {
+  const payload = {
+    meta: {
+      app: "Board Game Tracker",
+      version: 1,
+      exportedAt: new Date().toISOString()
+    },
+    storage: {}
+  };
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    payload.storage[key] = localStorage.getItem(key);
+  }
+
+  const blob = new Blob(
+    [JSON.stringify(payload, null, 2)],
+    { type: "application/json" }
+  );
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `boardgame-data-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+/* ---------- IMPORT ---------- */
+const fileInput = document.getElementById("importFile");
+
+document.getElementById("importData").onclick = () => {
+  fileInput.click();
+};
+
+fileInput.onchange = () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+
+      if (!data.storage || typeof data.storage !== "object") {
+        throw new Error("Invalid data file");
+      }
+
+      if (!confirm(
+        "Importing will replace ALL current data.\n\nContinue?"
+      )) return;
+
+      localStorage.clear();
+
+      Object.entries(data.storage).forEach(([k, v]) => {
+        localStorage.setItem(k, v);
+      });
+
+      location.reload();
+    } catch (err) {
+      alert("Import failed: invalid or corrupted file.");
     }
+  };
 
-    swatch.addEventListener("click", () => {
-      localStorage.setItem("accent", color);
-      document.documentElement.style.setProperty("--accent", color);
+  reader.readAsText(file);
+};
 
-      document
-        .querySelectorAll(".accent-swatch")
-        .forEach(s => s.classList.remove("active"));
+/* ---------- RESET ---------- */
+document.getElementById("resetData").onclick = () => {
+  if (!confirm(
+    "Are you sure you want to delete ALL your game data?\nThis cannot be undone."
+  )) return;
 
-      swatch.classList.add("active");
-    });
-
-    accentPicker.appendChild(swatch);
-  });
-
-  /* ---------- RESET ---------- */
-  document.getElementById("resetData").addEventListener("click", () => {
-    if (!confirm("Are you sure you want to delete ALL your game data? This cannot be undone!")) return;
-    localStorage.clear();
-    location.reload();
-  });
+  localStorage.clear();
+  location.reload();
+};
 </script>
+
 </body>
 </html>
