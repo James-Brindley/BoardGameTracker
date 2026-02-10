@@ -1,70 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Game Catalogue</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <title>Catalogue</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="catalogue-page">
 
-<header class="top-bar">
-  <input id="search" placeholder="Search games…" />
-  <select id="sort">
-    <option value="name">Name</option>
-    <option value="plays">Plays</option>
-    <option value="rating">Rating</option>
-  </select>
-  <button id="addGame">＋ Add</button>
+<header class="header-compact">
+  <h1>📚</h1>
+  <nav>
+    <a href="index.html">Stats</a>
+    <a href="catalogue.html">Catalogue</a>
+    <a href="settings.html">Settings</a>
+  </nav>
 </header>
 
-<section class="filters">
-  <div class="filter-group">
-    <label>Players</label>
-    <select id="filterPlayers">
-      <option value="">Any</option>
-      <option value="1">1+</option>
-      <option value="2">2+</option>
-      <option value="3">3+</option>
-      <option value="4">4+</option>
-      <option value="5">5+</option>
+<main>
+
+  <!-- SEARCH + SORT -->
+  <div class="card catalogue-toolbar">
+    <input id="search" placeholder="Search games…">
+    <select id="sort">
+      <option value="name">Name</option>
+      <option value="plays">Plays</option>
+      <option value="rating">Rating</option>
     </select>
+    <button id="addGame">＋ Add</button>
   </div>
 
-  <div class="filter-group">
-    <label>Playtime</label>
-    <select id="filterTime">
-      <option value="">Any</option>
-      <option value="15">≤ 15 mins</option>
-      <option value="30">≤ 30 mins</option>
-      <option value="60">≤ 60 mins</option>
-      <option value="120">≤ 2 hrs</option>
-    </select>
+  <!-- FILTERS -->
+  <div class="card catalogue-filters">
+    <div class="filter-group">
+      <label>Players</label>
+      <select id="filterPlayers">
+        <option value="">Any</option>
+        <option value="1">1+</option>
+        <option value="2">2+</option>
+        <option value="3">3+</option>
+        <option value="4">4+</option>
+        <option value="5">5+</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Playtime</label>
+      <select id="filterTime">
+        <option value="">Any</option>
+        <option value="15">≤ 15 min</option>
+        <option value="30">≤ 30 min</option>
+        <option value="60">≤ 60 min</option>
+        <option value="120">≤ 2 hrs</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Rating</label>
+      <select id="filterRating">
+        <option value="">Any</option>
+        <option value="6">6+</option>
+        <option value="7">7+</option>
+        <option value="8">8+</option>
+        <option value="9">9+</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Status</label>
+      <select id="filterPlayed">
+        <option value="all">All</option>
+        <option value="played">Played</option>
+        <option value="unplayed">Unplayed</option>
+      </select>
+    </div>
   </div>
 
-  <div class="filter-group">
-    <label>Rating</label>
-    <select id="filterRating">
-      <option value="">Any</option>
-      <option value="6">6+</option>
-      <option value="7">7+</option>
-      <option value="8">8+</option>
-      <option value="9">9+</option>
-    </select>
-  </div>
+  <!-- GAME LIST -->
+  <div id="list" class="catalogue-grid"></div>
 
-  <div class="filter-group">
-    <label>Status</label>
-    <select id="filterPlayed">
-      <option value="all">All</option>
-      <option value="played">Played</option>
-      <option value="unplayed">Unplayed</option>
-    </select>
-  </div>
-</section>
-
-<main id="list" class="game-grid"></main>
-
-<div id="modal"></div>
+</main>
 
 <script type="module" src="js/catalogue.js"></script>
 </body>
