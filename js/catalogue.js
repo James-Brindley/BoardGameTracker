@@ -5,18 +5,56 @@ const search = document.getElementById("search");
 const sort = document.getElementById("sort");
 const modal = document.getElementById("modal");
 
+/* FILTER ELEMENTS */
+const filterPlayers = document.getElementById("filterPlayers");
+const filterTime = document.getElementById("filterTime");
+const filterRating = document.getElementById("filterRating");
+const filterPlayed = document.getElementById("filterPlayed");
+
+/* FILTER STATE */
+const filters = {
+  players: null,
+  playTime: null,
+  minRating: null,
+  played: "all"
+};
+
 function formatRange(r) {
   if (!r || r.min == null) return "—";
   return r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`;
 }
 
+function applyFilters(games) {
+  return games.filter(g => {
+
+    if (filters.players != null) {
+      if (!g.players || g.players.max < filters.players) return false;
+    }
+
+    if (filters.playTime != null) {
+      if (!g.playTime || g.playTime.min > filters.playTime) return false;
+    }
+
+    if (filters.minRating != null) {
+      if ((g.rating ?? 0) < filters.minRating) return false;
+    }
+
+    if (filters.played === "played" && g.plays === 0) return false;
+    if (filters.played === "unplayed" && g.plays > 0) return false;
+
+    return true;
+  });
+}
+
 function render() {
   let games = getGames();
 
-  const query = search.value.toLowerCase();
-  if (query) {
-    games = games.filter(g => g.name.toLowerCase().includes(query));
+  const q = search.value.toLowerCase();
+  if (q) {
+    games = games.filter(g => g.name.toLowerCase().includes(q));
   }
+
+  games = applyFilters(games);
 
   const key = sort.value;
   games.sort((a, b) =>
@@ -28,7 +66,7 @@ function render() {
   list.innerHTML = "";
 
   if (!games.length) {
-    list.innerHTML = `<p style="opacity:0.6">No games yet</p>`;
+    list.innerHTML = `<p style="opacity:.6">No matching games</p>`;
     return;
   }
 
@@ -45,7 +83,7 @@ function render() {
         <span>${formatRange(g.players)} players</span>
         <span>${formatRange(g.playTime)} mins</span>
       </div>
-      <div>${g.plays || 0} plays</div>
+      <div style="padding:0 10px 10px">${g.plays || 0} plays</div>
     `;
     card.onclick = () => {
       location.href = `game.html?id=${g.id}`;
@@ -54,59 +92,28 @@ function render() {
   });
 }
 
-document.getElementById("addGame").onclick = () => {
-  modal.innerHTML = `
-    <div class="modal-backdrop">
-      <div class="modal">
-        <div class="close-button">&times;</div>
-        <h2>Add Game</h2>
+/* FILTER EVENTS */
+filterPlayers.onchange = () => {
+  filters.players = filterPlayers.value ? Number(filterPlayers.value) : null;
+  render();
+};
 
-        <input id="newName" placeholder="Game name">
+filterTime.onchange = () => {
+  filters.playTime = filterTime.value ? Number(filterTime.value) : null;
+  render();
+};
 
-        <input id="playersMin" type="number" placeholder="Min players">
-        <input id="playersMax" type="number" placeholder="Max players">
+filterRating.onchange = () => {
+  filters.minRating = filterRating.value ? Number(filterRating.value) : null;
+  render();
+};
 
-        <input id="timeMin" type="number" placeholder="Min playtime (mins)">
-        <input id="timeMax" type="number" placeholder="Max playtime (mins)">
-
-        <button id="create">Create</button>
-      </div>
-    </div>
-  `;
-
-  modal.querySelector(".close-button").onclick = () => modal.innerHTML = "";
-
-  document.getElementById("create").onclick = () => {
-    const name = document.getElementById("newName").value.trim();
-    if (!name) return;
-
-    const games = getGames();
-
-    games.push({
-      id: Date.now(),
-      name,
-      image: "",
-      players: {
-        min: Number(document.getElementById("playersMin").value) || null,
-        max: Number(document.getElementById("playersMax").value) || null
-      },
-      playTime: {
-        min: Number(document.getElementById("timeMin").value) || null,
-        max: Number(document.getElementById("timeMax").value) || null
-      },
-      tags: [],
-      playHistory: {},
-      plays: 0,
-      rating: null,
-      review: ""
-    });
-
-    saveGames(games);
-    modal.innerHTML = "";
-    render();
-  };
+filterPlayed.onchange = () => {
+  filters.played = filterPlayed.value;
+  render();
 };
 
 search.oninput = render;
 sort.onchange = render;
+
 render();
