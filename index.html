@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Game</title>
+  <title>Stats</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<header class="header-compact">
-  <h1>🎮</h1>
+<header>
+  <h1>📊 Stats</h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
@@ -17,82 +17,43 @@
 </header>
 
 <main>
-  <h1 class="game-title" id="title"></h1>
 
-  <img id="image" class="game-image">
-
-  <div class="card stats-card">
-
-    <div class="game-stats">
-      <div class="stat">
-        <span class="stat-label">Play Time</span>
-        <span id="playTime" class="stat-value"></span>
-      </div>
-
-      <div class="stat">
-        <span class="stat-label">Players</span>
-        <span id="playerCount" class="stat-value"></span>
-      </div>
-
-      <div class="stat">
-        <span class="stat-label">Plays</span>
-        <span id="plays" class="stat-value"></span>
-      </div>
-    </div>
-
-    <div class="review-header">
-      <h2>Review</h2>
-      <span id="ratingView" class="rating-inline"></span>
-    </div>
-
-    <p id="reviewView" class="review-text"></p>
-  </div>
-
-  <div class="card">
-    <h2>Play Tracker</h2>
-    <div class="tracker-header">
+  <!-- MONTHLY SECTION -->
+  <section class="card section-card">
+    <header class="section-header">
       <button id="prevMonth">←</button>
-      <strong id="monthLabel"></strong>
+      <h2 id="monthLabel">Month</h2>
       <button id="nextMonth">→</button>
+    </header>
+
+    <!-- Monthly Podium -->
+    <div class="podium" id="monthPodium"></div>
+
+    <!-- Monthly 4–5 -->
+    <div id="monthRest"></div>
+
+    <!-- Monthly Tracker -->
+    <div class="tracker-card">
+      <div class="tracker-grid small" id="globalTracker"></div>
     </div>
-    <div id="gameTracker" class="tracker-grid small"></div>
-  </div>
+  </section>
 
-  <button id="editToggle" class="edit-toggle">Edit Game</button>
+  <!-- ALL-TIME SECTION -->
+  <section class="card section-card">
+    <header class="section-header">
+      <h2>All-Time Top Games</h2>
+    </header>
 
-  <div id="editPanel" class="card" style="display:none">
-    <div class="edit-section">
-      <h3>Game Details</h3>
-      <input id="name" placeholder="Game name">
-      <input id="imageUrl" placeholder="Image URL">
-    </div>
+    <!-- All-Time Podium -->
+    <div class="podium" id="allTimePodium"></div>
 
-    <div class="edit-section">
-      <h3>Statistics</h3>
-      <input id="playTimeInput" type="number" placeholder="Play time (minutes)">
-      <input id="playerCountInput" placeholder="Player count (e.g. 2–4)">
-    </div>
+    <!-- All-Time 4–10 -->
+    <div id="top10"></div>
+  </section>
 
-    <div class="edit-section">
-      <h3>Scoring</h3>
-      <input id="rating" type="number" min="0" max="10" placeholder="Rating">
-    </div>
-
-    <div class="edit-section">
-      <h3>Review</h3>
-      <textarea id="review"></textarea>
-    </div>
-
-    <div class="edit-section danger-zone">
-      <h3>Danger Zone</h3>
-      <button id="deleteGame" class="danger">Delete Game</button>
-    </div>
-
-    <button id="save">Save</button>
-  </div>
 </main>
 
 <script type="module" src="js/theme.js"></script>
-<script type="module" src="js/game.js"></script>
+<script type="module" src="js/stats.js"></script>
 </body>
 </html>
