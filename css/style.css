@@ -727,3 +727,50 @@ body {
   font-size: 0.75rem;
   opacity: 0.75;
 }
+
+/* ================================
+   Catalogue search + filters UI
+   ================================ */
+
+.catalog-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.catalog-controls input[type="text"] {
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border, #ddd);
+  background: var(--card, #fff);
+  color: inherit;
+  font-size: 0.95rem;
+}
+
+.catalog-controls input::placeholder {
+  opacity: 0.6;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filters select {
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border, #ddd);
+  background: var(--card, #fff);
+  color: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Dark mode safety */
+[data-theme="dark"] .catalog-controls input,
+[data-theme="dark"] .filters select {
+  background: #1f1f1f;
+  border-color: #333;
+}
