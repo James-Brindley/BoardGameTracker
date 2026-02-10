@@ -1,8 +1,9 @@
-import { getGames } from "./data.js";
+import { getGames, saveGames } from "./data.js";
 
 const list = document.getElementById("list");
 const search = document.getElementById("search");
 const sort = document.getElementById("sort");
+const addBtn = document.getElementById("addGame");
 
 const filterPlayers = document.getElementById("filterPlayers");
 const filterTime = document.getElementById("filterTime");
@@ -38,6 +39,11 @@ function render() {
 
   list.innerHTML = "";
 
+  if (!games.length) {
+    list.innerHTML = `<div class="card">No games found</div>`;
+    return;
+  }
+
   games.forEach(g => {
     const card = document.createElement("div");
     card.className = "game-card";
@@ -58,6 +64,47 @@ function render() {
   });
 }
 
+/* ---------- ADD GAME MODAL ---------- */
+addBtn.onclick = () => {
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="close-button">×</div>
+      <h2>Add Game</h2>
+      <input id="newName" placeholder="Game name">
+      <input id="newImage" placeholder="Image URL (optional)">
+      <button id="saveNew">Add Game</button>
+    </div>
+  `;
+
+  backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
+
+  backdrop.querySelector("#saveNew").onclick = () => {
+    const name = backdrop.querySelector("#newName").value.trim();
+    if (!name) return alert("Game name required");
+
+    const image = backdrop.querySelector("#newImage").value.trim();
+
+    const games = getGames();
+    games.push({
+      id: crypto.randomUUID(),
+      name,
+      image,
+      plays: 0,
+      playHistory: {}
+    });
+
+    saveGames(games);
+    backdrop.remove();
+    render();
+  };
+
+  document.body.appendChild(backdrop);
+};
+
+/* EVENTS */
 search.oninput = render;
 sort.onchange = render;
 filterPlayers.onchange = () => { filters.players = +filterPlayers.value || null; render(); };
