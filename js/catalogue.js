@@ -93,8 +93,22 @@ addBtn.onclick = () => {
       name,
       image,
       plays: 0,
-      playHistory: {}
+    
+      rating: null,
+    
+      players: {
+        min: null,
+        max: null
+      },
+    
+      playTime: {
+        min: null,
+        max: null
+      },
+    
+      playHistory: {}   // date → count
     });
+
 
     saveGames(games);
     backdrop.remove();
