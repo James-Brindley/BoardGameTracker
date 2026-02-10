@@ -728,49 +728,47 @@ body {
   opacity: 0.75;
 }
 
-/* ================================
-   Catalogue search + filters UI
-   ================================ */
-
-.catalog-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-
-.catalog-controls input[type="text"] {
-  padding: 0.6rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--border, #ddd);
-  background: var(--card, #fff);
-  color: inherit;
+/* ---------- APPLE-LIKE INPUTS ---------- */
+.ui-input,
+.ui-select {
+  height: 42px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: var(--card);
+  color: var(--text);
   font-size: 0.95rem;
+  outline: none;
+  transition: border 0.15s, box-shadow 0.15s;
 }
 
-.catalog-controls input::placeholder {
-  opacity: 0.6;
+[data-theme="dark"] .ui-input,
+[data-theme="dark"] .ui-select {
+  border: 1px solid rgba(255,255,255,0.15);
 }
 
-.filters {
+.ui-input:focus,
+.ui-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* ---------- CATALOGUE TOOLBAR ---------- */
+.catalogue-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  align-items: center;
 }
 
-.filters select {
-  padding: 0.45rem 0.6rem;
-  border-radius: 8px;
-  border: 1px solid var(--border, #ddd);
-  background: var(--card, #fff);
-  color: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
+/* ---------- FILTER CARD ---------- */
+.catalogue-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
 }
 
-/* Dark mode safety */
-[data-theme="dark"] .catalog-controls input,
-[data-theme="dark"] .filters select {
-  background: #1f1f1f;
-  border-color: #333;
+.filter-group label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
 }
