@@ -263,11 +263,15 @@ function renderBadges() {
 
 function computeMonthlyTopBadges() {
 
-  const freshGames = getGames(); // ✅ ALWAYS FRESH DATA
+  const freshGames = getGames();
   const results = [];
+
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,"0")}`;
 
   const months = new Set();
 
+  // Collect all months that exist in play history
   freshGames.forEach(g => {
     Object.keys(g.playHistory || {}).forEach(date => {
       months.add(date.slice(0,7));
@@ -275,6 +279,9 @@ function computeMonthlyTopBadges() {
   });
 
   months.forEach(monthKey => {
+
+    // 🚫 SKIP CURRENT MONTH
+    if (monthKey === currentMonthKey) return;
 
     const monthlyTotals = freshGames.map(g => {
       const total = Object.entries(g.playHistory || {})
@@ -303,6 +310,7 @@ function computeMonthlyTopBadges() {
 
   return results;
 }
+
 
 /* ---------- ALL TIME RANK ---------- */
 
