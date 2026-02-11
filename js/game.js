@@ -130,7 +130,12 @@ function updatePlay(dateKey, delta) {
 function renderBadges() {
   badgeContainer.innerHTML = "";
 
-  const dynamic = computeMonthlyTopBadges();
+  const dynamic = [
+     ...computeMonthlyTopBadges(),
+     ...computeAllTimeRankBadges(),
+     ...computeMilestoneBadges()
+   ];
+   
   const saved = game.badges || [];
 
   const allBadges = [...dynamic, ...saved];
@@ -193,7 +198,53 @@ function computeMonthlyTopBadges() {
     }
   });
 
+
+
   return results;
 }
+
+function computeAllTimeRankBadges() {
+  const sorted = [...games]
+    .sort((a, b) => (b.plays || 0) - (a.plays || 0));
+
+  const index = sorted.findIndex(g => g.id === game.id);
+  const rank = index + 1;
+
+  if (rank > 3) return [];
+
+  const ranks = {
+    1: { type: "crown", title: "All-Time Champion" },
+    2: { type: "silver", title: "Grand Strategist" },
+    3: { type: "bronze", title: "Tabletop Contender" }
+  };
+
+  return [{
+    type: ranks[rank].type,
+    title: ranks[rank].title,
+    subtitle: `Rank #${rank} — ${game.plays || 0} plays`
+  }];
+}
+
+function computeMilestoneBadges() {
+  const milestones = [
+    { value: 5,  type: "meeple",   title: "Rookie Roller" },
+    { value: 10, type: "dice",     title: "Dice Adept" },
+    { value: 20, type: "guild",    title: "Guild Tactician" },
+    { value: 30, type: "table",    title: "Table Commander" },
+    { value: 40, type: "empire",   title: "Empire Architect" },
+    { value: 50, type: "legend",   title: "Legend of the Table" }
+  ];
+
+  const total = game.plays || 0;
+
+  return milestones
+    .filter(m => total >= m.value)
+    .map(m => ({
+      type: m.type,
+      title: m.title,
+      subtitle: `${m.value}+ Plays`
+    }));
+}
+
 
 render();
