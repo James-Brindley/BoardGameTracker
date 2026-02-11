@@ -1,158 +1,220 @@
 import { getGames, saveGames } from "./data.js";
 
+/* =============================
+   LOAD GAME
+============================= */
 const params = new URLSearchParams(location.search);
-const id = params.get("id"); // STRING — DO NOT Number()
+const id = params.get("id");
 
 const games = getGames();
-const gameIndex = games.findIndex(g => g.id === id);
-const game = games[gameIndex];
+const index = games.findIndex(g => g.id === id);
+const game = games[index];
 
 if (!game) {
-  alert("Game not found.");
+  alert("Game not found");
   location.href = "catalogue.html";
 }
 
-/* ---------- ELEMENTS ---------- */
+game.playHistory ||= {};
+game.players ||= { min: null, max: null };
+game.playTime ||= { min: null, max: null };
+
+/* =============================
+   ELEMENTS
+============================= */
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
 const ratingView = document.getElementById("ratingView");
 const reviewView = document.getElementById("reviewView");
-const playTime = document.getElementById("playTime");
-const playerCount = document.getElementById("playerCount");
-
-const editPanel = document.getElementById("editPanel");
-const nameInput = document.getElementById("name");
-const imageInput = document.getElementById("imageUrl");
-const ratingInput = document.getElementById("rating");
-const reviewInput = document.getElementById("review");
-const playTimeMinInput = document.getElementById("playTimeMin");
-const playTimeMaxInput = document.getElementById("playTimeMax");
-const playerMinInput = document.getElementById("playerMin");
-const playerMaxInput = document.getElementById("playerMax");
+const playTimeView = document.getElementById("playTime");
+const playerView = document.getElementById("playerCount");
 
 const trackerGrid = document.getElementById("gameTracker");
 const monthLabel = document.getElementById("monthLabel");
-const prevMonthBtn = document.getElementById("prevMonth");
-const nextMonthBtn = document.getElementById("nextMonth");
 
-let currentView = new Date();
+document.getElementById("prevMonth").onclick = () => {
+  view.setMonth(view.getMonth() - 1);
+  renderTracker();
+};
 
-/* ---------- SAFETY ---------- */
-if (!game.playHistory) game.playHistory = {};
+document.getElementById("nextMonth").onclick = () => {
+  view.setMonth(view.getMonth() + 1);
+  renderTracker();
+};
 
-/* ---------- RENDER ---------- */
+document.getElementById("editToggle").onclick = openEditModal;
+document.getElementById("deleteGame").onclick = deleteGame;
+
+/* =============================
+   STATE
+============================= */
+let view = new Date();
+
+/* =============================
+   RENDER
+============================= */
 function render() {
   title.textContent = game.name;
-  image.src = game.image || "https://via.placeholder.com/600x320";
-  plays.textContent = game.plays ?? 0;
-  ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
-  reviewView.textContent = game.review?.trim() || "No review yet";
+  image.src = game.image || "https://via.placeholder.com/800x360";
+  plays.textContent = game.plays || 0;
 
-  playTime.textContent =
-    game.playTime?.min != null
+  ratingView.textContent =
+    game.rating != null ? `${game.rating}/10` : "—";
+
+  reviewView.textContent =
+    game.review?.trim() || "No review yet";
+
+  playTimeView.textContent =
+    game.playTime.min != null
       ? `${game.playTime.min}–${game.playTime.max ?? game.playTime.min} mins`
       : "—";
 
-  playerCount.textContent =
-    game.players?.min != null
+  playerView.textContent =
+    game.players.min != null
       ? `${game.players.min}–${game.players.max ?? game.players.min} players`
       : "—";
-
-  nameInput.value = game.name;
-  imageInput.value = game.image || "";
-  ratingInput.value = game.rating ?? "";
-  reviewInput.value = game.review || "";
-
-  playTimeMinInput.value = game.playTime?.min ?? "";
-  playTimeMaxInput.value = game.playTime?.max ?? "";
-  playerMinInput.value = game.players?.min ?? "";
-  playerMaxInput.value = game.players?.max ?? "";
 
   renderTracker();
 }
 
-/* ---------- TRACKER ---------- */
+/* =============================
+   TRACKER (FIXED)
+============================= */
 function renderTracker() {
   trackerGrid.innerHTML = "";
 
-  const year = currentView.getFullYear();
-  const month = currentView.getMonth();
-  monthLabel.textContent = currentView.toLocaleString("default", {
+  const year = view.getFullYear();
+  const month = view.getMonth();
+  monthLabel.textContent = view.toLocaleString("default", {
     month: "long",
     year: "numeric"
   });
 
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const days = new Date(year, month + 1, 0).getDate();
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateKey = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const count = game.playHistory[dateKey] || 0;
+  for (let d = 1; d <= days; d++) {
+    const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const count = game.playHistory[key] || 0;
 
-    const dayCell = document.createElement("div");
-    dayCell.className = "tracker-day";
-    if (count > 0) dayCell.classList.add(`level-${Math.min(3,count)}`);
-    dayCell.innerHTML = `<div class="tracker-tooltip">${count} plays<br>${dateKey}</div>`;
+    const cell = document.createElement("div");
+    cell.className = "tracker-day";
+    if (count) cell.classList.add(`level-${Math.min(3, count)}`);
 
-    dayCell.onclick = () => {
-      game.playHistory[dateKey] = (game.playHistory[dateKey] || 0) + 1;
-      game.plays++;
-      saveGames(games);
-      render();
-    };
+    cell.innerHTML = `
+      <div class="tracker-tooltip">
+        ${count} plays<br>${key}
+      </div>
+    `;
 
-    dayCell.oncontextmenu = e => {
+    cell.onclick = () => updatePlay(key, +1);
+    cell.oncontextmenu = e => {
       e.preventDefault();
-      if (!game.playHistory[dateKey]) return;
-      game.playHistory[dateKey]--;
-      game.plays = Math.max(0, game.plays - 1);
-      if (game.playHistory[dateKey] === 0) delete game.playHistory[dateKey];
-      saveGames(games);
-      render();
+      updatePlay(key, -1);
     };
 
-    trackerGrid.appendChild(dayCell);
+    trackerGrid.appendChild(cell);
   }
 }
 
-/* ---------- EDIT ---------- */
-document.getElementById("save").onclick = () => {
-  game.name = nameInput.value.trim() || game.name;
-  game.image = imageInput.value.trim() || null;
-  game.rating = ratingInput.value !== "" ? Number(ratingInput.value) : null;
-  game.review = reviewInput.value.trim();
+function updatePlay(dateKey, delta) {
+  const current = game.playHistory[dateKey] || 0;
+  const next = Math.max(0, current + delta);
 
-  game.playTime = {
-    min: playTimeMinInput.value !== "" ? Number(playTimeMinInput.value) : null,
-    max: playTimeMaxInput.value !== "" ? Number(playTimeMaxInput.value) : null
-  };
+  if (next === 0) delete game.playHistory[dateKey];
+  else game.playHistory[dateKey] = next;
 
-  game.players = {
-    min: playerMinInput.value !== "" ? Number(playerMinInput.value) : null,
-    max: playerMaxInput.value !== "" ? Number(playerMaxInput.value) : null
-  };
+  game.plays = Math.max(0, (game.plays || 0) + delta);
 
   saveGames(games);
-  editPanel.style.display = "none";
-  render();
-};
+  renderTracker(); // 🔥 no full render loop
+  plays.textContent = game.plays;
+}
 
-/* ---------- DELETE ---------- */
-document.getElementById("deleteGame").onclick = () => {
-  if (!confirm(`Delete "${game.name}"?`)) return;
-  games.splice(gameIndex, 1);
+/* =============================
+   EDIT MODAL (NEW)
+============================= */
+function openEditModal() {
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="close-button">×</div>
+      <h2>Edit Game</h2>
+
+      <input class="ui-input" id="eName" placeholder="Game name">
+      <input class="ui-input" id="eImage" placeholder="Image URL">
+
+      <div class="row">
+        <input class="ui-input" id="pMin" type="number" placeholder="Players min">
+        <input class="ui-input" id="pMax" type="number" placeholder="Players max">
+      </div>
+
+      <div class="row">
+        <input class="ui-input" id="tMin" type="number" placeholder="Time min (mins)">
+        <input class="ui-input" id="tMax" type="number" placeholder="Time max (mins)">
+      </div>
+
+      <input class="ui-input" id="eRating" type="number" min="0" max="10" placeholder="Rating (0–10)">
+      <textarea class="ui-input" id="eReview" placeholder="Review"></textarea>
+
+      <button id="saveEdit">Save</button>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+
+  backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
+
+  // Prefill
+  backdrop.querySelector("#eName").value = game.name;
+  backdrop.querySelector("#eImage").value = game.image || "";
+  backdrop.querySelector("#pMin").value = game.players.min ?? "";
+  backdrop.querySelector("#pMax").value = game.players.max ?? "";
+  backdrop.querySelector("#tMin").value = game.playTime.min ?? "";
+  backdrop.querySelector("#tMax").value = game.playTime.max ?? "";
+  backdrop.querySelector("#eRating").value = game.rating ?? "";
+  backdrop.querySelector("#eReview").value = game.review ?? "";
+
+  backdrop.querySelector("#saveEdit").onclick = () => {
+    game.name = backdrop.querySelector("#eName").value.trim() || game.name;
+    game.image = backdrop.querySelector("#eImage").value.trim() || null;
+
+    game.players = {
+      min: num("#pMin"),
+      max: num("#pMax")
+    };
+
+    game.playTime = {
+      min: num("#tMin"),
+      max: num("#tMax")
+    };
+
+    const rating = backdrop.querySelector("#eRating").value;
+    game.rating = rating !== "" ? Number(rating) : null;
+
+    game.review = backdrop.querySelector("#eReview").value.trim();
+
+    saveGames(games);
+    backdrop.remove();
+    render();
+  };
+}
+
+function num(sel) {
+  const v = document.querySelector(sel).value;
+  return v === "" ? null : Number(v);
+}
+
+/* =============================
+   DELETE
+============================= */
+function deleteGame() {
+  if (!confirm(`Delete "${game.name}"? This cannot be undone.`)) return;
+  games.splice(index, 1);
   saveGames(games);
   location.href = "catalogue.html";
-};
-
-prevMonthBtn.onclick = () => {
-  currentView.setMonth(currentView.getMonth() - 1);
-  renderTracker();
-};
-
-nextMonthBtn.onclick = () => {
-  currentView.setMonth(currentView.getMonth() + 1);
-  renderTracker();
-};
+}
 
 render();
