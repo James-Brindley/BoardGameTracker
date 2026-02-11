@@ -37,6 +37,17 @@ const monthLabel = document.getElementById("monthLabel");
 
 let view = new Date();
 
+document.getElementById("prevMonth").addEventListener("click", () => {
+  view.setMonth(view.getMonth() - 1);
+  renderTracker();
+});
+
+document.getElementById("nextMonth").addEventListener("click", () => {
+  view.setMonth(view.getMonth() + 1);
+  renderTracker();
+});
+
+
 /* =============================
    RENDER
 ============================= */
