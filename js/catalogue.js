@@ -42,10 +42,13 @@ function render() {
 
   if (!isNaN(timeValue)) {
     games = games.filter(g =>
+      g.playTime?.min != null &&
       g.playTime?.max != null &&
-      g.playTime.max <= timeValue
+      timeValue >= g.playTime.min &&
+      timeValue <= g.playTime.max
     );
   }
+
 
   if (!isNaN(ratingValue)) {
     games = games.filter(g =>
