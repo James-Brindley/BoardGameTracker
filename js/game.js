@@ -1,7 +1,7 @@
 import { getGames, saveGames } from "./data.js";
 
 const params = new URLSearchParams(location.search);
-const id = Number(params.get("id"));
+const id = params.get("id"); // STRING — DO NOT Number()
 
 const games = getGames();
 const gameIndex = games.findIndex(g => g.id === id);
@@ -26,8 +26,10 @@ const nameInput = document.getElementById("name");
 const imageInput = document.getElementById("imageUrl");
 const ratingInput = document.getElementById("rating");
 const reviewInput = document.getElementById("review");
-const playTimeInput = document.getElementById("playTimeInput");
-const playerCountInput = document.getElementById("playerCountInput");
+const playTimeMinInput = document.getElementById("playTimeMin");
+const playTimeMaxInput = document.getElementById("playTimeMax");
+const playerMinInput = document.getElementById("playerMin");
+const playerMaxInput = document.getElementById("playerMax");
 
 const trackerGrid = document.getElementById("gameTracker");
 const monthLabel = document.getElementById("monthLabel");
@@ -36,8 +38,8 @@ const nextMonthBtn = document.getElementById("nextMonth");
 
 let currentView = new Date();
 
-/* ---------- INITIALIZE PLAY HISTORY ---------- */
-if (!game.playHistory) game.playHistory = {}; // { "YYYY-MM-DD": count }
+/* ---------- SAFETY ---------- */
+if (!game.playHistory) game.playHistory = {};
 
 /* ---------- RENDER ---------- */
 function render() {
@@ -46,15 +48,26 @@ function render() {
   plays.textContent = game.plays ?? 0;
   ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
   reviewView.textContent = game.review?.trim() || "No review yet";
-  playTime.textContent = game.playTime != null ? `${game.playTime} mins` : "—";
-  playerCount.textContent = game.playerCount?.toString() || "—";
+
+  playTime.textContent =
+    game.playTime?.min != null
+      ? `${game.playTime.min}–${game.playTime.max ?? game.playTime.min} mins`
+      : "—";
+
+  playerCount.textContent =
+    game.players?.min != null
+      ? `${game.players.min}–${game.players.max ?? game.players.min} players`
+      : "—";
 
   nameInput.value = game.name;
   imageInput.value = game.image || "";
   ratingInput.value = game.rating ?? "";
   reviewInput.value = game.review || "";
-  playTimeInput.value = game.playTime ?? "";
-  playerCountInput.value = game.playerCount ?? "";
+
+  playTimeMinInput.value = game.playTime?.min ?? "";
+  playTimeMaxInput.value = game.playTime?.max ?? "";
+  playerMinInput.value = game.players?.min ?? "";
+  playerMaxInput.value = game.players?.max ?? "";
 
   renderTracker();
 }
@@ -65,7 +78,10 @@ function renderTracker() {
 
   const year = currentView.getFullYear();
   const month = currentView.getMonth();
-  monthLabel.textContent = currentView.toLocaleString("default", { month: "long", year: "numeric" });
+  monthLabel.textContent = currentView.toLocaleString("default", {
+    month: "long",
+    year: "numeric"
+  });
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -78,42 +94,43 @@ function renderTracker() {
     if (count > 0) dayCell.classList.add(`level-${Math.min(3,count)}`);
     dayCell.innerHTML = `<div class="tracker-tooltip">${count} plays<br>${dateKey}</div>`;
 
-    // LEFT CLICK = ADD PLAY
-    dayCell.addEventListener("click", (e) => {
+    dayCell.onclick = () => {
       game.playHistory[dateKey] = (game.playHistory[dateKey] || 0) + 1;
-      game.plays = (game.plays || 0) + 1;
+      game.plays++;
       saveGames(games);
       render();
-    });
+    };
 
-    // RIGHT CLICK = REMOVE PLAY
-    dayCell.addEventListener("contextmenu", (e) => {
+    dayCell.oncontextmenu = e => {
       e.preventDefault();
-      if (game.playHistory[dateKey]) {
-        game.playHistory[dateKey]--;
-        game.plays = Math.max(0, game.plays - 1);
-        if (game.playHistory[dateKey] === 0) delete game.playHistory[dateKey];
-        saveGames(games);
-        render();
-      }
-    });
+      if (!game.playHistory[dateKey]) return;
+      game.playHistory[dateKey]--;
+      game.plays = Math.max(0, game.plays - 1);
+      if (game.playHistory[dateKey] === 0) delete game.playHistory[dateKey];
+      saveGames(games);
+      render();
+    };
 
     trackerGrid.appendChild(dayCell);
   }
 }
 
-/* ---------- EDIT PANEL ---------- */
-document.getElementById("editToggle").onclick = () => {
-  editPanel.style.display = editPanel.style.display === "none" ? "block" : "none";
-};
-
+/* ---------- EDIT ---------- */
 document.getElementById("save").onclick = () => {
   game.name = nameInput.value.trim() || game.name;
-  game.image = imageInput.value.trim();
+  game.image = imageInput.value.trim() || null;
   game.rating = ratingInput.value !== "" ? Number(ratingInput.value) : null;
   game.review = reviewInput.value.trim();
-  game.playTime = playTimeInput.value !== "" ? Number(playTimeInput.value) : null;
-  game.playerCount = playerCountInput.value.trim();
+
+  game.playTime = {
+    min: playTimeMinInput.value !== "" ? Number(playTimeMinInput.value) : null,
+    max: playTimeMaxInput.value !== "" ? Number(playTimeMaxInput.value) : null
+  };
+
+  game.players = {
+    min: playerMinInput.value !== "" ? Number(playerMinInput.value) : null,
+    max: playerMaxInput.value !== "" ? Number(playerMaxInput.value) : null
+  };
 
   saveGames(games);
   editPanel.style.display = "none";
@@ -122,15 +139,20 @@ document.getElementById("save").onclick = () => {
 
 /* ---------- DELETE ---------- */
 document.getElementById("deleteGame").onclick = () => {
-  if (!confirm(`Delete "${game.name}"? This cannot be undone.`)) return;
-
+  if (!confirm(`Delete "${game.name}"?`)) return;
   games.splice(gameIndex, 1);
   saveGames(games);
   location.href = "catalogue.html";
 };
 
-/* ---------- MONTH NAV ---------- */
-prevMonthBtn.onclick = () => { currentView.setMonth(currentView.getMonth() - 1); renderTracker(); };
-nextMonthBtn.onclick = () => { currentView.setMonth(currentView.getMonth() + 1); renderTracker(); };
+prevMonthBtn.onclick = () => {
+  currentView.setMonth(currentView.getMonth() - 1);
+  renderTracker();
+};
+
+nextMonthBtn.onclick = () => {
+  currentView.setMonth(currentView.getMonth() + 1);
+  renderTracker();
+};
 
 render();
