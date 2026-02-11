@@ -16,6 +16,8 @@ game.playHistory ||= {};
 game.players ||= { min: null, max: null };
 game.playTime ||= { min: null, max: null };
 
+let currentMonth = new Date().toISOString().slice(0, 7);
+
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
@@ -24,13 +26,20 @@ const reviewView = document.getElementById("reviewView");
 const playTimeView = document.getElementById("playTime");
 const playerView = document.getElementById("playerCount");
 
+const trackerGrid = document.getElementById("trackerGrid");
+const monthLabel = document.getElementById("monthLabel");
+const prevMonthBtn = document.getElementById("prevMonth");
+const nextMonthBtn = document.getElementById("nextMonth");
+const allTimeBoard = document.getElementById("allTimeLeaderboard");
+const achievementContainer = document.getElementById("achievements");
+
 function formatRange(min, max, suffix="") {
   if (min == null && max == null) return "—";
   if (min === max || max == null) return `${min}${suffix}`;
   return `${min}–${max}${suffix}`;
 }
 
-function render() {
+function renderInfo() {
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/800x360";
   plays.textContent = game.plays || 0;
@@ -45,62 +54,116 @@ function render() {
     formatRange(game.players.min, game.players.max, " players");
 }
 
-document.getElementById("editToggle").onclick = () => {
-  const backdrop = document.createElement("div");
-  backdrop.className = "modal-backdrop";
+function renderTracker() {
+  trackerGrid.innerHTML = "";
 
-  backdrop.innerHTML = `
-    <div class="modal">
-      <div class="close-button">×</div>
-      <h2>Edit Game</h2>
+  const [year, month] = currentMonth.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
 
-      <input id="editName" value="${game.name}">
-      <input id="editImage" value="${game.image || ""}" placeholder="Image URL">
+  monthLabel.textContent =
+    new Date(year, month - 1).toLocaleString("default", {
+      month: "long",
+      year: "numeric"
+    });
 
-      <div class="row">
-        <input id="editPMin" type="number" value="${game.players.min ?? ""}" placeholder="Players min">
-        <input id="editPMax" type="number" value="${game.players.max ?? ""}" placeholder="Players max">
-      </div>
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateKey = `${currentMonth}-${String(d).padStart(2, "0")}`;
+    const count = game.playHistory[dateKey] || 0;
 
-      <div class="row">
-        <input id="editTMin" type="number" value="${game.playTime.min ?? ""}" placeholder="Time min">
-        <input id="editTMax" type="number" value="${game.playTime.max ?? ""}" placeholder="Time max">
-      </div>
+    const cell = document.createElement("div");
+    cell.className = "tracker-cell";
+    if (count > 0) cell.classList.add("active");
+    cell.textContent = count > 0 ? count : "";
 
-      <input id="editRating" type="number" step="0.1" value="${game.rating ?? ""}" placeholder="Rating">
-      <textarea id="editReview" placeholder="Review">${game.review || ""}</textarea>
-
-      <button id="saveEdit">Save Changes</button>
-    </div>
-  `;
-
-  backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
-
-  backdrop.querySelector("#saveEdit").onclick = () => {
-    game.name = backdrop.querySelector("#editName").value.trim();
-    game.image = backdrop.querySelector("#editImage").value.trim() || null;
-
-    game.players = {
-      min: Number(backdrop.querySelector("#editPMin").value) || null,
-      max: Number(backdrop.querySelector("#editPMax").value) || null
+    cell.onclick = () => {
+      game.playHistory[dateKey] = (game.playHistory[dateKey] || 0) + 1;
+      game.plays++;
+      saveGames(games);
+      render();
     };
 
-    game.playTime = {
-      min: Number(backdrop.querySelector("#editTMin").value) || null,
-      max: Number(backdrop.querySelector("#editTMax").value) || null
+    cell.oncontextmenu = (e) => {
+      e.preventDefault();
+      if (game.playHistory[dateKey] > 0) {
+        game.playHistory[dateKey]--;
+        game.plays--;
+        if (game.playHistory[dateKey] <= 0) {
+          delete game.playHistory[dateKey];
+        }
+        saveGames(games);
+        render();
+      }
     };
 
-    const ratingValue = backdrop.querySelector("#editRating").value;
-    game.rating = ratingValue ? parseFloat(ratingValue) : null;
+    trackerGrid.appendChild(cell);
+  }
+}
 
-    game.review = backdrop.querySelector("#editReview").value.trim();
+function renderLeaderboard() {
+  const sorted = [...games].sort((a, b) => b.plays - a.plays);
+  const top10 = sorted.slice(0, 10);
 
-    saveGames(games);
-    backdrop.remove();
-    render();
-  };
+  allTimeBoard.innerHTML = "";
 
-  document.body.appendChild(backdrop);
+  top10.forEach((g, i) => {
+    const row = document.createElement("div");
+    row.className = "leaderboard-row";
+
+    let badge = "";
+    if (i === 0) badge = "🥇";
+    if (i === 1) badge = "🥈";
+    if (i === 2) badge = "🥉";
+
+    row.innerHTML = `
+      <span>${badge} ${i + 1}. ${g.name}</span>
+      <strong>${g.plays}</strong>
+    `;
+
+    allTimeBoard.appendChild(row);
+  });
+}
+
+function renderAchievements() {
+  achievementContainer.innerHTML = "";
+
+  const milestones = [
+    { value: 5, title: "Table Starter" },
+    { value: 10, title: "Card Conqueror" },
+    { value: 20, title: "Dice Veteran" },
+    { value: 30, title: "Meeple Master" },
+    { value: 40, title: "Board Warlord" },
+    { value: 50, title: "Legend of the Table" }
+  ];
+
+  milestones.forEach(m => {
+    if (game.plays >= m.value) {
+      const badge = document.createElement("div");
+      badge.className = "achievement-badge";
+      badge.textContent = `${m.title} (${m.value})`;
+      achievementContainer.appendChild(badge);
+    }
+  });
+}
+
+prevMonthBtn.onclick = () => {
+  const date = new Date(currentMonth + "-01");
+  date.setMonth(date.getMonth() - 1);
+  currentMonth = date.toISOString().slice(0, 7);
+  renderTracker();
 };
+
+nextMonthBtn.onclick = () => {
+  const date = new Date(currentMonth + "-01");
+  date.setMonth(date.getMonth() + 1);
+  currentMonth = date.toISOString().slice(0, 7);
+  renderTracker();
+};
+
+function render() {
+  renderInfo();
+  renderTracker();
+  renderLeaderboard();
+  renderAchievements();
+}
 
 render();
