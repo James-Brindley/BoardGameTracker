@@ -65,15 +65,25 @@ function render() {
   reviewView.textContent =
     game.review?.trim() || "No review yet";
 
-  playTimeView.textContent =
-    game.playTime.min != null
-      ? `${game.playTime.min}–${game.playTime.max ?? game.playTime.min} mins`
-      : "—";
+   if (game.playTime.min != null) {
+     if (game.playTime.max != null && game.playTime.max !== game.playTime.min) {
+       playTimeView.textContent = `${game.playTime.min}–${game.playTime.max} mins`;
+     } else {
+       playTimeView.textContent = `${game.playTime.min} mins`;
+     }
+   } else {
+     playTimeView.textContent = "—";
+   }
 
-  playerView.textContent =
-    game.players.min != null
-      ? `${game.players.min}–${game.players.max ?? game.players.min} players`
-      : "—";
+   if (game.players.min != null) {
+     if (game.players.max != null && game.players.max !== game.players.min) {
+       playerView.textContent = `${game.players.min}–${game.players.max} players`;
+     } else {
+       playerView.textContent = `${game.players.min} players`;
+     }
+   } else {
+     playerView.textContent = "—";
+   }
 
   renderTracker();
   renderBadges();
