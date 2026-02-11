@@ -56,37 +56,13 @@
     <div id="gameTracker" class="tracker-grid small"></div>
   </div>
 
-  <button id="editToggle" class="edit-toggle">Edit Game</button>
-  <div id="editPanel" class="card" style="display:none">
-    <div class="edit-section">
-      <h3>Game Details</h3>
-      <input id="name" placeholder="Game name">
-      <input id="imageUrl" placeholder="Image URL">
-    </div>
-
-    <div class="edit-section">
-      <h3>Statistics</h3>
-      <input id="playTimeInput" type="number" placeholder="Play time (minutes)">
-      <input id="playerCountInput" placeholder="Player count (e.g. 2–4)">
-    </div>
-
-    <div class="edit-section">
-      <h3>Scoring</h3>
-      <input id="rating" type="number" min="0" max="10" placeholder="Rating">
-    </div>
-
-    <div class="edit-section">
-      <h3>Review</h3>
-      <textarea id="review"></textarea>
-    </div>
-
-    <div class="edit-section danger-zone">
-      <h3>Danger Zone</h3>
-      <button id="deleteGame" class="danger">Delete Game</button>
-    </div>
-
-    <button id="save">Save</button>
+  <!-- BADGES SECTION -->
+  <div class="card">
+    <h2>🏅 Achievements</h2>
+    <div id="badgeContainer" class="badge-grid"></div>
   </div>
+
+  <button id="editToggle" class="edit-toggle">Edit Game</button>
 </main>
 
 <script type="module" src="js/theme.js"></script>
