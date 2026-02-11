@@ -25,11 +25,20 @@ function render() {
     games = games.filter(g => g.name.toLowerCase().includes(q));
   }
 
-  if (filters.players) games = games.filter(g => g.players?.max >= filters.players);
-  if (filters.playTime) games = games.filter(g => g.playTime?.min <= filters.playTime);
-  if (filters.minRating) games = games.filter(g => (g.rating ?? 0) >= filters.minRating);
-  if (filters.played === "played") games = games.filter(g => g.plays > 0);
-  if (filters.played === "unplayed") games = games.filter(g => g.plays === 0);
+  if (filters.players)
+    games = games.filter(g => g.players.max >= filters.players);
+
+  if (filters.playTime)
+    games = games.filter(g => g.playTime.min <= filters.playTime);
+
+  if (filters.minRating)
+    games = games.filter(g => (g.rating ?? 0) >= filters.minRating);
+
+  if (filters.played === "played")
+    games = games.filter(g => g.plays > 0);
+
+  if (filters.played === "unplayed")
+    games = games.filter(g => g.plays === 0);
 
   games.sort((a, b) =>
     sort.value === "name"
@@ -48,18 +57,19 @@ function render() {
     const card = document.createElement("div");
     card.className = "game-card";
     card.innerHTML = `
-      <img src="${g.image || "https://via.placeholder.com/400"}">
       <div class="card-header">
         <strong>${g.name}</strong>
         <span>⭐ ${g.rating ?? "—"}</span>
       </div>
       <div class="card-stats">
-        <span>${g.players?.min ?? "—"}–${g.players?.max ?? "—"} players</span>
-        <span>${g.playTime?.min ?? "—"}–${g.playTime?.max ?? "—"} min</span>
+        <span>${g.players.min}–${g.players.max} players</span>
+        <span>${g.playTime.min}–${g.playTime.max} min</span>
       </div>
-      <div class="plays">${g.plays || 0} plays</div>
+      <div class="plays">${g.plays} plays</div>
     `;
-    card.onclick = () => location.href = `game.html?id=${g.id}`;
+    card.onclick = () => {
+      location.href = `game.html?id=${g.id}`;
+    };
     list.appendChild(card);
   });
 }
@@ -73,8 +83,19 @@ addBtn.onclick = () => {
     <div class="modal">
       <div class="close-button">×</div>
       <h2>Add Game</h2>
+
       <input id="newName" placeholder="Game name">
-      <input id="newImage" placeholder="Image URL (optional)">
+
+      <div class="modal-row">
+        <input id="pMin" type="number" min="1" placeholder="Min players">
+        <input id="pMax" type="number" min="1" placeholder="Max players">
+      </div>
+
+      <div class="modal-row">
+        <input id="tMin" type="number" min="1" placeholder="Min minutes">
+        <input id="tMax" type="number" min="1" placeholder="Max minutes">
+      </div>
+
       <button id="saveNew">Add Game</button>
     </div>
   `;
@@ -83,32 +104,26 @@ addBtn.onclick = () => {
 
   backdrop.querySelector("#saveNew").onclick = () => {
     const name = backdrop.querySelector("#newName").value.trim();
-    if (!name) return alert("Game name required");
+    const pMin = Number(backdrop.querySelector("#pMin").value);
+    const pMax = Number(backdrop.querySelector("#pMax").value);
+    const tMin = Number(backdrop.querySelector("#tMin").value);
+    const tMax = Number(backdrop.querySelector("#tMax").value);
 
-    const image = backdrop.querySelector("#newImage").value.trim();
+    if (!name) return alert("Game name required");
+    if (!pMin || !pMax || pMin > pMax) return alert("Invalid player count");
+    if (!tMin || !tMax || tMin > tMax) return alert("Invalid play time");
 
     const games = getGames();
+
     games.push({
       id: crypto.randomUUID(),
       name,
-      image,
       plays: 0,
-    
       rating: null,
-    
-      players: {
-        min: null,
-        max: null
-      },
-    
-      playTime: {
-        min: null,
-        max: null
-      },
-    
-      playHistory: {}   // date → count
+      players: { min: pMin, max: pMax },
+      playTime: { min: tMin, max: tMax },
+      playHistory: {}
     });
-
 
     saveGames(games);
     backdrop.remove();
@@ -121,9 +136,25 @@ addBtn.onclick = () => {
 /* EVENTS */
 search.oninput = render;
 sort.onchange = render;
-filterPlayers.onchange = () => { filters.players = +filterPlayers.value || null; render(); };
-filterTime.onchange = () => { filters.playTime = +filterTime.value || null; render(); };
-filterRating.onchange = () => { filters.minRating = +filterRating.value || null; render(); };
-filterPlayed.onchange = () => { filters.played = filterPlayed.value; render(); };
+
+filterPlayers.onchange = () => {
+  filters.players = +filterPlayers.value || null;
+  render();
+};
+
+filterTime.onchange = () => {
+  filters.playTime = +filterTime.value || null;
+  render();
+};
+
+filterRating.onchange = () => {
+  filters.minRating = +filterRating.value || null;
+  render();
+};
+
+filterPlayed.onchange = () => {
+  filters.played = filterPlayed.value;
+  render();
+};
 
 render();
