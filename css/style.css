@@ -772,3 +772,42 @@ body {
   color: var(--muted);
   margin-bottom: 0.2rem;
 }
+
+/* =============================
+   BADGES
+============================= */
+
+.badge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.badge {
+  padding: 1rem 1.2rem;
+  border-radius: 18px;
+  min-width: 180px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+  color: white;
+}
+
+.badge-title {
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.badge-sub {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  margin-top: 0.3rem;
+}
+
+/* Gold monthly badge */
+.badge-gold {
+  background: linear-gradient(
+    135deg,
+    #D4AF37,
+    #F6E27A
+  );
+  color: #2c2c2e;
+}
