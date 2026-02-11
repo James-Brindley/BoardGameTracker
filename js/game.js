@@ -18,6 +18,7 @@ if (!game) {
 game.playHistory ||= {};
 game.players ||= { min: null, max: null };
 game.playTime ||= { min: null, max: null };
+game.badges ||= []; // saved badges (non-dynamic)
 
 /* =============================
    ELEMENTS
@@ -29,26 +30,11 @@ const ratingView = document.getElementById("ratingView");
 const reviewView = document.getElementById("reviewView");
 const playTimeView = document.getElementById("playTime");
 const playerView = document.getElementById("playerCount");
+const badgeContainer = document.getElementById("badgeContainer");
 
 const trackerGrid = document.getElementById("gameTracker");
 const monthLabel = document.getElementById("monthLabel");
 
-document.getElementById("prevMonth").onclick = () => {
-  view.setMonth(view.getMonth() - 1);
-  renderTracker();
-};
-
-document.getElementById("nextMonth").onclick = () => {
-  view.setMonth(view.getMonth() + 1);
-  renderTracker();
-};
-
-document.getElementById("editToggle").onclick = openEditModal;
-document.getElementById("deleteGame").onclick = deleteGame;
-
-/* =============================
-   STATE
-============================= */
 let view = new Date();
 
 /* =============================
@@ -76,16 +62,18 @@ function render() {
       : "—";
 
   renderTracker();
+  renderBadges();
 }
 
 /* =============================
-   TRACKER (FIXED)
+   TRACKER
 ============================= */
 function renderTracker() {
   trackerGrid.innerHTML = "";
 
   const year = view.getFullYear();
   const month = view.getMonth();
+
   monthLabel.textContent = view.toLocaleString("default", {
     month: "long",
     year: "numeric"
@@ -100,12 +88,6 @@ function renderTracker() {
     const cell = document.createElement("div");
     cell.className = "tracker-day";
     if (count) cell.classList.add(`level-${Math.min(3, count)}`);
-
-    cell.innerHTML = `
-      <div class="tracker-tooltip">
-        ${count} plays<br>${key}
-      </div>
-    `;
 
     cell.onclick = () => updatePlay(key, +1);
     cell.oncontextmenu = e => {
@@ -127,94 +109,80 @@ function updatePlay(dateKey, delta) {
   game.plays = Math.max(0, (game.plays || 0) + delta);
 
   saveGames(games);
-  renderTracker(); // 🔥 no full render loop
-  plays.textContent = game.plays;
+  render();
 }
 
 /* =============================
-   EDIT MODAL (NEW)
+   BADGE ENGINE
 ============================= */
-function openEditModal() {
-  const backdrop = document.createElement("div");
-  backdrop.className = "modal-backdrop";
 
-  backdrop.innerHTML = `
-    <div class="modal">
-      <div class="close-button">×</div>
-      <h2>Edit Game</h2>
+function renderBadges() {
+  badgeContainer.innerHTML = "";
 
-      <input class="ui-input" id="eName" placeholder="Game name">
-      <input class="ui-input" id="eImage" placeholder="Image URL">
+  const dynamic = computeMonthlyTopBadges();
+  const saved = game.badges || [];
 
-      <div class="row">
-        <input class="ui-input" id="pMin" type="number" placeholder="Players min">
-        <input class="ui-input" id="pMax" type="number" placeholder="Players max">
-      </div>
+  const allBadges = [...dynamic, ...saved];
 
-      <div class="row">
-        <input class="ui-input" id="tMin" type="number" placeholder="Time min (mins)">
-        <input class="ui-input" id="tMax" type="number" placeholder="Time max (mins)">
-      </div>
+  if (allBadges.length === 0) {
+    badgeContainer.innerHTML = "<p style='opacity:.6'>No achievements yet.</p>";
+    return;
+  }
 
-      <input class="ui-input" id="eRating" type="number" min="0" max="10" placeholder="Rating (0–10)">
-      <textarea class="ui-input" id="eReview" placeholder="Review"></textarea>
-
-      <button id="saveEdit">Save</button>
-    </div>
-  `;
-
-  document.body.appendChild(backdrop);
-
-  backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
-
-  // Prefill
-  backdrop.querySelector("#eName").value = game.name;
-  backdrop.querySelector("#eImage").value = game.image || "";
-  backdrop.querySelector("#pMin").value = game.players.min ?? "";
-  backdrop.querySelector("#pMax").value = game.players.max ?? "";
-  backdrop.querySelector("#tMin").value = game.playTime.min ?? "";
-  backdrop.querySelector("#tMax").value = game.playTime.max ?? "";
-  backdrop.querySelector("#eRating").value = game.rating ?? "";
-  backdrop.querySelector("#eReview").value = game.review ?? "";
-
-  backdrop.querySelector("#saveEdit").onclick = () => {
-    game.name = backdrop.querySelector("#eName").value.trim() || game.name;
-    game.image = backdrop.querySelector("#eImage").value.trim() || null;
-
-    game.players = {
-      min: num("#pMin"),
-      max: num("#pMax")
-    };
-
-    game.playTime = {
-      min: num("#tMin"),
-      max: num("#tMax")
-    };
-
-    const rating = backdrop.querySelector("#eRating").value;
-    game.rating = rating !== "" ? Number(rating) : null;
-
-    game.review = backdrop.querySelector("#eReview").value.trim();
-
-    saveGames(games);
-    backdrop.remove();
-    render();
-  };
+  allBadges.forEach(b => {
+    const el = document.createElement("div");
+    el.className = `badge badge-${b.type}`;
+    el.innerHTML = `
+      <div class="badge-title">${b.title}</div>
+      <div class="badge-sub">${b.subtitle}</div>
+    `;
+    badgeContainer.appendChild(el);
+  });
 }
 
-function num(sel) {
-  const v = document.querySelector(sel).value;
-  return v === "" ? null : Number(v);
-}
+/* ---------- MONTHLY TOP BADGE (DYNAMIC) ---------- */
 
-/* =============================
-   DELETE
-============================= */
-function deleteGame() {
-  if (!confirm(`Delete "${game.name}"? This cannot be undone.`)) return;
-  games.splice(index, 1);
-  saveGames(games);
-  location.href = "catalogue.html";
+function computeMonthlyTopBadges() {
+  const results = [];
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,"0")}`;
+
+  const months = new Set();
+
+  games.forEach(g => {
+    Object.keys(g.playHistory || {}).forEach(date => {
+      months.add(date.slice(0,7));
+    });
+  });
+
+  months.forEach(monthKey => {
+
+    if (monthKey === currentMonthKey) return; // no current month
+
+    const monthlyTotals = games.map(g => {
+      const total = Object.entries(g.playHistory || {})
+        .filter(([d]) => d.startsWith(monthKey))
+        .reduce((a,[,v]) => a+v,0);
+      return { id: g.id, total };
+    });
+
+    const max = Math.max(...monthlyTotals.map(g => g.total));
+    if (max === 0) return;
+
+    const winners = monthlyTotals.filter(g => g.total === max);
+
+    if (winners.some(w => w.id === game.id)) {
+      const [year, month] = monthKey.split("-");
+      const dateObj = new Date(year, month - 1);
+      results.push({
+        type: "gold",
+        title: "Top Game of the Month",
+        subtitle: `${dateObj.toLocaleString("default",{month:"long"})} ${year}`
+      });
+    }
+  });
+
+  return results;
 }
 
 render();
