@@ -850,3 +850,43 @@ body {
 .badge-legend {
   background: linear-gradient(135deg, #2D3436, #636E72);
 }
+
+/* Day number */
+.tracker-day {
+  position: relative;
+}
+
+.day-number {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+/* Today border */
+.tracker-day.today {
+  border: 2px solid var(--accent);
+}
+
+/* Tooltip */
+.tracker-tooltip {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+  padding: 6px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 5;
+}
+
+.tracker-day:hover .tracker-tooltip {
+  opacity: 1;
+}
