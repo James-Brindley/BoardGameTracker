@@ -230,7 +230,7 @@ document.getElementById("editToggle").addEventListener("click", () => {
 });
 
 /* =============================
-   BADGES (UNCHANGED ENGINE)
+   BADGES ENGINE (FIXED)
 ============================= */
 
 function renderBadges() {
@@ -258,6 +258,106 @@ function renderBadges() {
     badgeContainer.appendChild(el);
   });
 }
+
+/* ---------- MONTHLY TOP ---------- */
+
+function computeMonthlyTopBadges() {
+
+  const freshGames = getGames(); // ✅ ALWAYS FRESH DATA
+  const results = [];
+
+  const months = new Set();
+
+  freshGames.forEach(g => {
+    Object.keys(g.playHistory || {}).forEach(date => {
+      months.add(date.slice(0,7));
+    });
+  });
+
+  months.forEach(monthKey => {
+
+    const monthlyTotals = freshGames.map(g => {
+      const total = Object.entries(g.playHistory || {})
+        .filter(([d]) => d.startsWith(monthKey))
+        .reduce((a,[,v]) => a+v,0);
+      return { id: g.id, total };
+    });
+
+    const max = Math.max(...monthlyTotals.map(g => g.total));
+    if (max === 0) return;
+
+    const winners = monthlyTotals.filter(g => g.total === max);
+
+    if (winners.some(w => w.id === game.id)) {
+
+      const [year, month] = monthKey.split("-");
+      const dateObj = new Date(year, month - 1);
+
+      results.push({
+        type: "gold",
+        title: "Top Game of the Month",
+        subtitle: `${dateObj.toLocaleString("default",{month:"long"})} ${year}`
+      });
+    }
+  });
+
+  return results;
+}
+
+/* ---------- ALL TIME RANK ---------- */
+
+function computeAllTimeRankBadges() {
+
+  const freshGames = getGames(); // ✅ FIX
+
+  const sorted = [...freshGames]
+    .sort((a, b) => (b.plays || 0) - (a.plays || 0));
+
+  const rankIndex = sorted.findIndex(g => g.id === game.id);
+
+  if (rankIndex === -1) return [];
+
+  const rank = rankIndex + 1;
+
+  if (rank > 3) return [];
+
+  const ranks = {
+    1: { type: "crown",  title: "All-Time Champion" },
+    2: { type: "silver", title: "Grand Strategist" },
+    3: { type: "bronze", title: "Tabletop Contender" }
+  };
+
+  return [{
+    type: ranks[rank].type,
+    title: ranks[rank].title,
+    subtitle: `Rank #${rank} — ${game.plays || 0} plays`
+  }];
+}
+
+/* ---------- MILESTONES ---------- */
+
+function computeMilestoneBadges() {
+
+  const total = game.plays || 0;
+
+  const milestones = [
+    { value: 5,  type: "meeple",  title: "Rookie Roller" },
+    { value: 10, type: "dice",    title: "Dice Adept" },
+    { value: 20, type: "guild",   title: "Guild Tactician" },
+    { value: 30, type: "table",   title: "Table Commander" },
+    { value: 40, type: "empire",  title: "Empire Architect" },
+    { value: 50, type: "legend",  title: "Legend of the Table" }
+  ];
+
+  return milestones
+    .filter(m => total >= m.value)
+    .map(m => ({
+      type: m.type,
+      title: m.title,
+      subtitle: `${m.value}+ Plays`
+    }));
+}
+
 
 /* ----- existing badge compute functions unchanged ----- */
 /* (keep your computeMonthlyTopBadges, computeAllTimeRankBadges, computeMilestoneBadges exactly as they are) */
