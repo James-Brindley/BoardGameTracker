@@ -811,3 +811,42 @@ body {
   );
   color: #2c2c2e;
 }
+
+.badge-crown {
+  background: linear-gradient(135deg, #FFD700, #FFB700);
+  color: #2c2c2e;
+}
+
+.badge-silver {
+  background: linear-gradient(135deg, #C0C0C0, #E5E4E2);
+  color: #2c2c2e;
+}
+
+.badge-bronze {
+  background: linear-gradient(135deg, #CD7F32, #B87333);
+  color: white;
+}
+
+.badge-meeple {
+  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+}
+
+.badge-dice {
+  background: linear-gradient(135deg, #0984E3, #74B9FF);
+}
+
+.badge-guild {
+  background: linear-gradient(135deg, #00B894, #55EFC4);
+}
+
+.badge-table {
+  background: linear-gradient(135deg, #E17055, #FAB1A0);
+}
+
+.badge-empire {
+  background: linear-gradient(135deg, #D63031, #FF7675);
+}
+
+.badge-legend {
+  background: linear-gradient(135deg, #2D3436, #636E72);
+}
