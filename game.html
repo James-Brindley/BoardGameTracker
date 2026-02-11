@@ -8,7 +8,7 @@
 <body>
 
 <header class="header-compact">
-  <h1>🎮</h1>
+  <h1> 🎮 Game </h1>
   <nav>
     <a href="index.html">Stats</a>
     <a href="catalogue.html">Catalogue</a>
@@ -18,11 +18,9 @@
 
 <main>
   <h1 class="game-title" id="title"></h1>
-
   <img id="image" class="game-image">
 
   <div class="card stats-card">
-
     <div class="game-stats">
       <div class="stat">
         <span class="stat-label">Play Time</span>
@@ -44,11 +42,10 @@
       <h2>Review</h2>
       <span id="ratingView" class="rating-inline"></span>
     </div>
-
     <p id="reviewView" class="review-text"></p>
   </div>
 
-  <!-- TRACKER -->
+  <!-- GAME TRACKER -->
   <div class="card">
     <h2>Play Tracker</h2>
     <div class="tracker-header">
@@ -56,64 +53,19 @@
       <strong id="monthLabel"></strong>
       <button id="nextMonth">→</button>
     </div>
-    <div id="trackerGrid" class="tracker-grid"></div>
+    <div id="gameTracker" class="tracker-grid small"></div>
   </div>
 
-  <!-- ACHIEVEMENTS -->
+  <!-- BADGES SECTION -->
   <div class="card">
-    <h2>Achievements</h2>
-    <div id="achievements" class="achievements-grid"></div>
+    <h2>🏅 Achievements</h2>
+    <div id="badgeContainer" class="badge-grid"></div>
   </div>
 
-  <!-- ALL TIME LEADERBOARD -->
-  <div class="card">
-    <h2>All Time Leaderboard</h2>
-    <div id="allTimeLeaderboard"></div>
-  </div>
-
-  <!-- EDIT BUTTON -->
   <button id="editToggle" class="edit-toggle">Edit Game</button>
-
-  <!-- EDIT PANEL -->
-  <div id="editPanel" class="card" style="display:none">
-
-    <div class="edit-section">
-      <h3>Game Details</h3>
-      <input id="name" placeholder="Game name">
-      <input id="imageUrl" placeholder="Image URL">
-    </div>
-
-    <div class="edit-section">
-      <h3>Players</h3>
-      <input id="minPlayers" type="number" placeholder="Min players">
-      <input id="maxPlayers" type="number" placeholder="Max players">
-    </div>
-
-    <div class="edit-section">
-      <h3>Play Time</h3>
-      <input id="minTime" type="number" placeholder="Min minutes">
-      <input id="maxTime" type="number" placeholder="Max minutes">
-    </div>
-
-    <div class="edit-section">
-      <h3>Rating</h3>
-      <input id="rating" type="number" min="0" max="10" placeholder="Rating">
-    </div>
-
-    <div class="edit-section">
-      <h3>Review</h3>
-      <textarea id="review"></textarea>
-    </div>
-
-    <div class="edit-section danger-zone">
-      <button id="deleteGame" class="danger">Delete Game</button>
-    </div>
-
-    <button id="save">Save</button>
-  </div>
-
 </main>
 
+<script type="module" src="js/theme.js"></script>
 <script type="module" src="js/game.js"></script>
 </body>
 </html>
