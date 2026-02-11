@@ -19,6 +19,7 @@ game.playTime ||= { min: null, max: null };
 let currentMonth = new Date().toISOString().slice(0, 7);
 
 /* ---------- ELEMENTS ---------- */
+
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
@@ -32,20 +33,24 @@ const monthLabel = document.getElementById("monthLabel");
 const prevMonthBtn = document.getElementById("prevMonth");
 const nextMonthBtn = document.getElementById("nextMonth");
 
-const achievementContainer = document.getElementById("badgeContainer");
+const badgeContainer = document.getElementById("badgeContainer");
+
 const editToggle = document.getElementById("editToggle");
 
-/* ---------- FORMAT RANGE ---------- */
-function formatRange(min, max, suffix="") {
+/* ---------- FORMAT HELPERS ---------- */
+
+function formatRange(min, max, suffix = "") {
   if (min == null && max == null) return "—";
   if (min === max || max == null) return `${min}${suffix}`;
   return `${min}–${max}${suffix}`;
 }
 
-/* ---------- INFO ---------- */
+/* ---------- RENDER GAME INFO ---------- */
+
 function renderInfo() {
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/800x360";
+
   plays.textContent = game.plays || 0;
 
   ratingView.textContent =
@@ -62,9 +67,8 @@ function renderInfo() {
 }
 
 /* ---------- TRACKER ---------- */
-function renderTracker() {
-  if (!trackerGrid) return;
 
+function renderTracker() {
   trackerGrid.innerHTML = "";
 
   const [year, month] = currentMonth.split("-").map(Number);
@@ -81,11 +85,15 @@ function renderTracker() {
     const count = game.playHistory[dateKey] || 0;
 
     const cell = document.createElement("div");
-    cell.className = "tracker-cell";
-    if (count > 0) cell.classList.add("active");
-    cell.textContent = count > 0 ? count : "";
+    cell.className = "tracker-day";
 
-    cell.onclick = () => {
+    if (count > 0) {
+      cell.classList.add("level-" + Math.min(count, 3));
+      cell.textContent = count;
+    }
+
+    /* Left click = add */
+    cell.addEventListener("click", () => {
       game.playHistory[dateKey] =
         (game.playHistory[dateKey] || 0) + 1;
 
@@ -93,14 +101,15 @@ function renderTracker() {
 
       saveGames(games);
       render();
-    };
+    });
 
-    cell.oncontextmenu = (e) => {
+    /* Right click = remove */
+    cell.addEventListener("contextmenu", (e) => {
       e.preventDefault();
 
-      if (game.playHistory[dateKey] > 0) {
+      if (game.playHistory[dateKey]) {
         game.playHistory[dateKey]--;
-        game.plays = Math.max(0, game.plays - 1);
+        game.plays = Math.max(0, (game.plays || 0) - 1);
 
         if (game.playHistory[dateKey] <= 0) {
           delete game.playHistory[dateKey];
@@ -109,17 +118,16 @@ function renderTracker() {
         saveGames(games);
         render();
       }
-    };
+    });
 
     trackerGrid.appendChild(cell);
   }
 }
 
 /* ---------- ACHIEVEMENTS ---------- */
-function renderAchievements() {
-  if (!achievementContainer) return;
 
-  achievementContainer.innerHTML = "";
+function renderAchievements() {
+  badgeContainer.innerHTML = "";
 
   const milestones = [
     { value: 5, title: "Table Starter" },
@@ -135,37 +143,41 @@ function renderAchievements() {
       const badge = document.createElement("div");
       badge.className = "achievement-badge";
       badge.textContent = `${m.title} (${m.value})`;
-      achievementContainer.appendChild(badge);
+      badgeContainer.appendChild(badge);
     }
   });
 }
 
 /* ---------- MONTH NAV ---------- */
-prevMonthBtn.onclick = () => {
+
+prevMonthBtn.addEventListener("click", () => {
   const date = new Date(currentMonth + "-01");
   date.setMonth(date.getMonth() - 1);
   currentMonth = date.toISOString().slice(0, 7);
   renderTracker();
-};
+});
 
-nextMonthBtn.onclick = () => {
+nextMonthBtn.addEventListener("click", () => {
   const date = new Date(currentMonth + "-01");
   date.setMonth(date.getMonth() + 1);
   currentMonth = date.toISOString().slice(0, 7);
   renderTracker();
-};
+});
 
-/* ---------- SIMPLE EDIT ---------- */
-editToggle.onclick = () => {
+/* ---------- EDIT BUTTON ---------- */
+
+editToggle.addEventListener("click", () => {
   const newName = prompt("Edit game name:", game.name);
-  if (newName !== null && newName.trim() !== "") {
-    game.name = newName.trim();
-    saveGames(games);
-    render();
-  }
-};
+  if (newName === null) return;
 
-/* ---------- RENDER ---------- */
+  game.name = newName.trim() || game.name;
+
+  saveGames(games);
+  render();
+});
+
+/* ---------- MAIN RENDER ---------- */
+
 function render() {
   renderInfo();
   renderTracker();
