@@ -9,8 +9,6 @@ const monthRest = document.getElementById("monthRest");
 const allTimePodium = document.getElementById("allTimePodium");
 const top10 = document.getElementById("top10");
 
-const monthLabel = document.getElementById("monthLabel");
-
 let view = new Date();
 
 /* ---------- HELPERS ---------- */
@@ -26,12 +24,6 @@ function renderTracker() {
   const month = view.getMonth();
   label.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
 
-  monthLabel.textContent = view.toLocaleString("default", {
-    month: "long",
-    year: "numeric"
-  });
-
-  const today = new Date();
   const days = new Date(year, month + 1, 0).getDate();
   const games = getGames();
 
@@ -41,12 +33,6 @@ function renderTracker() {
     let total = 0;
     let details = [];
 
-    /* ---------- DAY NUMBER ---------- */
-    const dayNumber = document.createElement("span");
-    dayNumber.className = "day-number";
-    dayNumber.textContent = d;
-    cell.appendChild(dayNumber);
-
     games.forEach(g => {
       const count = g.playHistory?.[date] || 0;
       if (count) {
@@ -54,15 +40,6 @@ function renderTracker() {
         details.push(`${g.name} (${count})`);
       }
     });
-
-    /* ---------- TODAY BORDER ---------- */
-    if (
-      today.getFullYear() === year &&
-      today.getMonth() === month &&
-      today.getDate() === d
-    ) {
-      cell.classList.add("today");
-    }
 
     const cell = document.createElement("div");
     cell.className = `tracker-day ${total ? `level-${Math.min(3, total)}` : ""}`;
