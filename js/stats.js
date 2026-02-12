@@ -9,6 +9,8 @@ const monthRest = document.getElementById("monthRest");
 const allTimePodium = document.getElementById("allTimePodium");
 const top10 = document.getElementById("top10");
 
+const monthLabel = document.getElementById("monthLabel");
+
 let view = new Date();
 
 /* ---------- HELPERS ---------- */
@@ -23,6 +25,11 @@ function renderTracker() {
   const year = view.getFullYear();
   const month = view.getMonth();
   label.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
+
+  monthLabel.textContent = view.toLocaleString("default", {
+    month: "long",
+    year: "numeric"
+  });
 
   const days = new Date(year, month + 1, 0).getDate();
   const games = getGames();
