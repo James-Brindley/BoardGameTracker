@@ -116,7 +116,7 @@ function renderTracker() {
 
     /* ---------- LEVEL COLOR ---------- */
     if (count > 0) {
-      cell.classList.add(`level-${Math.min(5, count)}`);
+      cell.classList.add(`level-${Math.min(3, count)}`);
     }
 
     /* ---------- TODAY BORDER ---------- */
