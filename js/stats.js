@@ -42,7 +42,7 @@ function renderTracker() {
     });
 
     const cell = document.createElement("div");
-    cell.className = `tracker-day ${total ? `level-${Math.min(5, total)}` : ""}`;
+    cell.className = `tracker-day ${total ? `level-${Math.min(3, total)}` : ""}`;
 
     if (total) {
       cell.innerHTML = `
