@@ -28,7 +28,7 @@ function renderTracker() {
   const games = getGames();
 
   for (let d = 1; d <= days; d++) {
-    const date = `${String(d).padStart(2, "0")}/${String(month + 1).padStart(2, "0")}/${year}`;
+    const date = `${String(d).padStart(2, "0")}-${String(month + 1).padStart(2, "0")}-${year}`;
 
     let total = 0;
     let details = [];
