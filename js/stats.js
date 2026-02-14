@@ -1,22 +1,5 @@
-import { getGames, setCurrentUser } from "./data.js";
-import { onUserChange, login } from "./firebase.js";
+import { getGames } from "./data.js";
 
-/* =============================
-   AUTH SETUP
-============================= */
-onUserChange(async user => {
-  if (!user) {
-    alert("Please login to view your stats.");
-    login();
-    return;
-  }
-  setCurrentUser(user);
-  await renderAll();
-});
-
-/* =============================
-   ELEMENTS
-============================= */
 const tracker = document.getElementById("globalTracker");
 const label = document.getElementById("monthLabel");
 
@@ -28,9 +11,7 @@ const top10 = document.getElementById("top10");
 
 let view = new Date();
 
-/* =============================
-   HELPERS
-============================= */
+/* ---------- HELPERS ---------- */
 function monthKey() {
   return `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
 }
@@ -50,7 +31,7 @@ async function renderTracker() {
   const games = await getGames();
 
   for (let d = 1; d <= days; d++) {
-    const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const key = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
     let total = 0;
     let details = [];
@@ -66,10 +47,13 @@ async function renderTracker() {
     const cell = document.createElement("div");
     cell.className = "tracker-day";
 
-    // 5-level intensity
     if (total > 0) cell.classList.add(`level-${Math.min(5, total)}`);
-    if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d)
-      cell.classList.add("today");
+
+    if (
+      today.getFullYear() === year &&
+      today.getMonth() === month &&
+      today.getDate() === d
+    ) cell.classList.add("today");
 
     const dayNumber = document.createElement("span");
     dayNumber.className = "day-number";
@@ -78,20 +62,20 @@ async function renderTracker() {
 
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
+
     tooltip.innerHTML = `
-      <strong>${String(d).padStart(2,"0")}/
-      ${String(month + 1).padStart(2,"0")}/${year}</strong><br>
+      <strong>${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}/${year}</strong><br>
       ${total} total play${total !== 1 ? "s" : ""}
       ${details.length ? `<hr style="margin:4px 0; opacity:.3;">${details.join("<br>")}` : ""}
     `;
-    cell.appendChild(tooltip);
 
+    cell.appendChild(tooltip);
     tracker.appendChild(cell);
   }
 }
 
 /* =============================
-   MONTHLY STATS
+   MONTHLY DATA
 ============================= */
 async function monthlyStats() {
   const key = monthKey();
@@ -110,7 +94,7 @@ async function monthlyStats() {
 }
 
 /* =============================
-   PODIUM
+   PODIUM / LIST RENDER
 ============================= */
 function renderPodium(container, games, valueKey, maxPodium = 3) {
   container.innerHTML = "";
@@ -136,9 +120,6 @@ function renderPodium(container, games, valueKey, maxPodium = 3) {
   });
 }
 
-/* =============================
-   LIST
-============================= */
 function renderList(container, games, start, end, valueKey) {
   container.innerHTML = "";
   const slice = games.slice(start, end);
@@ -160,9 +141,9 @@ function renderList(container, games, start, end, valueKey) {
 }
 
 /* =============================
-   RENDER EVERYTHING
+   RENDER ALL
 ============================= */
-export async function renderAll() {
+async function renderAll() {
   await renderTracker();
 
   const monthGames = await monthlyStats();
@@ -178,16 +159,16 @@ export async function renderAll() {
 }
 
 /* =============================
-   MONTH NAVIGATION
+   NAVIGATION
 ============================= */
-document.getElementById("prevMonth").onclick = () => {
+document.getElementById("prevMonth").onclick = async () => {
   view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
-  renderAll();
+  await renderAll();
 };
 
-document.getElementById("nextMonth").onclick = () => {
+document.getElementById("nextMonth").onclick = async () => {
   view = new Date(view.getFullYear(), view.getMonth() + 1, 1);
-  renderAll();
+  await renderAll();
 };
 
 /* =============================
