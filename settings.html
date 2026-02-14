@@ -41,9 +41,36 @@
     <button id="resetData" class="danger">Reset All Data</button>
   </div>
 
+  <div class="card settings-section">
+  <h2>Account</h2>
+  <p id="userEmail">Loading account info...</p>
+  <button id="logoutBtn" class="danger" style="margin-top: 10px;">Log Out</button>
+</div>
+
 </main>
 
-<script>
+<script type="module">
+  import { logout, getCurrentUser } from './js/data.js';
+
+  // Display the user's email
+  async function initSettings() {
+    const user = await getCurrentUser();
+    if (user) {
+      document.getElementById('userEmail').textContent = `Logged in as: ${user.email}`;
+    } else {
+      window.location.href = 'login.html';
+    }
+  }
+
+  // Handle Logout button
+  document.getElementById('logoutBtn').onclick = async () => {
+    if (confirm("Are you sure you want to log out?")) {
+      await logout();
+    }
+  };
+
+  initSettings();
+  
 /* ---------- THEME ---------- */
 const themeToggle = document.getElementById("themeToggle");
 const savedTheme = localStorage.getItem("theme") || "light";
