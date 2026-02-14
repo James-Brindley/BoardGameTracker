@@ -1,4 +1,4 @@
-import { getGames, saveGames } from "./data.js";
+import { getGames, saveGames, initGames } from "./data.js";
 
 const list = document.getElementById("list");
 const search = document.getElementById("search");
@@ -16,8 +16,8 @@ function formatRange(min, max, suffix="") {
   return `${min}–${max}${suffix}`;
 }
 
-async function render() {
-  let games = await getGames();
+function render() {
+  let games = [...getGames()];
 
   const searchValue = search.value.toLowerCase();
   const playersValue = parseInt(filterPlayers.value);
@@ -48,7 +48,6 @@ async function render() {
       timeValue <= g.playTime.max
     );
   }
-
 
   if (!isNaN(ratingValue)) {
     games = games.filter(g =>
@@ -104,64 +103,24 @@ async function render() {
 }
 
 addBtn.onclick = async () => {
-  const backdrop = document.createElement("div");
-  backdrop.className = "modal-backdrop";
+  const name = prompt("Game name?");
+  if (!name) return;
 
-  backdrop.innerHTML = `
-    <div class="modal">
-      <div class="close-button">×</div>
-      <h2>Add Game</h2>
-      <input id="newName" placeholder="Game name">
+  const games = [...getGames()];
 
-      <div class="row">
-        <input id="pMin" type="number" placeholder="Players min">
-        <input id="pMax" type="number" placeholder="Players max">
-      </div>
+  games.push({
+    id: crypto.randomUUID(),
+    name,
+    image: null,
+    plays: 0,
+    rating: null,
+    review: "",
+    players: { min: null, max: null },
+    playTime: { min: null, max: null },
+    playHistory: {}
+  });
 
-      <div class="row">
-        <input id="tMin" type="number" placeholder="Time min (mins)">
-        <input id="tMax" type="number" placeholder="Time max (mins)">
-      </div>
-
-      <input id="newImage" placeholder="Image URL (optional)">
-      <button id="saveNew">Add Game</button>
-    </div>
-  `;
-
-  backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
-
-  backdrop.querySelector("#saveNew").onclick = () => {
-    const name = backdrop.querySelector("#newName").value.trim();
-    if (!name) return alert("Game name required");
-
-    const games = getGames();
-
-    games.push({
-      id: crypto.randomUUID(),
-      name,
-      image: backdrop.querySelector("#newImage").value.trim() || null,
-      plays: 0,
-      rating: null,
-      review: "",
-      players: {
-        min: Number(backdrop.querySelector("#pMin").value) || null,
-        max: Number(backdrop.querySelector("#pMax").value) || null
-      },
-      playTime: {
-        min: Number(backdrop.querySelector("#tMin").value) || null,
-        max: Number(backdrop.querySelector("#tMax").value) || null
-      },
-      playHistory: {}
-    });
-
-    
-    await saveGames(games);
-    backdrop.remove();
-    await render();
-
-  };
-
-  document.body.appendChild(backdrop);
+  await saveGames(games);
 };
 
 search.oninput = render;
@@ -171,5 +130,5 @@ filterTime.oninput = render;
 filterRating.oninput = render;
 filterPlayed.onchange = render;
 
-render();
-
+/* INIT */
+initGames(render);
