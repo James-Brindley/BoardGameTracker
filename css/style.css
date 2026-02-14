@@ -910,7 +910,7 @@ body {
   opacity: 0.6;
 }
 
-/* ---------- PODIUM UI ---------- */
+/* PODIUM STYLES */
 .podium {
   display: flex;
   align-items: flex-end;
@@ -922,7 +922,7 @@ body {
 
 .podium-card {
   background: var(--card);
-  border-radius: 22px; /* Curved edges */
+  border-radius: 22px; /* Curved edges fixed */
   padding: 1.5rem;
   flex: 1;
   max-width: 200px;
@@ -936,10 +936,6 @@ body {
   align-items: center;
 }
 
-.podium-card:hover {
-  transform: translateY(-5px);
-}
-
 .podium-card img {
   width: 80px;
   height: 80px;
@@ -949,8 +945,7 @@ body {
   border: 3px solid var(--bg);
 }
 
-/* Podium Heights */
-.podium-1 { height: 100%; border: 2px solid #ffd700; } /* Gold */
+.podium-1 { height: 100%; border: 2px solid #ffd700; }
 .podium-2 { height: 85%; }
 .podium-3 { height: 75%; }
 
@@ -968,4 +963,17 @@ body {
   font-weight: bold;
 }
 
-.podium-1 .rank { background: #ffd700; color: #000; }
+/* BADGE STYLES */
+.badge-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  padding: 12px;
+  border-radius: 16px;
+  margin-bottom: 10px;
+}
+
+.badge-icon { font-size: 1.5rem; }
+.badge-info strong { display: block; font-size: 0.9rem; }
+.badge-info span { font-size: 0.8rem; color: var(--muted); }
