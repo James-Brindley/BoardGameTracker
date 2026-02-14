@@ -1,98 +1,39 @@
-import { auth, db } from "./firebase.js";
-import {
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  deleteDoc,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { auth, db, getUserDoc, setUserDoc, updateUserDoc } from "./firebase.js";
 
-let cachedGames = [];
-let ready = false;
+let gamesCache = [];
+let currentUser = null;
 
-/* =============================
-   AUTH READY
-============================= */
-
-function waitForAuth() {
-  return new Promise(resolve => {
-    const unsub = auth.onAuthStateChanged(user => {
-      if (user) {
-        unsub();
-        resolve(user);
-      }
-    });
-  });
+// ---------- AUTH TRACK ----------
+export function setCurrentUser(user) {
+  currentUser = user;
 }
 
-/* =============================
-   MIGRATION SAFETY
-============================= */
-
+// ---------- MIGRATE GAME ----------
 function migrateGame(g) {
-  return {
-    id: g.id,
-    name: g.name || "",
-    image: g.image || null,
-    plays: g.plays || 0,
-    rating: g.rating ?? null,
-    review: g.review || "",
-    players: g.players || { min: null, max: null },
-    playTime: g.playTime || { min: null, max: null },
-    playHistory: g.playHistory || {},
-    badges: g.badges || []
-  };
+  const migrated = { ...g };
+  migrated.badges ||= [];
+  migrated.playHistory ||= {};
+  migrated.players ||= { min: null, max: null };
+  migrated.playTime ||= { min: null, max: null };
+  migrated.plays ||= Object.values(migrated.playHistory).reduce((a,b)=>a+b,0);
+  return migrated;
 }
 
-/* =============================
-   LOAD GAMES (REALTIME)
-============================= */
+// ---------- GET GAMES ----------
+export async function getGames() {
+  if (!currentUser) return [];
 
-export async function initGames(callback) {
-  const user = await waitForAuth();
-  const gamesRef = collection(db, "users", user.uid, "games");
+  const data = await getUserDoc(currentUser.uid);
+  const raw = data?.games || [];
+  gamesCache = raw.map(migrateGame);
 
-  onSnapshot(gamesRef, snapshot => {
-    cachedGames = snapshot.docs.map(d => migrateGame(d.data()));
-    ready = true;
-    if (callback) callback(cachedGames);
-  });
+  return gamesCache;
 }
 
-/* =============================
-   GET GAMES
-============================= */
-
-export function getGames() {
-  return cachedGames;
-}
-
-/* =============================
-   SAVE ALL GAMES
-============================= */
-
+// ---------- SAVE GAMES ----------
 export async function saveGames(games) {
-  const user = auth.currentUser;
-  if (!user) return;
+  if (!currentUser) throw new Error("User not logged in");
 
-  const gamesRef = collection(db, "users", user.uid, "games");
-
-  const existingIds = new Set(cachedGames.map(g => g.id));
-  const newIds = new Set(games.map(g => g.id));
-
-  // Save/update
-  for (const game of games) {
-    await setDoc(
-      doc(gamesRef, game.id),
-      migrateGame(game)
-    );
-  }
-
-  // Delete removed games
-  for (const id of existingIds) {
-    if (!newIds.has(id)) {
-      await deleteDoc(doc(gamesRef, id));
-    }
-  }
+  gamesCache = games.map(migrateGame);
+  await setUserDoc(currentUser.uid, { games: gamesCache });
 }
