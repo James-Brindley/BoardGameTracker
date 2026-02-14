@@ -82,3 +82,19 @@ export async function updateGame(gameObj) {
 
   if (error) console.error(error);
 }
+
+// Add this to the bottom of your js/data.js
+export async function logout() {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Error logging out:", error.message);
+  } else {
+    window.location.href = 'login.html';
+  }
+}
+
+// Add this to get the current user's email for the settings page
+export async function getCurrentUser() {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
