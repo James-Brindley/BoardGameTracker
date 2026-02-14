@@ -65,19 +65,31 @@ const ACCENT_COLORS = [
 ];
 
 const accentPicker = document.getElementById("accentPicker");
-const currentAccent = localStorage.getItem("accent");
+let currentAccent = localStorage.getItem("accent");
+
+/* ✅ APPLY SAVED ACCENT ON LOAD */
+if (!currentAccent) {
+  currentAccent = "#277da1"; // default fallback
+  localStorage.setItem("accent", currentAccent);
+}
+document.documentElement.style.setProperty("--accent", currentAccent);
 
 ACCENT_COLORS.forEach(color => {
   const swatch = document.createElement("div");
   swatch.className = "accent-swatch";
   swatch.style.background = color;
-  if (color === currentAccent) swatch.classList.add("active");
+
+  if (color === currentAccent) {
+    swatch.classList.add("active");
+  }
 
   swatch.onclick = () => {
     localStorage.setItem("accent", color);
     document.documentElement.style.setProperty("--accent", color);
+
     document.querySelectorAll(".accent-swatch")
       .forEach(s => s.classList.remove("active"));
+
     swatch.classList.add("active");
   };
 
