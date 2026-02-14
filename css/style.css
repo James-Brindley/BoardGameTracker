@@ -887,10 +887,11 @@ body {
   opacity: 1;
 }
 
-.tracker-day.level-1 { background: rgba(0, 122, 255, 0.15); }
-.tracker-day.level-2 { background: rgba(0, 122, 255, 0.3); }
-.tracker-day.level-3 { background: rgba(0, 122, 255, 0.5); }
-.tracker-day.level-4 { background: rgba(0, 122, 255, 0.75); }
+/* ---------- 5 LEVEL INTENSITY (STATS PAGE) ---------- */
+.tracker-day.level-1 { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.tracker-day.level-2 { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+.tracker-day.level-3 { background: color-mix(in srgb, var(--accent) 60%, transparent); }
+.tracker-day.level-4 { background: color-mix(in srgb, var(--accent) 80%, transparent); }
 .tracker-day.level-5 { background: var(--accent); }
 
 /* ---------- TODAY OUTLINE ---------- */
