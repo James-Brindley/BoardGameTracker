@@ -135,8 +135,10 @@ window.updatePlay = async function(dateKey, delta) {
 ============================= */
 async function renderBadges() {
   badgeContainer.innerHTML = "";
+  const allGames = await getGames(); 
+  
   const badges = [
-    ...computeMonthlyTopBadges(),
+    ...computeMonthlyTopBadges(allGames),
     ...(await computeAllTimeRankBadges()),
     ...computeMilestoneBadges()
   ];
@@ -157,17 +159,31 @@ async function renderBadges() {
   });
 }
 
-function computeMonthlyTopBadges() {
-  // Uses local 'game' state for efficiency
+function computeMonthlyTopBadges(allGames) {
   const results = [];
-  const now = new Date();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,"0")}`;
-
   const playMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0,7)));
+  
+  playMonths.forEach(monthStr => {
+    // Calculate plays for EVERY game in that specific month
+    const rankings = allGames.map(g => {
+      const mPlays = Object.entries(g.playHistory || {})
+        .filter(([date]) => date.startsWith(monthStr))
+        .reduce((sum, [, val]) => sum + val, 0);
+      return { id: g.id, plays: mPlays };
+    }).sort((a, b) => b.plays - a.plays);
 
-  // If this logic requires checking OTHER games, it would need the full list from data.js
-  // For now, restoring the structure you provided in your original code
-  return results; 
+    // If this game was #1 that month and had at least 1 play
+    if (rankings[0]?.id === game.id && rankings[0]?.plays > 0) {
+      const [y, m] = monthStr.split("-");
+      const monthName = new Date(y, m-1).toLocaleString('default', { month: 'long' });
+      results.push({
+        type: "gold",
+        title: `Monthly Champion`,
+        subtitle: `${monthName} ${y}`
+      });
+    }
+  });
+  return results;
 }
 
 async function computeAllTimeRankBadges() {
