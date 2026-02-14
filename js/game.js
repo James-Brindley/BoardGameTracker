@@ -6,7 +6,7 @@ import { getGames, saveGames } from "./data.js";
 const params = new URLSearchParams(location.search);
 const id = params.get("id");
 
-const games = await getGames();
+const games = getGames();
 const index = games.findIndex(g => g.id === id);
 const game = games[index];
 
@@ -161,7 +161,7 @@ function renderTracker() {
   }
 }
 
-async function updatePlay(dateKey, delta) {
+function updatePlay(dateKey, delta) {
   const current = game.playHistory[dateKey] || 0;
   const next = current + delta;
 
@@ -173,9 +173,8 @@ async function updatePlay(dateKey, delta) {
 
   game.plays = Math.max(0, (game.plays || 0) + delta);
 
-  await saveGames(games);
+  saveGames(games);
   render();
-
 }
 
 /* =============================
@@ -232,7 +231,7 @@ document.getElementById("editToggle").addEventListener("click", () => {
 
     game.review = backdrop.querySelector("#editReview").value.trim();
 
-    await saveGames(games);
+    saveGames(games);
     backdrop.remove();
     render();
   };
