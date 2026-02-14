@@ -3,6 +3,11 @@
 <head>
   <title>Settings</title>
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Apply theme immediately to prevent flash of light mode
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  </script>
 </head>
 <body>
 <header>
@@ -67,85 +72,59 @@
     document.documentElement.setAttribute("data-theme", next);
   };
 
-  const ACCENT_COLORS = ["#e63232","#f3722c","#f8961e","#ffd043","#7fc96b","#43aa8b","#277da1","#3b498e","#66418a"];
-  const accentPicker = document.getElementById("accentPicker");
-  let currentAccent = localStorage.getItem("accent") || "#277da1";
-  document.documentElement.style.setProperty("--accent", currentAccent);
+  const ACCENT_COLORS = ["#e63232","#f3722c","#f8961e","#ffd043","#7fc96b","#43aa8b","#4d908e","#577590","#277da1","#90be6d"];
+  const picker = document.getElementById("accentPicker");
 
   ACCENT_COLORS.forEach(color => {
     const swatch = document.createElement("div");
-    swatch.className = "accent-swatch" + (color === currentAccent ? " active" : "");
+    swatch.className = "accent-swatch";
     swatch.style.background = color;
+    if (localStorage.getItem("accent") === color) swatch.classList.add("active");
+    
     swatch.onclick = () => {
-      localStorage.setItem("accent", color);
       document.documentElement.style.setProperty("--accent", color);
+      localStorage.setItem("accent", color);
       document.querySelectorAll(".accent-swatch").forEach(s => s.classList.remove("active"));
       swatch.classList.add("active");
     };
-    accentPicker.appendChild(swatch);
+    picker.appendChild(swatch);
   });
 
-  /* ---------- CLOUD EXPORT ---------- */
+  /* ---------- DATA MANAGEMENT ---------- */
   document.getElementById("exportData").onclick = async () => {
-    const btn = document.getElementById("exportData");
-    btn.textContent = "Exporting...";
-    
     const games = await getGames();
-    const payload = {
-      meta: { app: "Board Game Tracker", exportedAt: new Date().toISOString() },
-      games: games 
-    };
-
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `boardgame-cloud-backup-${Date.now()}.json`;
-    a.click();
-    
-    btn.textContent = "Export Data";
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ games }));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "game_tracker_backup.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
   };
 
-  /* ---------- CLOUD IMPORT ---------- */
   const fileInput = document.getElementById("importFile");
   document.getElementById("importData").onclick = () => fileInput.click();
 
   fileInput.onchange = () => {
     const file = fileInput.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = async () => {
       try {
         const data = JSON.parse(reader.result);
         const gamesToImport = data.games || [];
-
-        if (gamesToImport.length === 0) throw new Error("No games found in file");
-
-        if (!confirm(`This will add ${gamesToImport.length} games to your cloud account. Continue?`)) return;
-
-        document.getElementById("importData").textContent = "Importing...";
+        if (!confirm(`Import ${gamesToImport.length} games?`)) return;
         await importGames(gamesToImport);
-        
-        alert("Import Successful!");
         location.reload();
-      } catch (err) {
-        alert("Import failed: " + err.message);
-        document.getElementById("importData").textContent = "Import Data";
-      }
+      } catch (err) { alert("Import failed: " + err.message); }
     };
     reader.readAsText(file);
   };
 
-  /* ---------- CLOUD RESET ---------- */
   document.getElementById("resetData").onclick = async () => {
-    if (!confirm("Are you sure? This will delete EVERYTHING from the server. This cannot be undone.")) return;
-    
-    try {
+    if (confirm("Delete EVERYTHING from the server? This cannot be undone.")) {
       await clearAllGames();
-      alert("All cloud data cleared.");
       location.reload();
-    } catch (err) {
-      alert("Reset failed: " + err.message);
     }
   };
 </script>
