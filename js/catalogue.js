@@ -16,11 +16,8 @@ function formatRange(min, max, suffix="") {
   return `${min}–${max}${suffix}`;
 }
 
-/* =============================
-   RENDER CATALOGUE
-============================= */
-async function render() {
-  let games = await getGames();
+function render() {
+  let games = getGames();
 
   const searchValue = search.value.toLowerCase();
   const playersValue = parseInt(filterPlayers.value);
@@ -51,6 +48,7 @@ async function render() {
       timeValue <= g.playTime.max
     );
   }
+
 
   if (!isNaN(ratingValue)) {
     games = games.filter(g =>
@@ -105,10 +103,7 @@ async function render() {
   });
 }
 
-/* =============================
-   ADD NEW GAME
-============================= */
-addBtn.onclick = async () => {
+addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
 
@@ -135,11 +130,11 @@ addBtn.onclick = async () => {
 
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
 
-  backdrop.querySelector("#saveNew").onclick = async () => {
+  backdrop.querySelector("#saveNew").onclick = () => {
     const name = backdrop.querySelector("#newName").value.trim();
     if (!name) return alert("Game name required");
 
-    const games = await getGames();
+    const games = getGames();
 
     games.push({
       id: crypto.randomUUID(),
@@ -156,11 +151,10 @@ addBtn.onclick = async () => {
         min: Number(backdrop.querySelector("#tMin").value) || null,
         max: Number(backdrop.querySelector("#tMax").value) || null
       },
-      playHistory: {},
-      badges: []
+      playHistory: {}
     });
 
-    await saveGames(games);
+    saveGames(games);
     backdrop.remove();
     render();
   };
