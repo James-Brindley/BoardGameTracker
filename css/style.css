@@ -499,10 +499,6 @@ input[type="color"] {
   background: #2a2a2c;
 }
 
-.tracker-day.level-1 { background: color-mix(in srgb, var(--accent) 35%, transparent); }
-.tracker-day.level-2 { background: color-mix(in srgb, var(--accent) 60%, transparent); }
-.tracker-day.level-3 { background: var(--accent); }
-
 .tracker-tooltip {
   position: absolute;
   bottom: 120%;
