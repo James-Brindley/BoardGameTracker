@@ -380,4 +380,7 @@ function computeMilestoneBadges() {
 /* ----- existing badge compute functions unchanged ----- */
 /* (keep your computeMonthlyTopBadges, computeAllTimeRankBadges, computeMilestoneBadges exactly as they are) */
 
-render();
+import { initGames } from "./data.js";
+
+initGames(render);
+
