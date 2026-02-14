@@ -31,7 +31,7 @@ function renderTracker() {
 
   const today = new Date();
   const days = new Date(year, month + 1, 0).getDate();
-  const games = getGames();
+  const games = await getGames();
 
   for (let d = 1; d <= days; d++) {
 
@@ -92,10 +92,11 @@ function renderTracker() {
 }
 
 /* ---------- MONTHLY DATA ---------- */
-function monthlyStats() {
+async function monthlyStats() {
   const key = monthKey();
+  const games = await getGames();
 
-  return getGames()
+  return games
     .map(g => {
       const plays = Object.entries(g.playHistory || {})
         .filter(([d]) => d.startsWith(key))
@@ -154,14 +155,14 @@ function renderList(container, games, start, end, valueKey) {
 }
 
 /* ---------- RENDER ALL ---------- */
-function renderAll() {
+async function renderAll() {
   renderTracker();
 
-  const monthGames = monthlyStats();
+  const monthGames = await monthlyStats();
   renderPodium(monthPodium, monthGames, "monthPlays", 3);
   renderList(monthRest, monthGames, 3, 5, "monthPlays");
 
-  const allGames = getGames()
+  const allGames = (await getGames())
     .filter(g => g.plays > 0)
     .sort((a, b) => b.plays - a.plays);
 
