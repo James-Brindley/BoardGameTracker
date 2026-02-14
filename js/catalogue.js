@@ -16,11 +16,10 @@ function formatRange(min, max, suffix="") {
   return `${min}–${max}${suffix}`;
 }
 
-// MAKE RENDER ASYNC
 async function render() {
-  list.innerHTML = '<div class="card">Loading your collection...</div>';
+  list.innerHTML = `<div class="card">Loading collection...</div>`;
   
-  // FETCH FROM SERVER
+  // Keep functional change: Fetch from Supabase
   let games = await getGames();
 
   const searchValue = search.value.toLowerCase();
@@ -30,9 +29,7 @@ async function render() {
   const statusValue = filterPlayed.value;
 
   if (searchValue) {
-    games = games.filter(g =>
-      g.name.toLowerCase().includes(searchValue)
-    );
+    games = games.filter(g => g.name.toLowerCase().includes(searchValue));
   }
 
   if (!isNaN(playersValue)) {
@@ -46,69 +43,75 @@ async function render() {
 
   if (!isNaN(timeValue)) {
     games = games.filter(g =>
+      g.playTime?.min != null &&
       g.playTime?.max != null &&
-      g.playTime.max <= timeValue
+      timeValue >= g.playTime.min &&
+      timeValue <= g.playTime.max
     );
   }
 
   if (!isNaN(ratingValue)) {
-    games = games.filter(g => (g.rating || 0) >= ratingValue);
+    games = games.filter(g => g.rating != null && g.rating >= ratingValue);
   }
 
-  if (statusValue !== "all") {
-    if (statusValue === "played") games = games.filter(g => g.plays > 0);
-    if (statusValue === "unplayed") games = games.filter(g => g.plays === 0);
+  if (statusValue === "played") {
+    games = games.filter(g => g.plays > 0);
   }
 
-  const sortVal = sort.value;
-  games.sort((a, b) => {
-    if (sortVal === "name") return a.name.localeCompare(b.name);
-    if (sortVal === "plays") return (b.plays || 0) - (a.plays || 0);
-    if (sortVal === "rating") return (b.rating || 0) - (a.rating || 0);
-    return 0;
-  });
+  if (statusValue === "unplayed") {
+    games = games.filter(g => g.plays === 0);
+  }
+
+  games.sort((a, b) =>
+    sort.value === "name"
+      ? a.name.localeCompare(b.name)
+      : (b[sort.value] || 0) - (a[sort.value] || 0)
+  );
 
   list.innerHTML = "";
-  if (games.length === 0) {
-    list.innerHTML = '<div class="card">No games found.</div>';
+
+  if (!games.length) {
+    list.innerHTML = `<div class="card">No games found</div>`;
     return;
   }
 
   games.forEach(g => {
     const card = document.createElement("div");
-    card.className = "card game-card";
-    card.onclick = () => location.href = `game.html?id=${g.id}`;
+    card.className = "game-card"; // Restore original UI class
 
+    // Restore original UI HTML structure
     card.innerHTML = `
-      <img class="game-card-img" src="${g.image || 'https://via.placeholder.com/200'}" alt="${g.name}">
-      <div class="game-card-content">
-        <div class="game-card-title">${g.name}</div>
-        <div class="game-card-stats">
-          <span>👥 ${formatRange(g.players?.min, g.players?.max)}</span>
-          <span>⏳ ${formatRange(g.playTime?.min, g.playTime?.max, "m")}</span>
-        </div>
-        <div class="game-card-footer">
-          <span class="badge badge-plays">${g.plays || 0} plays</span>
-          ${g.rating ? `<span class="badge badge-rating">⭐ ${g.rating}</span>` : ""}
-        </div>
+      <img src="${g.image || "https://via.placeholder.com/400"}">
+      <div class="card-header">
+        <strong>${g.name}</strong>
+        <span>⭐ ${g.rating ?? "—"}</span>
       </div>
+      <div class="card-stats">
+        <span>${formatRange(g.players?.min, g.players?.max, " players")}</span>
+        <span>${formatRange(g.playTime?.min, g.playTime?.max, " min")}</span>
+      </div>
+      <div class="plays">${g.plays || 0} plays</div>
     `;
+
+    card.onclick = () => {
+      location.href = `game.html?id=${g.id}`;
+    };
+
     list.appendChild(card);
   });
 }
 
-// ADD GAME LOGIC
 addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
+
+  // Restore original Modal UI structure
   backdrop.innerHTML = `
-    <div class="card modal">
-      <div class="modal-header">
-        <h2>Add New Game</h2>
-        <button class="close-button">×</button>
-      </div>
-      <input id="newName" class="ui-input" placeholder="Game Name">
-      
+    <div class="modal">
+      <div class="close-button">×</div>
+      <h2>Add Game</h2>
+      <input id="newName" placeholder="Game name">
+
       <div class="row">
         <input id="pMin" type="number" placeholder="Players min">
         <input id="pMax" type="number" placeholder="Players max">
@@ -119,8 +122,8 @@ addBtn.onclick = () => {
         <input id="tMax" type="number" placeholder="Time max (mins)">
       </div>
 
-      <input id="newImage" class="ui-input" placeholder="Image URL (optional)">
-      <button id="saveNew" style="width:100%; margin-top:1rem;">Add Game</button>
+      <input id="newImage" placeholder="Image URL (optional)">
+      <button id="saveNew">Add Game</button>
     </div>
   `;
 
@@ -130,6 +133,7 @@ addBtn.onclick = () => {
     const name = backdrop.querySelector("#newName").value.trim();
     if (!name) return alert("Game name required");
 
+    // Keep functional change: Save to Supabase
     const newGame = {
       name,
       image: backdrop.querySelector("#newImage").value.trim() || null,
