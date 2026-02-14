@@ -1,5 +1,22 @@
-import { getGames } from "./data.js";
+import { getGames, setCurrentUser } from "./data.js";
+import { onUserChange, login } from "./firebase.js";
 
+/* =============================
+   AUTH SETUP
+============================= */
+onUserChange(async user => {
+  if (!user) {
+    alert("Please login to view your stats.");
+    login();
+    return;
+  }
+  setCurrentUser(user);
+  await renderAll();
+});
+
+/* =============================
+   ELEMENTS
+============================= */
 const tracker = document.getElementById("globalTracker");
 const label = document.getElementById("monthLabel");
 
@@ -11,30 +28,28 @@ const top10 = document.getElementById("top10");
 
 let view = new Date();
 
-/* ---------- HELPERS ---------- */
+/* =============================
+   HELPERS
+============================= */
 function monthKey() {
   return `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
 }
 
 /* =============================
-   TRACKER (MATCHES GAME PAGE)
+   TRACKER
 ============================= */
-function renderTracker() {
+async function renderTracker() {
   tracker.innerHTML = "";
 
   const year = view.getFullYear();
   const month = view.getMonth();
-  label.textContent = view.toLocaleString("default", {
-    month: "long",
-    year: "numeric"
-  });
+  label.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
 
   const today = new Date();
   const days = new Date(year, month + 1, 0).getDate();
-  const games = getGames();
+  const games = await getGames();
 
   for (let d = 1; d <= days; d++) {
-
     const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
     let total = 0;
@@ -51,51 +66,38 @@ function renderTracker() {
     const cell = document.createElement("div");
     cell.className = "tracker-day";
 
-    /* ---------- 5 LEVEL INTENSITY ---------- */
-    if (total > 0) {
-      cell.classList.add(`level-${Math.min(5, total)}`);
-    }
-
-    /* ---------- TODAY OUTLINE ---------- */
-    if (
-      today.getFullYear() === year &&
-      today.getMonth() === month &&
-      today.getDate() === d
-    ) {
+    // 5-level intensity
+    if (total > 0) cell.classList.add(`level-${Math.min(5, total)}`);
+    if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d)
       cell.classList.add("today");
-    }
 
-    /* ---------- DAY NUMBER ---------- */
     const dayNumber = document.createElement("span");
     dayNumber.className = "day-number";
     dayNumber.textContent = d;
     cell.appendChild(dayNumber);
 
-    /* ---------- TOOLTIP ---------- */
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
-
-    const formattedDate =
-      `${String(d).padStart(2, "0")}/` +
-      `${String(month + 1).padStart(2, "0")}/` +
-      `${year}`;
-
     tooltip.innerHTML = `
-      <strong>${formattedDate}</strong><br>
+      <strong>${String(d).padStart(2,"0")}/
+      ${String(month + 1).padStart(2,"0")}/${year}</strong><br>
       ${total} total play${total !== 1 ? "s" : ""}
       ${details.length ? `<hr style="margin:4px 0; opacity:.3;">${details.join("<br>")}` : ""}
     `;
-
     cell.appendChild(tooltip);
+
     tracker.appendChild(cell);
   }
 }
 
-/* ---------- MONTHLY DATA ---------- */
-function monthlyStats() {
+/* =============================
+   MONTHLY STATS
+============================= */
+async function monthlyStats() {
   const key = monthKey();
+  const games = await getGames();
 
-  return getGames()
+  return games
     .map(g => {
       const plays = Object.entries(g.playHistory || {})
         .filter(([d]) => d.startsWith(key))
@@ -107,7 +109,9 @@ function monthlyStats() {
     .sort((a, b) => b.monthPlays - a.monthPlays);
 }
 
-/* ---------- PODIUM ---------- */
+/* =============================
+   PODIUM
+============================= */
 function renderPodium(container, games, valueKey, maxPodium = 3) {
   container.innerHTML = "";
 
@@ -132,7 +136,9 @@ function renderPodium(container, games, valueKey, maxPodium = 3) {
   });
 }
 
-/* ---------- LIST ---------- */
+/* =============================
+   LIST
+============================= */
 function renderList(container, games, start, end, valueKey) {
   container.innerHTML = "";
   const slice = games.slice(start, end);
@@ -153,15 +159,17 @@ function renderList(container, games, start, end, valueKey) {
   });
 }
 
-/* ---------- RENDER ALL ---------- */
-function renderAll() {
-  renderTracker();
+/* =============================
+   RENDER EVERYTHING
+============================= */
+export async function renderAll() {
+  await renderTracker();
 
-  const monthGames = monthlyStats();
+  const monthGames = await monthlyStats();
   renderPodium(monthPodium, monthGames, "monthPlays", 3);
   renderList(monthRest, monthGames, 3, 5, "monthPlays");
 
-  const allGames = getGames()
+  const allGames = (await getGames())
     .filter(g => g.plays > 0)
     .sort((a, b) => b.plays - a.plays);
 
@@ -169,7 +177,9 @@ function renderAll() {
   renderList(top10, allGames, 3, 10, "plays");
 }
 
-/* ---------- NAV ---------- */
+/* =============================
+   MONTH NAVIGATION
+============================= */
 document.getElementById("prevMonth").onclick = () => {
   view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
   renderAll();
@@ -180,7 +190,7 @@ document.getElementById("nextMonth").onclick = () => {
   renderAll();
 };
 
-import { initGames } from "./data.js";
-
-initGames(renderAll);
-
+/* =============================
+   INITIAL RENDER
+============================= */
+renderAll();
