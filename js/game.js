@@ -44,39 +44,35 @@ function render() {
   image.src = game.image || "https://via.placeholder.com/800x360";
   plays.textContent = game.plays || 0;
   
-  // Restore Original UI Rating Format
   ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
   reviewView.textContent = game.review?.trim() || "No review yet";
 
-  // Restore Original UI Stats Format
+  // Format Stats
   if (game.playTime?.min != null) {
-    if (game.playTime.max != null && game.playTime.max !== game.playTime.min) {
-      playTimeView.textContent = `${game.playTime.min}–${game.playTime.max} mins`;
-    } else {
-      playTimeView.textContent = `${game.playTime.min} mins`;
-    }
-  } else {
-    playTimeView.textContent = "—";
-  }
+    playTimeView.textContent = (game.playTime.max && game.playTime.max !== game.playTime.min) 
+      ? `${game.playTime.min}–${game.playTime.max} mins` 
+      : `${game.playTime.min} mins`;
+  } else { playTimeView.textContent = "—"; }
 
   if (game.players?.min != null) {
-    if (game.players.max != null && game.players.max !== game.players.min) {
-      playerView.textContent = `${game.players.min}–${game.players.max} players`;
-    } else {
-      playerView.textContent = `${game.players.min} players`;
-    }
-  } else {
-    playerView.textContent = "—";
-  }
+    playerView.textContent = (game.players.max && game.players.max !== game.players.min) 
+      ? `${game.players.min}–${game.players.max} players` 
+      : `${game.players.min} players`;
+  } else { playerView.textContent = "—"; }
 
   renderTracker();
   renderBadges();
 }
 
+/* =============================
+   TRACKER (RESTORED UI)
+============================= */
 function renderTracker() {
   trackerGrid.innerHTML = "";
   const year = view.getFullYear();
   const month = view.getMonth();
+  const today = new Date();
+
   monthLabel.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -86,16 +82,35 @@ function renderTracker() {
     const count = game.playHistory[dateKey] || 0;
 
     const cell = document.createElement("div");
-    cell.className = `tracker-day ${count ? "active" : ""}`;
-    cell.innerHTML = `
-      <span class="day-number">${d}</span>
-      ${count ? `<span class="play-count">${count}</span>` : ""}
-    `;
-    
+    cell.className = "tracker-day";
+
+    /* Restore: Level Intensity Coloring */
+    if (count > 0) {
+      cell.classList.add(`level-${Math.min(3, count)}`);
+    }
+
+    /* Restore: Current Day Border */
+    if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d) {
+      cell.classList.add("today");
+    }
+
+    /* Day Number (Top Left) */
+    const dayNum = document.createElement("span");
+    dayNum.className = "day-number";
+    dayNum.textContent = d;
+    cell.appendChild(dayNum);
+
+    /* Restore: Hover Tooltip (Instead of big number in box) */
+    const tooltip = document.createElement("div");
+    tooltip.className = "tracker-tooltip";
+    const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}/${year}`;
+    tooltip.innerHTML = `${formattedDate}<br>${count} play${count !== 1 ? "s" : ""}`;
+    cell.appendChild(tooltip);
+
     cell.onclick = () => updatePlay(dateKey, 1);
     cell.oncontextmenu = (e) => {
         e.preventDefault();
-        updatePlay(dateKey, -1);
+        if (game.playHistory[dateKey]) updatePlay(dateKey, -1);
     };
 
     trackerGrid.appendChild(cell);
@@ -111,35 +126,48 @@ window.updatePlay = async function(dateKey, delta) {
 
   game.plays = Object.values(game.playHistory).reduce((a, b) => a + b, 0);
   
-  await updateGame(game);
+  await updateGame(game); // Sync to Supabase
   render();
 };
 
-/* ---------- BADGES ---------- */
+/* =============================
+   BADGES (RESTORED UI)
+============================= */
 async function renderBadges() {
   badgeContainer.innerHTML = "";
   const badges = [
-    ...computeMilestoneBadges(),
-    ...(await computeAllTimeRankBadges())
+    ...computeMonthlyTopBadges(),
+    ...(await computeAllTimeRankBadges()),
+    ...computeMilestoneBadges()
   ];
 
   if (badges.length === 0) {
-    badgeContainer.innerHTML = "<p style='opacity:0.5'>No achievements yet. Keep playing!</p>";
+    badgeContainer.innerHTML = "<p style='opacity:0.6'>No achievements yet.</p>";
     return;
   }
 
   badges.forEach(b => {
-    const div = document.createElement("div");
-    div.className = `badge-item badge-${b.type}`;
-    div.innerHTML = `
-      <div class="badge-icon"></div>
-      <div>
-        <strong>${b.title}</strong><br>
-        <small>${b.subtitle}</small>
-      </div>
+    const el = document.createElement("div");
+    el.className = `badge badge-${b.type}`; // Restore original class
+    el.innerHTML = `
+      <div class="badge-title">${b.title}</div>
+      <div class="badge-sub">${b.subtitle}</div>
     `;
-    badgeContainer.appendChild(div);
+    badgeContainer.appendChild(el);
   });
+}
+
+function computeMonthlyTopBadges() {
+  // Uses local 'game' state for efficiency
+  const results = [];
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,"0")}`;
+
+  const playMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0,7)));
+
+  // If this logic requires checking OTHER games, it would need the full list from data.js
+  // For now, restoring the structure you provided in your original code
+  return results; 
 }
 
 async function computeAllTimeRankBadges() {
@@ -149,13 +177,13 @@ async function computeAllTimeRankBadges() {
 
   if (rankIndex === -1 || rankIndex > 2) return [];
 
-  const rank = rankIndex + 1;
   const ranks = {
     1: { type: "crown",  title: "All-Time Champion" },
     2: { type: "silver", title: "Grand Strategist" },
     3: { type: "bronze", title: "Tabletop Contender" }
   };
 
+  const rank = rankIndex + 1;
   return [{
     type: ranks[rank].type,
     title: ranks[rank].title,
@@ -166,14 +194,17 @@ async function computeAllTimeRankBadges() {
 function computeMilestoneBadges() {
   const total = game.plays || 0;
   const milestones = [
-    { value: 50,  type: "empire",  title: "Empire Architect" },
-    { value: 25,  type: "table",   title: "Table Commander" },
-    { value: 10,  type: "dice",    title: "Dice Adept" },
-    { value: 5,   type: "meeple",  title: "Rookie Roller" }
+    { value: 50, type: "legend",  title: "Legend of the Table" },
+    { value: 40, type: "empire",  title: "Empire Architect" },
+    { value: 30, type: "table",   title: "Table Commander" },
+    { value: 20, type: "guild",   title: "Guild Tactician" },
+    { value: 10, type: "dice",    title: "Dice Adept" },
+    { value: 5,  type: "meeple",  title: "Rookie Roller" }
   ];
 
-  const earned = milestones.find(m => total >= m.value);
-  return earned ? [{ ...earned, subtitle: `${total} total plays` }] : [];
+  return milestones
+    .filter(m => total >= m.value)
+    .map(m => ({ ...m, subtitle: `${m.value}+ Plays` }));
 }
 
 /* ---------- EDIT GAME MODAL ---------- */
@@ -184,58 +215,32 @@ editBtn.onclick = () => {
     <div class="modal">
       <div class="close-button">×</div>
       <h2>Edit Game</h2>
-      
-      <label>Game Name</label>
-      <input id="editName" value="${game.name}">
-
+      <input id="editName" value="${game.name}" placeholder="Game Name">
+      <input id="editImage" value="${game.image || ''}" placeholder="Image URL">
       <div class="row">
-        <div>
-          <label>Min Players</label>
-          <input id="editPMin" type="number" value="${game.players.min || ''}">
-        </div>
-        <div>
-          <label>Max Players</label>
-          <input id="editPMax" type="number" value="${game.players.max || ''}">
-        </div>
+        <input id="editPMin" type="number" value="${game.players.min ?? ''}" placeholder="Min Players">
+        <input id="editPMax" type="number" value="${game.players.max ?? ''}" placeholder="Max Players">
       </div>
-
       <div class="row">
-        <div>
-          <label>Min Time</label>
-          <input id="editTMin" type="number" value="${game.playTime.min || ''}">
-        </div>
-        <div>
-          <label>Max Time</label>
-          <input id="editTMax" type="number" value="${game.playTime.max || ''}">
-        </div>
+        <input id="editTMin" type="number" value="${game.playTime.min ?? ''}" placeholder="Min Time">
+        <input id="editTMax" type="number" value="${game.playTime.max ?? ''}" placeholder="Max Time">
       </div>
-
-      <label>Rating (0-10)</label>
-      <input id="editRating" type="number" step="0.1" value="${game.rating || ''}">
-
-      <label>Image URL</label>
-      <input id="editImage" value="${game.image || ''}">
-
-      <label>Review</label>
-      <textarea id="editReview" rows="3">${game.review || ''}</textarea>
-
+      <input id="editRating" type="number" step="0.1" value="${game.rating ?? ''}" placeholder="Rating (0-10)">
+      <textarea id="editReview" placeholder="Your review...">${game.review || ''}</textarea>
       <button id="saveEdit">Save Changes</button>
     </div>
   `;
 
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
-
   backdrop.querySelector("#saveEdit").onclick = async () => {
     game.name = backdrop.querySelector("#editName").value.trim();
     game.image = backdrop.querySelector("#editImage").value.trim() || null;
-    game.rating = parseFloat(backdrop.querySelector("#editRating").value) || null;
     game.review = backdrop.querySelector("#editReview").value.trim();
-    
+    game.rating = parseFloat(backdrop.querySelector("#editRating").value) || null;
     game.players = {
       min: Number(backdrop.querySelector("#editPMin").value) || null,
       max: Number(backdrop.querySelector("#editPMax").value) || null
     };
-    
     game.playTime = {
       min: Number(backdrop.querySelector("#editTMin").value) || null,
       max: Number(backdrop.querySelector("#editTMax").value) || null
@@ -245,7 +250,6 @@ editBtn.onclick = () => {
     backdrop.remove();
     render();
   };
-
   document.body.appendChild(backdrop);
 };
 
