@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .login-container { max-width: 400px; margin: 100px auto; text-align: center; }
+    .error { color: #ff3b30; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="card login-container">
+    <h1>🎲 Game Tracker</h1>
+    <p>Sign in to access your collection</p>
+    
+    <input id="email" class="ui-input" type="email" placeholder="Email" style="width:100%; margin-bottom:10px;">
+    <input id="password" class="ui-input" type="password" placeholder="Password" style="width:100%; margin-bottom:20px;">
+    
+    <button id="loginBtn" style="width:100%; margin-bottom:10px;">Log In</button>
+    <button id="signUpBtn" class="secondary" style="width:100%;">Sign Up</button>
+    <p id="errorMsg" class="error"></p>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabaseClient.js';
+
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('password');
+    const errorEl = document.getElementById('errorMsg');
+
+    document.getElementById('loginBtn').onclick = async () => {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailEl.value,
+        password: passEl.value
+      });
+      if (error) {
+        errorEl.textContent = error.message;
+        errorEl.style.display = 'block';
+      } else {
+        window.location.href = 'catalogue.html';
+      }
+    };
+
+    document.getElementById('signUpBtn').onclick = async () => {
+      const { data, error } = await supabase.auth.signUp({
+        email: emailEl.value,
+        password: passEl.value
+      });
+      if (error) {
+        errorEl.textContent = error.message;
+        errorEl.style.display = 'block';
+      } else {
+        alert("Check your email for the confirmation link!");
+      }
+    };
+  </script>
+</body>
+</html>
