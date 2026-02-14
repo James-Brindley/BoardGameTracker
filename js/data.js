@@ -1,21 +1,22 @@
-import { db, auth } from "./firebase.js";
-import {
-  collection,
+import { 
+  auth,
+  db,
   doc,
-  getDocs,
-  setDoc,
-  deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  getDoc,
+  setDoc
+} from "./firebase.js";
 
-const COLLECTION_NAME = "games";
+let cachedGames = [];
+let currentUser = null;
 
-/* ----------------------------
-   WAIT FOR AUTH
----------------------------- */
-function waitForUser() {
+/* =============================
+   AUTH READY
+============================= */
+export function waitForAuth() {
   return new Promise(resolve => {
     const unsub = auth.onAuthStateChanged(user => {
       if (user) {
+        currentUser = user;
         unsub();
         resolve(user);
       }
@@ -23,64 +24,52 @@ function waitForUser() {
   });
 }
 
-/* ----------------------------
-   MIGRATION SAFETY
----------------------------- */
+/* =============================
+   MIGRATION
+============================= */
 function migrateGame(g) {
-  return {
-    badges: [],
-    playHistory: {},
-    players: { min: null, max: null },
-    playTime: { min: null, max: null },
-    plays: 0,
-    rating: null,
-    review: "",
-    image: null,
-    ...g
-  };
+  const migrated = { ...g };
+
+  migrated.badges ||= [];
+  migrated.playHistory ||= {};
+  migrated.players ||= { min: null, max: null };
+  migrated.playTime ||= { min: null, max: null };
+
+  if (typeof migrated.plays !== "number") {
+    migrated.plays = Object.values(migrated.playHistory)
+      .reduce((a,b)=>a+b,0);
+  }
+
+  return migrated;
 }
 
-/* ----------------------------
-   GET GAMES
----------------------------- */
+/* =============================
+   LOAD GAMES (FROM FIRESTORE)
+============================= */
 export async function getGames() {
-  const user = await waitForUser();
-  const snap = await getDocs(
-    collection(db, "users", user.uid, COLLECTION_NAME)
-  );
+  if (!currentUser) await waitForAuth();
 
-  return snap.docs.map(d =>
-    migrateGame({ id: d.id, ...d.data() })
-  );
+  const ref = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, { games: [] });
+    cachedGames = [];
+    return [];
+  }
+
+  cachedGames = (snap.data().games || []).map(migrateGame);
+  return cachedGames;
 }
 
-/* ----------------------------
-   SAVE ALL GAMES
----------------------------- */
+/* =============================
+   SAVE GAMES
+============================= */
 export async function saveGames(games) {
-  const user = await waitForUser();
+  if (!currentUser) await waitForAuth();
 
-  const existingSnap = await getDocs(
-    collection(db, "users", user.uid, COLLECTION_NAME)
-  );
+  cachedGames = games;
 
-  const existingIds = existingSnap.docs.map(d => d.id);
-  const newIds = games.map(g => g.id);
-
-  /* Remove deleted */
-  for (const id of existingIds) {
-    if (!newIds.includes(id)) {
-      await deleteDoc(
-        doc(db, "users", user.uid, COLLECTION_NAME, id)
-      );
-    }
-  }
-
-  /* Upsert */
-  for (const g of games) {
-    await setDoc(
-      doc(db, "users", user.uid, COLLECTION_NAME, g.id),
-      { ...g }
-    );
-  }
+  const ref = doc(db, "users", currentUser.uid);
+  await setDoc(ref, { games });
 }
