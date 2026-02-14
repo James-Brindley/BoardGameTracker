@@ -890,3 +890,26 @@ body {
 .tracker-day:hover .tracker-tooltip {
   opacity: 1;
 }
+
+/* ---------- 5 LEVEL INTENSITY (STATS PAGE) ---------- */
+.tracker-day.level-1 { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.tracker-day.level-2 { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+.tracker-day.level-3 { background: color-mix(in srgb, var(--accent) 60%, transparent); }
+.tracker-day.level-4 { background: color-mix(in srgb, var(--accent) 80%, transparent); }
+.tracker-day.level-5 { background: var(--accent); }
+
+/* ---------- TODAY OUTLINE ---------- */
+.tracker-day.today {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ---------- DAY NUMBER ---------- */
+.day-number {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
