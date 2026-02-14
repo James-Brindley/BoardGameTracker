@@ -77,24 +77,67 @@ function renderList(container, games, start, end, valueKey) {
   });
 }
 
-async function renderTracker(games) {
+/* ---------- TRACKER (RESTORED HOVER UI) ---------- */
+function renderTracker(games) {
   tracker.innerHTML = "";
+
   const year = view.getFullYear();
   const month = view.getMonth();
   const today = new Date();
+  
   label.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
+
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
     let totalPlays = 0;
-    games.forEach(g => { totalPlays += (g.playHistory?.[dateKey] || 0); });
+    let details = [];
+
+    // Check every game for plays on this specific date
+    games.forEach(g => {
+      const count = g.playHistory?.[dateKey] || 0;
+      if (count > 0) {
+        totalPlays += count;
+        details.push(`${g.name}: ${count}`);
+      }
+    });
 
     const cell = document.createElement("div");
     cell.className = "tracker-day";
-    if (totalPlays > 0) cell.classList.add(`level-${Math.min(5, totalPlays)}`);
-    if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d) cell.classList.add("today");
-    cell.innerHTML = `<span class="day-number">${d}</span>`;
+
+    // Level Intensity (1-5)
+    if (totalPlays > 0) {
+      const level = Math.min(5, totalPlays);
+      cell.classList.add(`level-${level}`);
+    }
+
+    // Current Day Highlight
+    if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d) {
+      cell.classList.add("today");
+    }
+
+    // Day Number
+    const dayNum = document.createElement("span");
+    dayNum.className = "day-number";
+    dayNum.textContent = d;
+    cell.appendChild(dayNum);
+
+    // TOOLTIP LOGIC (Restored)
+    const tooltip = document.createElement("div");
+    tooltip.className = "tracker-tooltip";
+    
+    // Format date as DD/MM/YYYY
+    const formattedDate = `${String(d).padStart(2, "0")}/${String(month + 1).padStart(2, "0")}/${year}`;
+    
+    if (totalPlays > 0) {
+      tooltip.innerHTML = `<strong>${formattedDate}</strong><br>${details.join("<br>")}`;
+    } else {
+      tooltip.innerHTML = `<strong>${formattedDate}</strong><br>No plays`;
+    }
+    
+    cell.appendChild(tooltip);
     tracker.appendChild(cell);
   }
 }
