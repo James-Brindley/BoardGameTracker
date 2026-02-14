@@ -73,17 +73,23 @@ function monthlyStats() {
 
 function renderPodium(container, games, valueKey) {
   container.innerHTML = "";
-  const podiumOrder = [1, 0, 2];
-  podiumOrder.forEach(idx => {
-    const g = games[idx];
+  // Display order: 2nd place, 1st place, 3rd place (Visual staircase)
+  const podiumOrder = [1, 0, 2]; 
+  
+  podiumOrder.forEach(rankIndex => {
+    const g = games[rankIndex];
     if (!g) return;
+
     const card = document.createElement("div");
-    card.className = `podium-card podium-${idx + 1}`;
+    // podium-1 is 1st place, podium-2 is 2nd, etc.
+    card.className = `podium-card podium-${rankIndex + 1}`; 
     card.innerHTML = `
-      <div class="rank">${idx + 1}</div>
+      <div class="rank">${rankIndex + 1}</div>
       <img src="${g.image || "https://via.placeholder.com/200"}">
-      <strong>${g.name}</strong>
-      <div>${g[valueKey]} plays</div>
+      <div style="margin-top:auto">
+        <strong>${g.name}</strong>
+        <div style="color: var(--muted); font-size: 0.9rem;">${g[valueKey]} plays</div>
+      </div>
     `;
     card.onclick = () => location.href = `game.html?id=${g.id}`;
     container.appendChild(card);
