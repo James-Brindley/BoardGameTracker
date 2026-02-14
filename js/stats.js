@@ -180,4 +180,7 @@ document.getElementById("nextMonth").onclick = () => {
   renderAll();
 };
 
-renderAll();
+import { initGames } from "./data.js";
+
+initGames(renderAll);
+
