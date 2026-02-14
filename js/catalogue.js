@@ -16,8 +16,8 @@ function formatRange(min, max, suffix="") {
   return `${min}–${max}${suffix}`;
 }
 
-function render() {
-  let games = getGames();
+async function render() {
+  let games = await getGames();
 
   const searchValue = search.value.toLowerCase();
   const playersValue = parseInt(filterPlayers.value);
@@ -103,7 +103,7 @@ function render() {
   });
 }
 
-addBtn.onclick = () => {
+addBtn.onclick = async () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
 
@@ -154,9 +154,11 @@ addBtn.onclick = () => {
       playHistory: {}
     });
 
-    saveGames(games);
+    
+    await saveGames(games);
     backdrop.remove();
-    render();
+    await render();
+
   };
 
   document.body.appendChild(backdrop);
@@ -170,3 +172,4 @@ filterRating.oninput = render;
 filterPlayed.onchange = render;
 
 render();
+
