@@ -1,7 +1,14 @@
 // Import Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { setCurrentUser } from "./data.js"; // Connects data.js
 
 // Your config
 const firebaseConfig = {
@@ -13,39 +20,71 @@ const firebaseConfig = {
   appId: "1:490483164045:web:d47116f775572b568513c4"
 };
 
-// Initialize
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const provider = new GoogleAuthProvider();
 
-// UI Helpers
-export function login() {
-  return signInWithPopup(auth, provider);
+/* ----------------------------
+   AUTH STATE HANDLING
+---------------------------- */
+export let currentUser = null;
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser = user;
+    setCurrentUser(user); // Let data.js know who is logged in
+    console.log("Logged in as:", user.email);
+  } else {
+    currentUser = null;
+    setCurrentUser(null);
+    console.log("Logged out");
+  }
+});
+
+/* ----------------------------
+   SIGN UP
+---------------------------- */
+export async function signUp(email, password) {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    currentUser = cred.user;
+    setCurrentUser(currentUser);
+    console.log("User signed up:", currentUser.email);
+    return currentUser;
+  } catch (err) {
+    console.error("Sign-up error:", err);
+    throw err;
+  }
 }
 
-export function logout() {
-  return signOut(auth);
+/* ----------------------------
+   SIGN IN
+---------------------------- */
+export async function signIn(email, password) {
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    currentUser = cred.user;
+    setCurrentUser(currentUser);
+    console.log("User signed in:", currentUser.email);
+    return currentUser;
+  } catch (err) {
+    console.error("Sign-in error:", err);
+    throw err;
+  }
 }
 
-export function onUserChange(callback) {
-  onAuthStateChanged(auth, callback);
-}
-
-// Firestore helpers
-export async function getUserDoc(uid) {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-  if (snap.exists()) return snap.data();
-  else return null;
-}
-
-export async function setUserDoc(uid, data) {
-  const ref = doc(db, "users", uid);
-  await setDoc(ref, data, { merge: true });
-}
-
-export async function updateUserDoc(uid, data) {
-  const ref = doc(db, "users", uid);
-  await updateDoc(ref, data);
+/* ----------------------------
+   SIGN OUT
+---------------------------- */
+export async function logout() {
+  try {
+    await signOut(auth);
+    currentUser = null;
+    setCurrentUser(null);
+    console.log("User logged out");
+  } catch (err) {
+    console.error("Sign-out error:", err);
+    throw err;
+  }
 }
