@@ -1,35 +1,174 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login</title>
+  <title>GameTracker • Account</title>
   <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-<main style="max-width:400px;margin:4rem auto;">
-  <div class="card">
-    <h2>Sign In</h2>
+
+<main class="auth-container">
+  <div class="auth-card">
+
+    <h2 id="formTitle">Welcome Back</h2>
+    <p class="auth-sub">Track your board game collection in the cloud</p>
+
+    <div class="auth-toggle">
+      <button id="loginTab" class="active">Login</button>
+      <button id="signupTab">Sign Up</button>
+    </div>
+
     <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
-    <button id="loginBtn">Login / Register</button>
+
+    <button id="submitBtn">Login</button>
+
+    <p id="errorMsg" class="auth-error"></p>
+
   </div>
 </main>
 
 <script type="module">
 import { auth } from "./js/firebase.js";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } 
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const email = document.getElementById("email");
 const password = document.getElementById("password");
+const submitBtn = document.getElementById("submitBtn");
+const errorMsg = document.getElementById("errorMsg");
 
-document.getElementById("loginBtn").onclick = async () => {
+const loginTab = document.getElementById("loginTab");
+const signupTab = document.getElementById("signupTab");
+const formTitle = document.getElementById("formTitle");
+
+let mode = "login";
+
+loginTab.onclick = () => {
+  mode = "login";
+  loginTab.classList.add("active");
+  signupTab.classList.remove("active");
+  submitBtn.textContent = "Login";
+  formTitle.textContent = "Welcome Back";
+  errorMsg.textContent = "";
+};
+
+signupTab.onclick = () => {
+  mode = "signup";
+  signupTab.classList.add("active");
+  loginTab.classList.remove("active");
+  submitBtn.textContent = "Create Account";
+  formTitle.textContent = "Create Account";
+  errorMsg.textContent = "";
+};
+
+submitBtn.onclick = async () => {
+  errorMsg.textContent = "";
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Please wait...";
+
   try {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-  } catch {
-    await createUserWithEmailAndPassword(auth, email.value, password.value);
+    if (mode === "login") {
+      await signInWithEmailAndPassword(auth, email.value, password.value);
+    } else {
+      await createUserWithEmailAndPassword(auth, email.value, password.value);
+    }
+
+    window.location.href = "index.html";
+
+  } catch (err) {
+    errorMsg.textContent = err.message;
   }
-  window.location.href = "index.html";
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = mode === "login" ? "Login" : "Create Account";
 };
 </script>
+
+<style>
+body {
+  background: #0f172a;
+  font-family: system-ui, sans-serif;
+  color: white;
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.auth-card {
+  background: #1e293b;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.auth-card h2 {
+  margin-bottom: 0.5rem;
+}
+
+.auth-sub {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+}
+
+.auth-toggle {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.auth-toggle button {
+  flex: 1;
+  padding: 0.6rem;
+  border: none;
+  background: #334155;
+  color: white;
+  cursor: pointer;
+}
+
+.auth-toggle button.active {
+  background: #3b82f6;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: none;
+  background: #334155;
+  color: white;
+}
+
+.auth-card button {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.auth-card button:hover {
+  background: #2563eb;
+}
+
+.auth-error {
+  margin-top: 1rem;
+  color: #ef4444;
+  font-size: 0.9rem;
+}
+</style>
+
 </body>
 </html>
