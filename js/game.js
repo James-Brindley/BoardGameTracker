@@ -6,6 +6,19 @@ import { getGames, updateGame } from "./data.js";
 let game = null;
 let view = new Date();
 
+// DOM ELEMENTS
+const title = document.getElementById("title");
+const image = document.getElementById("image");
+const plays = document.getElementById("plays");
+const ratingView = document.getElementById("ratingView");
+const reviewView = document.getElementById("reviewView");
+const playTimeView = document.getElementById("playTime");
+const playerView = document.getElementById("playerCount");
+const badgeContainer = document.getElementById("badgeContainer");
+const trackerGrid = document.getElementById("gameTracker");
+const monthLabel = document.getElementById("monthLabel");
+const editBtn = document.getElementById("editToggle");
+
 async function init() {
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
@@ -19,38 +32,42 @@ async function init() {
     return;
   }
 
-  // Set Page Title
   document.title = game.name;
   render();
 }
-
-/* =============================
-   ELEMENTS
-============================= */
-const title = document.getElementById("title");
-const image = document.getElementById("image");
-const plays = document.getElementById("plays");
-const ratingView = document.getElementById("ratingView");
-const reviewView = document.getElementById("reviewView");
-const playTimeView = document.getElementById("playTime");
-const playerView = document.getElementById("playerCount");
-const badgeContainer = document.getElementById("badgeContainer");
-const trackerGrid = document.getElementById("gameTracker");
-const monthLabel = document.getElementById("monthLabel");
 
 /* =============================
    RENDER FUNCTIONS
 ============================= */
 function render() {
   title.textContent = game.name;
-  image.src = game.image || "https://via.placeholder.com/600x400";
+  image.src = game.image || "https://via.placeholder.com/800x360";
   plays.textContent = game.plays || 0;
   
-  ratingView.textContent = game.rating ? `⭐ ${game.rating}/10` : "No rating yet";
-  reviewView.textContent = game.review || "No review written yet.";
+  // Restore Original UI Rating Format
+  ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
+  reviewView.textContent = game.review?.trim() || "No review yet";
 
-  playTimeView.textContent = (game.playTime?.min) ? `${game.playTime.min}-${game.playTime.max}m` : "—";
-  playerView.textContent = (game.players?.min) ? `${game.players.min}-${game.players.max}` : "—";
+  // Restore Original UI Stats Format
+  if (game.playTime?.min != null) {
+    if (game.playTime.max != null && game.playTime.max !== game.playTime.min) {
+      playTimeView.textContent = `${game.playTime.min}–${game.playTime.max} mins`;
+    } else {
+      playTimeView.textContent = `${game.playTime.min} mins`;
+    }
+  } else {
+    playTimeView.textContent = "—";
+  }
+
+  if (game.players?.min != null) {
+    if (game.players.max != null && game.players.max !== game.players.min) {
+      playerView.textContent = `${game.players.min}–${game.players.max} players`;
+    } else {
+      playerView.textContent = `${game.players.min} players`;
+    }
+  } else {
+    playerView.textContent = "—";
+  }
 
   renderTracker();
   renderBadges();
@@ -85,7 +102,6 @@ function renderTracker() {
   }
 }
 
-// THE SYNC FUNCTION
 window.updatePlay = async function(dateKey, delta) {
   const current = game.playHistory[dateKey] || 0;
   const next = Math.max(0, current + delta);
@@ -93,10 +109,8 @@ window.updatePlay = async function(dateKey, delta) {
   if (next === 0) delete game.playHistory[dateKey];
   else game.playHistory[dateKey] = next;
 
-  // Recalculate total plays
   game.plays = Object.values(game.playHistory).reduce((a, b) => a + b, 0);
   
-  // SAVE TO SERVER
   await updateGame(game);
   render();
 };
@@ -161,6 +175,79 @@ function computeMilestoneBadges() {
   const earned = milestones.find(m => total >= m.value);
   return earned ? [{ ...earned, subtitle: `${total} total plays` }] : [];
 }
+
+/* ---------- EDIT GAME MODAL ---------- */
+editBtn.onclick = () => {
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="close-button">×</div>
+      <h2>Edit Game</h2>
+      
+      <label>Game Name</label>
+      <input id="editName" value="${game.name}">
+
+      <div class="row">
+        <div>
+          <label>Min Players</label>
+          <input id="editPMin" type="number" value="${game.players.min || ''}">
+        </div>
+        <div>
+          <label>Max Players</label>
+          <input id="editPMax" type="number" value="${game.players.max || ''}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Min Time</label>
+          <input id="editTMin" type="number" value="${game.playTime.min || ''}">
+        </div>
+        <div>
+          <label>Max Time</label>
+          <input id="editTMax" type="number" value="${game.playTime.max || ''}">
+        </div>
+      </div>
+
+      <label>Rating (0-10)</label>
+      <input id="editRating" type="number" step="0.1" value="${game.rating || ''}">
+
+      <label>Image URL</label>
+      <input id="editImage" value="${game.image || ''}">
+
+      <label>Review</label>
+      <textarea id="editReview" rows="3">${game.review || ''}</textarea>
+
+      <button id="saveEdit">Save Changes</button>
+    </div>
+  `;
+
+  backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
+
+  backdrop.querySelector("#saveEdit").onclick = async () => {
+    game.name = backdrop.querySelector("#editName").value.trim();
+    game.image = backdrop.querySelector("#editImage").value.trim() || null;
+    game.rating = parseFloat(backdrop.querySelector("#editRating").value) || null;
+    game.review = backdrop.querySelector("#editReview").value.trim();
+    
+    game.players = {
+      min: Number(backdrop.querySelector("#editPMin").value) || null,
+      max: Number(backdrop.querySelector("#editPMax").value) || null
+    };
+    
+    game.playTime = {
+      min: Number(backdrop.querySelector("#editTMin").value) || null,
+      max: Number(backdrop.querySelector("#editTMax").value) || null
+    };
+
+    await updateGame(game);
+    backdrop.remove();
+    render();
+  };
+
+  document.body.appendChild(backdrop);
+};
 
 /* ---------- NAV ---------- */
 document.getElementById("prevMonth").onclick = () => {
