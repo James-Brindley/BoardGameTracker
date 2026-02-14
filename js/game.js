@@ -1,18 +1,4 @@
-import { getGames, saveGames, setCurrentUser } from "./data.js";
-import { onUserChange, login } from "./firebase.js";
-
-/* =============================
-   AUTH SETUP
-============================= */
-onUserChange(async user => {
-  if (!user) {
-    alert("Please login to access your games.");
-    login();
-    return;
-  }
-  setCurrentUser(user);
-  await loadGame();
-});
+import { getGames, saveGames } from "./data.js";
 
 /* =============================
    LOAD GAME
@@ -20,28 +6,20 @@ onUserChange(async user => {
 const params = new URLSearchParams(location.search);
 const id = params.get("id");
 
-let games = [];
-let game;
+let games = await getGames();
+let index = games.findIndex(g => g.id === id);
+let game = games[index];
 
-async function loadGame() {
-  games = await getGames();
-  const index = games.findIndex(g => g.id === id);
-  game = games[index];
-
-  if (!game) {
-    alert("Game not found");
-    location.href = "catalogue.html";
-    return;
-  }
-
-  game.playHistory ||= {};
-  game.players ||= { min: null, max: null };
-  game.playTime ||= { min: null, max: null };
-  game.badges ||= [];
-  game.plays ||= 0;
-
-  render();
+if (!game) {
+  alert("Game not found");
+  location.href = "catalogue.html";
 }
+
+game.playHistory ||= {};
+game.players ||= { min: null, max: null };
+game.playTime ||= { min: null, max: null };
+game.badges ||= [];
+game.plays ||= 0;
 
 /* =============================
    ELEMENTS
@@ -54,13 +32,14 @@ const reviewView = document.getElementById("reviewView");
 const playTimeView = document.getElementById("playTime");
 const playerView = document.getElementById("playerCount");
 const badgeContainer = document.getElementById("badgeContainer");
+
 const trackerGrid = document.getElementById("gameTracker");
 const monthLabel = document.getElementById("monthLabel");
 
 let view = new Date();
 
 /* =============================
-   MONTH NAVIGATION
+   MONTH NAV
 ============================= */
 document.getElementById("prevMonth").addEventListener("click", () => {
   view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
@@ -73,11 +52,9 @@ document.getElementById("nextMonth").addEventListener("click", () => {
 });
 
 /* =============================
-   RENDER FUNCTION
+   RENDER
 ============================= */
 function render() {
-  if (!game) return;
-
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/800x360";
   plays.textContent = game.plays;
@@ -90,16 +67,16 @@ function render() {
 
   playTimeView.textContent =
     game.playTime.min != null
-      ? (game.playTime.max != null && game.playTime.max !== game.playTime.min
-         ? `${game.playTime.min}–${game.playTime.max} mins`
-         : `${game.playTime.min} mins`)
+      ? game.playTime.max != null && game.playTime.max !== game.playTime.min
+        ? `${game.playTime.min}–${game.playTime.max} mins`
+        : `${game.playTime.min} mins`
       : "—";
 
   playerView.textContent =
     game.players.min != null
-      ? (game.players.max != null && game.players.max !== game.players.min
-         ? `${game.players.min}–${game.players.max} players`
-         : `${game.players.min} players`)
+      ? game.players.max != null && game.players.max !== game.players.min
+        ? `${game.players.min}–${game.players.max} players`
+        : `${game.players.min} players`
       : "—";
 
   renderTracker();
@@ -123,15 +100,23 @@ function renderTracker() {
   const days = new Date(year, month + 1, 0).getDate();
 
   for (let d = 1; d <= days; d++) {
-    const key = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     const count = game.playHistory[key] || 0;
 
     const cell = document.createElement("div");
     cell.className = "tracker-day";
 
-    if (count > 0) cell.classList.add(`level-${Math.min(3, count)}`);
-    if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d)
+    if (count > 0) {
+      cell.classList.add(`level-${Math.min(3, count)}`);
+    }
+
+    if (
+      today.getFullYear() === year &&
+      today.getMonth() === month &&
+      today.getDate() === d
+    ) {
       cell.classList.add("today");
+    }
 
     const dayNumber = document.createElement("span");
     dayNumber.className = "day-number";
@@ -143,12 +128,15 @@ function renderTracker() {
     tooltip.innerHTML = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}/${year}<br>${count} play${count !== 1 ? "s" : ""}`;
     cell.appendChild(tooltip);
 
-    // Add / remove plays
-    cell.addEventListener("click", async () => updatePlay(key, 1));
+    /* ---------- CLICK HANDLING ---------- */
+    cell.addEventListener("click", async () => {
+      await updatePlay(key, 1);
+    });
+
     cell.addEventListener("contextmenu", async (e) => {
       e.preventDefault();
       if (!game.playHistory[key]) return;
-      updatePlay(key, -1);
+      await updatePlay(key, -1);
     });
 
     trackerGrid.appendChild(cell);
@@ -159,17 +147,21 @@ async function updatePlay(dateKey, delta) {
   const current = game.playHistory[dateKey] || 0;
   const next = current + delta;
 
-  if (next <= 0) delete game.playHistory[dateKey];
-  else game.playHistory[dateKey] = next;
+  if (next <= 0) {
+    delete game.playHistory[dateKey];
+  } else {
+    game.playHistory[dateKey] = next;
+  }
 
   game.plays = Math.max(0, (game.plays || 0) + delta);
 
+  games[index] = game;
   await saveGames(games);
   render();
 }
 
 /* =============================
-   EDIT GAME
+   EDIT MODAL
 ============================= */
 document.getElementById("editToggle").addEventListener("click", () => {
   const backdrop = document.createElement("div");
@@ -218,8 +210,10 @@ document.getElementById("editToggle").addEventListener("click", () => {
 
     const ratingValue = backdrop.querySelector("#editRating").value;
     game.rating = ratingValue ? parseFloat(ratingValue) : null;
+
     game.review = backdrop.querySelector("#editReview").value.trim();
 
+    games[index] = game;
     await saveGames(games);
     backdrop.remove();
     render();
@@ -248,24 +242,32 @@ function renderBadges() {
   dynamic.forEach(b => {
     const el = document.createElement("div");
     el.className = `badge badge-${b.type}`;
-    el.innerHTML = `<div class="badge-title">${b.title}</div><div class="badge-sub">${b.subtitle}</div>`;
+    el.innerHTML = `
+      <div class="badge-title">${b.title}</div>
+      <div class="badge-sub">${b.subtitle}</div>
+    `;
     badgeContainer.appendChild(el);
   });
 }
 
 /* ---------- MONTHLY TOP ---------- */
 function computeMonthlyTopBadges() {
+  const freshGames = games;
   const results = [];
+
   const now = new Date();
   const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,"0")}`;
 
   const months = new Set();
-  games.forEach(g => Object.keys(g.playHistory || {}).forEach(date => months.add(date.slice(0,7))));
+  freshGames.forEach(g => Object.keys(g.playHistory || {}).forEach(date => months.add(date.slice(0,7))));
+
   months.forEach(monthKey => {
     if (monthKey === currentMonthKey) return;
 
-    const monthlyTotals = games.map(g => {
-      const total = Object.entries(g.playHistory || {}).filter(([d]) => d.startsWith(monthKey)).reduce((a,[,v]) => a+v,0);
+    const monthlyTotals = freshGames.map(g => {
+      const total = Object.entries(g.playHistory || {})
+        .filter(([d]) => d.startsWith(monthKey))
+        .reduce((a,[,v]) => a+v,0);
       return { id: g.id, total };
     });
 
@@ -276,7 +278,11 @@ function computeMonthlyTopBadges() {
     if (winners.some(w => w.id === game.id)) {
       const [year, month] = monthKey.split("-");
       const dateObj = new Date(year, month - 1);
-      results.push({ type: "gold", title: "Top Game of the Month", subtitle: `${dateObj.toLocaleString("default",{month:"long"})} ${year}` });
+      results.push({
+        type: "gold",
+        title: "Top Game of the Month",
+        subtitle: `${dateObj.toLocaleString("default",{month:"long"})} ${year}`
+      });
     }
   });
 
@@ -285,33 +291,46 @@ function computeMonthlyTopBadges() {
 
 /* ---------- ALL TIME RANK ---------- */
 function computeAllTimeRankBadges() {
-  const sorted = [...games].sort((a, b) => (b.plays || 0) - (a.plays || 0));
+  const freshGames = games;
+
+  const sorted = [...freshGames].sort((a,b) => (b.plays||0) - (a.plays||0));
   const rankIndex = sorted.findIndex(g => g.id === game.id);
   if (rankIndex === -1) return [];
 
   const rank = rankIndex + 1;
   if (rank > 3) return [];
 
-  const ranks = { 1: { type: "crown", title: "All-Time Champion" }, 2: { type: "silver", title: "Grand Strategist" }, 3: { type: "bronze", title: "Tabletop Contender" } };
-  return [{ type: ranks[rank].type, title: ranks[rank].title, subtitle: `Rank #${rank} — ${game.plays || 0} plays` }];
+  const ranks = {
+    1: { type: "crown", title: "All-Time Champion" },
+    2: { type: "silver", title: "Grand Strategist" },
+    3: { type: "bronze", title: "Tabletop Contender" }
+  };
+
+  return [{
+    type: ranks[rank].type,
+    title: ranks[rank].title,
+    subtitle: `Rank #${rank} — ${game.plays || 0} plays`
+  }];
 }
 
 /* ---------- MILESTONES ---------- */
 function computeMilestoneBadges() {
   const total = game.plays || 0;
+
   const milestones = [
-    { value: 5, type: "meeple", title: "Rookie Roller" },
-    { value: 10, type: "dice", title: "Dice Adept" },
-    { value: 20, type: "guild", title: "Guild Tactician" },
-    { value: 30, type: "table", title: "Table Commander" },
-    { value: 40, type: "empire", title: "Empire Architect" },
-    { value: 50, type: "legend", title: "Legend of the Table" }
+    { value: 5,  type: "meeple",  title: "Rookie Roller" },
+    { value: 10, type: "dice",    title: "Dice Adept" },
+    { value: 20, type: "guild",   title: "Guild Tactician" },
+    { value: 30, type: "table",   title: "Table Commander" },
+    { value: 40, type: "empire",  title: "Empire Architect" },
+    { value: 50, type: "legend",  title: "Legend of the Table" }
   ];
 
-  return milestones.filter(m => total >= m.value).map(m => ({ type: m.type, title: m.title, subtitle: `${m.value}+ Plays` }));
+  return milestones.filter(m => total >= m.value).map(m => ({
+    type: m.type,
+    title: m.title,
+    subtitle: `${m.value}+ Plays`
+  }));
 }
 
-/* =============================
-   INITIAL RENDER
-============================= */
 render();
