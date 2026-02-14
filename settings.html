@@ -174,5 +174,17 @@ document.getElementById("resetData").onclick = () => {
 };
 </script>
 
+<script type="module">
+import { auth } from "./js/firebase.js";
+import { onAuthStateChanged } 
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.href = "login.html";
+  }
+});
+</script>
+
 </body>
 </html>
