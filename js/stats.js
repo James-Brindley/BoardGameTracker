@@ -51,7 +51,7 @@ function renderPodium(container, games, valueKey) {
     card.className = `podium-card ${heights[i]}`;
     card.innerHTML = `
       <div class="rank-badge">${idx + 1}</div>
-      <img src="${g.image || 'https://via.placeholder.com/400'}">
+      <img src="${g.image || 'https://via.placeholder.com/400'}" loading="lazy">
       <div style="font-weight:700; font-size:0.9rem; line-height:1.2; margin-bottom:4px">${g.name}</div>
       <div style="font-size:0.8rem; color:var(--subtext)">${g[valueKey]} plays</div>
     `;
@@ -77,7 +77,7 @@ function renderList(container, games, start, end, valueKey) {
     row.className = "top10-row";
     row.innerHTML = `
       <div class="top10-rank">${start + i + 1}</div>
-      <img src="${g.image || 'https://via.placeholder.com/200'}">
+      <img src="${g.image || 'https://via.placeholder.com/200'}" loading="lazy">
       <div style="flex:1">
         <div style="font-weight:600">${g.name}</div>
         <div style="font-size:0.8rem; color:var(--subtext)">${g[valueKey]} plays</div>
