@@ -24,7 +24,6 @@ let advancedStatsContainer = document.getElementById("advancedStats");
 if(!advancedStatsContainer) {
     advancedStatsContainer = document.createElement('div');
     advancedStatsContainer.id = "advancedStats";
-    // Insert after the grid of basic stats
     document.querySelector('.game-stats-grid').after(advancedStatsContainer);
 }
 
@@ -149,7 +148,7 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // --- ENHANCED TOOLTIP LOGIC ---
+    // Tooltip
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
@@ -192,9 +191,7 @@ function renderTracker() {
   }
 }
 
-/* LOGIC TO HANDLE CLICKS & SMART REMOVAL */
 async function handlePlayClick(dateKey, delta) {
-  // === ADDING PLAY ===
   if (delta === 1) {
     if (game.tracking.score || game.tracking.won) {
       showPlayModal(dateKey);
@@ -206,16 +203,13 @@ async function handlePlayClick(dateKey, delta) {
     return;
   }
 
-  // === REMOVING PLAY (SMART DELETE) ===
   const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
   
-  // 1. If no detailed sessions (legacy data) or only 1 session, just delete it directly
   if (daySessions.length <= 1) {
     removeSessionDirectly(dateKey, daySessions[0]); 
     return;
   }
 
-  // 2. If multiple sessions, check if they are all identical
   const allIdentical = daySessions.every(s => {
     const first = daySessions[0];
     return s.won === first.won && s.score === first.score;
@@ -386,7 +380,8 @@ async function renderBadges() {
   const badges = [
     ...computeMonthlyTopBadges(allGames),
     ...(await computeAllTimeRankBadges()),
-    ...computeMilestoneBadges()
+    ...computeMilestoneBadges(),
+    ...computeWinBadges() // NEW
   ];
 
   if (badges.length === 0) {
@@ -449,12 +444,36 @@ async function computeAllTimeRankBadges() {
 
 function computeMilestoneBadges() {
   const total = game.plays || 0;
+  // Added 10, 30, 40 as requested
   const milestones = [
     { value: 50, type: "legend",  title: "Legendary" },
+    { value: 40, type: "empire",  title: "Empire Builder" },
+    { value: 30, type: "table",   title: "Table Master" },
     { value: 20, type: "guild",   title: "Guild Veteran" },
+    { value: 10, type: "dice",    title: "Roller" },
     { value: 5,  type: "dice",    title: "Rookie" }
   ];
-  return milestones.filter(m => total >= m.value).map(m => ({ ...m, subtitle: `${m.value}+ Plays` }));
+  
+  // Find only the HIGHEST achieved milestone
+  const achieved = milestones.find(m => total >= m.value);
+  return achieved ? [{ ...achieved, subtitle: `${achieved.value}+ Plays` }] : [];
+}
+
+// NEW: Win Badges (Every 5 up to 50)
+function computeWinBadges() {
+  if (!game.sessions) return [];
+  const wins = game.sessions.filter(s => s.won === true).length;
+  if (wins === 0) return [];
+
+  // Generate milestones 50, 45, 40... down to 5
+  const winMilestones = [];
+  for (let i = 50; i >= 5; i -= 5) {
+    winMilestones.push({ value: i, type: "trophy", title: "Victory Road" });
+  }
+
+  // Return only the highest unlocked
+  const achieved = winMilestones.find(m => wins >= m.value);
+  return achieved ? [{ ...achieved, subtitle: `${achieved.value}+ Wins` }] : [];
 }
 
 /* ---------- EDIT GAME MODAL ---------- */
@@ -465,16 +484,21 @@ editBtn.onclick = () => {
     <div class="modal">
       <div class="close-button">×</div>
       <h2>Edit Game</h2>
+      
+      <div class="input-header">Basic Info</div>
       <input id="editName" class="ui-input" value="${game.name}" placeholder="Game Name" style="margin-bottom:10px">
       <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL" style="margin-bottom:10px">
       
+      <div class="input-header">Player Count</div>
       <div class="row">
-        <input id="editPMin" type="number" class="ui-input" value="${game.players.min ?? ''}" placeholder="Min Players">
-        <input id="editPMax" type="number" class="ui-input" value="${game.players.max ?? ''}" placeholder="Max Players">
+        <input id="editPMin" type="number" class="ui-input" value="${game.players.min ?? ''}" placeholder="Min">
+        <input id="editPMax" type="number" class="ui-input" value="${game.players.max ?? ''}" placeholder="Max">
       </div>
+
+      <div class="input-header">Play Time (Minutes)</div>
       <div class="row">
-        <input id="editTMin" type="number" class="ui-input" value="${game.playTime.min ?? ''}" placeholder="Min Time">
-        <input id="editTMax" type="number" class="ui-input" value="${game.playTime.max ?? ''}" placeholder="Max Time">
+        <input id="editTMin" type="number" class="ui-input" value="${game.playTime.min ?? ''}" placeholder="Min">
+        <input id="editTMax" type="number" class="ui-input" value="${game.playTime.max ?? ''}" placeholder="Max">
       </div>
 
       <div class="toggle-group">
@@ -486,6 +510,7 @@ editBtn.onclick = () => {
         </label>
       </div>
 
+      <div class="input-header">Rating & Review</div>
       <input id="editRating" class="ui-input" type="number" step="0.1" value="${game.rating ?? ''}" placeholder="Rating (0-10)" style="margin-bottom:10px">
       <textarea id="editReview" placeholder="Your review...">${game.review || ''}</textarea>
       
