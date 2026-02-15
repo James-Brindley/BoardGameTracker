@@ -2,24 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    .login-container { max-width: 400px; margin: 100px auto; text-align: center; }
-    .error { color: #ff3b30; margin-top: 10px; display: none; }
-  </style>
 </head>
-<body>
+<body style="display:flex; align-items:center; justify-content:center; height:100vh;">
   <div class="card login-container">
-    <h1>🎲 Game Tracker</h1>
-    <p>Sign in to access your collection</p>
+    <h1 style="margin-bottom:0.5rem">🎲 Game Tracker</h1>
+    <p style="color:var(--subtext); margin-bottom:2rem;">Sign in to sync your library</p>
     
-    <input id="email" class="ui-input" type="email" placeholder="Email" style="width:100%; margin-bottom:10px;">
-    <input id="password" class="ui-input" type="password" placeholder="Password" style="width:100%; margin-bottom:20px;">
+    <input id="email" class="ui-input" type="email" placeholder="Email Address" style="margin-bottom:1rem;">
+    <input id="password" class="ui-input" type="password" placeholder="Password" style="margin-bottom:2rem;">
     
-    <button id="loginBtn" style="width:100%; margin-bottom:10px;">Log In</button>
-    <button id="signUpBtn" class="secondary" style="width:100%;">Sign Up</button>
-    <p id="errorMsg" class="error"></p>
+    <button id="loginBtn" style="width:100%; margin-bottom:1rem;">Log In</button>
+    <button id="signUpBtn" class="secondary" style="width:100%;">Create Account</button>
+    <p id="errorMsg" style="color:var(--danger); margin-top:1rem; display:none;"></p>
   </div>
 
   <script type="module">
