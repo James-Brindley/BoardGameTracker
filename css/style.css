@@ -993,3 +993,63 @@ body {
   color: #ff3b30;
   border-color: #ff3b30;
 }
+
+/* ... existing code ... */
+
+/* ---------- REMOVAL MODAL ---------- */
+.removal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.removal-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.removal-option:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Color coding for removal list */
+.removal-option.win { border-left: 4px solid #34c759; }
+.removal-option.loss { border-left: 4px solid #ff3b30; }
+
+/* Enhanced Tooltip Styles */
+.tracker-tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 2px;
+}
+
+.tooltip-row {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.tooltip-tag {
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+
+.tag-win { background: #34c759; color: white; }
+.tag-loss { background: #ff3b30; color: white; }
+.tag-score { background: rgba(128,128,128,0.3); color: var(--text); }
