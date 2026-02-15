@@ -2,52 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stats</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <header>
-  <h1>📊 Stats</h1>
+  <h1>Overview</h1>
   <nav>
-    <a href="index.html">Stats</a>
-    <a href="catalogue.html">Catalogue</a>
+    <a href="index.html" class="active">Stats</a>
+    <a href="catalogue.html">Library</a>
     <a href="settings.html">Settings</a>
   </nav>
 </header>
 
 <main>
 
-  <!-- MONTHLY SECTION -->
-  <section class="card section-card">
-    <header class="section-header">
-      <button id="prevMonth">←</button>
-      <h2 id="monthLabel">Month</h2>
-      <button id="nextMonth">→</button>
-    </header>
+  <section class="card">
+    <div class="tracker-header">
+      <button id="prevMonth" class="secondary" style="padding:8px 16px;">←</button>
+      <h2 id="monthLabel" style="margin:0">Month</h2>
+      <button id="nextMonth" class="secondary" style="padding:8px 16px;">→</button>
+    </div>
 
-    <!-- Monthly Podium -->
+    <div class="tracker-container">
+        <div class="tracker-grid small" id="globalTracker"></div>
+    </div>
+
     <div class="podium" id="monthPodium"></div>
 
-    <!-- Monthly 4–5 -->
     <div id="monthRest"></div>
-
-    <!-- Monthly Tracker -->
-    <div class="tracker-card">
-      <div class="tracker-grid small" id="globalTracker"></div>
-    </div>
   </section>
 
-  <!-- ALL-TIME SECTION -->
-  <section class="card section-card">
-    <header class="section-header">
-      <h2>All-Time Top Games</h2>
-    </header>
+  <section class="card">
+    <div class="tracker-header">
+      <h2>All-Time Leaders</h2>
+    </div>
 
-    <!-- All-Time Podium -->
     <div class="podium" id="allTimePodium"></div>
 
-    <!-- All-Time 4–10 -->
     <div id="top10"></div>
   </section>
 
