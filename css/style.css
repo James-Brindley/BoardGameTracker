@@ -5,7 +5,7 @@
   --text: #1C1C1E;
   --subtext: #8E8E93;
   --border: rgba(0, 0, 0, 0.08);
-  --accent: #007AFF; /* Default Apple Blue */
+  --accent: #007AFF;
   --danger: #FF3B30;
   --success: #34C759;
   --nav-bg: rgba(255, 255, 255, 0.85);
@@ -42,7 +42,7 @@ body {
   padding-bottom: 40px;
 }
 
-/* ---------- HEADER (Glassmorphism) ---------- */
+/* ---------- HEADER (New Layout: Left, Center, Right) ---------- */
 header {
   position: sticky;
   top: 0;
@@ -51,16 +51,41 @@ header {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
+  padding: 0.8rem 1.5rem;
+  
+  /* Grid Layout for perfect centering */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
 }
 
+.header-left {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+}
+
+.header-center {
+  justify-self: center;
+  text-align: center;
+}
+
+.header-right {
+  justify-self: end;
+}
+
+.site-logo {
+  height: 32px; /* Adjust based on your logo image */
+  width: auto;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
 header h1 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.5px;
+  margin: 0;
 }
 
 nav {
@@ -113,14 +138,16 @@ main {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* More visible headings */
 h2 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  letter-spacing: -0.5px;
+  font-size: 1.6rem; /* Larger */
+  font-weight: 800; /* Bolder */
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.8px;
+  color: var(--text);
 }
 
-/* ---------- CONTROLS & INPUTS (iOS Style) ---------- */
+/* ---------- CONTROLS & INPUTS ---------- */
 .ui-input, .ui-select, textarea {
   width: 100%;
   background: rgba(120, 120, 128, 0.1);
@@ -151,27 +178,19 @@ button {
   transition: transform 0.1s, opacity 0.2s;
 }
 
-button:hover {
-  opacity: 0.9;
-}
-
-button:active {
-  transform: scale(0.96);
-}
+button:hover { opacity: 0.9; }
+button:active { transform: scale(0.96); }
 
 button.secondary {
   background-color: rgba(120, 120, 128, 0.15);
   color: var(--accent);
 }
 
-button.danger {
-  background-color: var(--danger);
-}
+button.danger { background-color: var(--danger); }
 
-/* ---------- CATALOGUE GRID (Updated for 4 columns) ---------- */
+/* ---------- CATALOGUE GRID ---------- */
 .game-grid {
   display: grid;
-  /* Reduced min-width to 220px to allow 4 columns on standard screens */
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.5rem;
 }
@@ -200,11 +219,14 @@ button.danger {
   border-bottom: 1px solid var(--border);
 }
 
+/* Fixed: Rating wrap issue */
 .card-header {
   padding: 1rem 1rem 0.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  gap: 10px;
 }
 
 .card-header strong {
@@ -212,7 +234,18 @@ button.danger {
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: ellipsis; /* Truncate name */
+  min-width: 0;
+}
+
+.rating-badge {
+  font-size: 0.8rem;
+  background: rgba(255,215,0,0.2);
+  color: #D4AF37;
+  padding: 2px 6px;
+  border-radius: 6px;
+  flex-shrink: 0; /* Never shrink the rating */
+  white-space: nowrap;
 }
 
 .card-stats {
@@ -261,7 +294,7 @@ button.danger {
   display: block;
 }
 
-/* ---------- GAME DETAIL PAGE ---------- */
+/* ---------- GAME PAGE ---------- */
 .game-hero {
   text-align: center;
   margin-bottom: 2rem;
@@ -312,24 +345,12 @@ button.danger {
   color: var(--text);
 }
 
-/* ---------- ADVANCED STATS (Score/Win-Loss) ---------- */
 .advanced-stats-container {
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
-  margin-bottom: 2.5rem; /* Added padding so it doesn't touch the Review section */
+  margin-bottom: 2.5rem;
   justify-content: center;
-}
-
-.stat-pill {
-  background: rgba(120, 120, 128, 0.08);
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .win-text { color: var(--success); }
@@ -351,17 +372,18 @@ button.danger {
   margin-bottom: 1.5rem;
 }
 
-.tracker-header h2 { margin: 0; }
+.tracker-header h2 { margin: 0; font-weight: 800; }
 
+/* Grid changes for smaller appearance */
 .tracker-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 6px;
+  max-width: 600px; /* Constrain width to make it look "smaller" */
+  margin: 0 auto; /* Center it */
 }
 
-.tracker-grid.small {
-  gap: 4px;
-}
+.tracker-grid.small { gap: 4px; }
 
 .tracker-day {
   aspect-ratio: 1;
@@ -373,7 +395,12 @@ button.danger {
 }
 
 .tracker-day:hover { transform: scale(1.1); z-index: 2; }
-.tracker-day.today { border: 2px solid var(--accent); }
+
+/* Thicker Outline */
+.tracker-day.today {
+  border: 3px solid var(--accent); /* Thicker */
+  z-index: 2;
+}
 
 /* Heatmap Colors */
 .level-1 { background-color: color-mix(in srgb, var(--accent) 30%, transparent); }
@@ -390,7 +417,6 @@ button.danger {
   color: var(--subtext);
 }
 
-/* Tooltip */
 .tracker-tooltip {
   position: absolute;
   bottom: 130%;
@@ -424,7 +450,7 @@ button.danger {
 .tag-loss { background: var(--danger); color: white; }
 .tag-score { background: rgba(255,255,255,0.2); }
 
-/* ---------- PODIUMS (Redesigned) ---------- */
+/* ---------- PODIUMS ---------- */
 .podium {
   display: flex;
   justify-content: center;
@@ -449,10 +475,9 @@ button.danger {
   overflow: hidden;
 }
 
-/* Better image incorporation */
 .podium-card img {
   width: 100%;
-  height: 100px; /* Taller */
+  height: 100px;
   border-radius: 14px;
   object-fit: cover;
   margin-bottom: 0.8rem;
@@ -472,7 +497,6 @@ button.danger {
   background: rgba(0,0,0,0.05);
 }
 
-/* Distinct Metal Colors */
 .podium-1 { 
   height: 290px; 
   order: 2; 
@@ -498,7 +522,7 @@ button.danger {
 }
 .podium-3 .rank-badge { background: #CD7F32; color: #FFF; }
 
-/* ---------- LISTS (iOS Settings Style) ---------- */
+/* ---------- LISTS ---------- */
 .top10-row, .removal-option {
   display: flex;
   align-items: center;
@@ -511,7 +535,6 @@ button.danger {
 
 .top10-row:first-child { border-top-left-radius: var(--radius-sm); border-top-right-radius: var(--radius-sm); }
 .top10-row:last-child { border-bottom: none; border-bottom-left-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
-
 .top10-row:hover { background: rgba(120,120,128,0.05); }
 
 .top10-row img {
@@ -529,15 +552,8 @@ button.danger {
 }
 
 /* ---------- SETTINGS ---------- */
-.settings-section {
-  padding: 0;
-  overflow: hidden;
-}
-
-.settings-header {
-  padding: 1.5rem 1.5rem 0.5rem;
-}
-
+.settings-section { padding: 0; overflow: hidden; }
+.settings-header { padding: 1.5rem 1.5rem 0.5rem; }
 .settings-item {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border);
@@ -545,7 +561,6 @@ button.danger {
   align-items: center;
   justify-content: space-between;
 }
-
 .settings-item:last-child { border-bottom: none; }
 
 .accent-picker {
@@ -563,7 +578,6 @@ button.danger {
   flex-shrink: 0;
   position: relative;
 }
-
 .accent-swatch.active::after {
   content: "";
   position: absolute;
@@ -580,14 +594,12 @@ button.danger {
   backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
-  align-items: flex-end; /* Sheet style on mobile */
+  align-items: flex-end;
   z-index: 1000;
   animation: fadeIn 0.2s;
 }
 
-@media (min-width: 600px) {
-  .modal-backdrop { align-items: center; }
-}
+@media (min-width: 600px) { .modal-backdrop { align-items: center; } }
 
 .modal {
   background: var(--card);
@@ -602,18 +614,12 @@ button.danger {
   position: relative;
 }
 
-@media (min-width: 600px) {
-  .modal { border-radius: 24px; }
-}
+@media (min-width: 600px) { .modal { border-radius: 24px; } }
 
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
 .modal h2 { text-align: center; margin-bottom: 1.5rem; font-size: 1.2rem; }
 
-/* Improved Close Button (iOS Style) */
 .close-button {
   position: absolute;
   top: 1rem;
@@ -631,11 +637,7 @@ button.danger {
   font-weight: bold;
   transition: background 0.2s;
 }
-
-.close-button:hover {
-  background: rgba(120,120,128,0.25);
-  color: var(--text);
-}
+.close-button:hover { background: rgba(120,120,128,0.25); color: var(--text); }
 
 .toggle-group {
   background: rgba(120,120,128,0.05);
@@ -648,7 +650,6 @@ button.danger {
 
 .row { display: flex; gap: 10px; margin-bottom: 10px; }
 
-/* Edit Menu Headers */
 .input-header {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -675,7 +676,6 @@ button.danger {
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
-
 .badge-gold { background: linear-gradient(135deg, #FFD700, #FDB931); }
 .badge-silver { background: linear-gradient(135deg, #E0E0E0, #BDBDBD); }
 .badge-bronze { background: linear-gradient(135deg, #CD7F32, #A0522D); color: white; }
@@ -688,9 +688,4 @@ button.danger {
 .badge-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 4px; }
 .badge-sub { font-size: 0.8rem; opacity: 0.8; font-weight: 500; }
 
-/* Login Page Specific */
-.login-container {
-  max-width: 400px;
-  margin: 10vh auto;
-  text-align: center;
-}
+.login-container { max-width: 400px; margin: 10vh auto; text-align: center; }
