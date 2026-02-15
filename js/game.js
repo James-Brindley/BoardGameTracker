@@ -6,6 +6,7 @@ import { getGames, updateGame, deleteGame } from "./data.js";
 let game = null;
 let view = new Date();
 
+// DOM ELEMENTS
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
@@ -18,10 +19,14 @@ const trackerGrid = document.getElementById("gameTracker");
 const monthLabel = document.getElementById("monthLabel");
 const editBtn = document.getElementById("editToggle");
 
-// New Container for Advanced Stats
-const advancedStatsContainer = document.createElement('div');
-advancedStatsContainer.id = "advancedStats";
-document.querySelector('.game-stats').after(advancedStatsContainer);
+// Insert Advanced Stats Container if it doesn't exist
+let advancedStatsContainer = document.getElementById("advancedStats");
+if(!advancedStatsContainer) {
+    advancedStatsContainer = document.createElement('div');
+    advancedStatsContainer.id = "advancedStats";
+    // Insert after the grid of basic stats
+    document.querySelector('.game-stats-grid').after(advancedStatsContainer);
+}
 
 async function init() {
   const params = new URLSearchParams(location.search);
@@ -52,18 +57,18 @@ function render() {
   plays.textContent = game.plays || 0;
   
   ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
-  reviewView.textContent = game.review?.trim() || "No review yet";
+  reviewView.textContent = game.review?.trim() || "No review logged.";
 
   if (game.playTime?.min != null) {
     playTimeView.textContent = (game.playTime.max && game.playTime.max !== game.playTime.min) 
-      ? `${game.playTime.min}–${game.playTime.max} mins` 
-      : `${game.playTime.min} mins`;
+      ? `${game.playTime.min}–${game.playTime.max}m` 
+      : `${game.playTime.min}m`;
   } else { playTimeView.textContent = "—"; }
 
   if (game.players?.min != null) {
     playerView.textContent = (game.players.max && game.players.max !== game.players.min) 
-      ? `${game.players.min}–${game.players.max} players` 
-      : `${game.players.min} players`;
+      ? `${game.players.min}–${game.players.max}` 
+      : `${game.players.min}`;
   } else { playerView.textContent = "—"; }
 
   renderAdvancedStats();
@@ -71,13 +76,14 @@ function render() {
   renderBadges();
 }
 
-/* NEW: RENDER SCORE / WIN LOSS */
+/* RENDER SCORE / WIN LOSS */
 function renderAdvancedStats() {
   const hasData = game.sessions && game.sessions.length > 0;
   const showScore = game.tracking.score || (hasData && game.sessions.some(s => s.score != null));
   const showWon = game.tracking.won || (hasData && game.sessions.some(s => s.won != null));
 
   advancedStatsContainer.innerHTML = "";
+  advancedStatsContainer.className = "advanced-stats-container";
   
   if (!showScore && !showWon) {
     advancedStatsContainer.style.display = 'none';
@@ -85,7 +91,6 @@ function renderAdvancedStats() {
   }
   
   advancedStatsContainer.style.display = 'flex';
-  advancedStatsContainer.className = "stats-row-advanced";
 
   // 1. HIGH SCORE
   if (showScore) {
@@ -93,8 +98,8 @@ function renderAdvancedStats() {
     const highScore = scores.length ? Math.max(...scores) : "—";
     
     const div = document.createElement('div');
-    div.className = "stat";
-    div.innerHTML = `<span class="stat-label">High Score</span><span class="stat-value">${highScore}</span>`;
+    div.className = "stat-widget";
+    div.innerHTML = `<div class="label">High Score</div><div class="value">${highScore}</div>`;
     advancedStatsContainer.appendChild(div);
   }
 
@@ -103,19 +108,24 @@ function renderAdvancedStats() {
     const validSessions = game.sessions.filter(s => s.won != null);
     const wins = validSessions.filter(s => s.won === true).length;
     const losses = validSessions.filter(s => s.won === false).length;
+    // Calculate Win %
+    const total = wins + losses;
+    const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
     const div = document.createElement('div');
-    div.className = "stat";
+    div.className = "stat-widget";
     div.innerHTML = `
-      <span class="stat-label">Win Rate</span>
-      <span class="stat-value">${wins}W – ${losses}L</span>
+      <div class="label">Win Rate (${rate}%)</div>
+      <div class="value">
+        <span class="win-text">${wins}W</span> - <span class="loss-text">${losses}L</span>
+      </div>
     `;
     advancedStatsContainer.appendChild(div);
   }
 }
 
 /* =============================
-   TRACKER & UPDATES (IMPROVED TOOLTIP)
+   TRACKER & UPDATES
 ============================= */
 function renderTracker() {
   trackerGrid.innerHTML = "";
@@ -131,7 +141,7 @@ function renderTracker() {
 
     const cell = document.createElement("div");
     cell.className = "tracker-day";
-    if (count > 0) cell.classList.add(`level-${Math.min(3, count)}`);
+    if (count > 0) cell.classList.add(`level-${Math.min(5, count)}`);
     if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d) cell.classList.add("today");
 
     const dayNum = document.createElement("span");
@@ -142,41 +152,32 @@ function renderTracker() {
     // --- ENHANCED TOOLTIP LOGIC ---
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
-    const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}/${year}`;
+    const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
     
     // Check if we have detailed session data for this day
     const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
 
-    let content = `<strong>${formattedDate}</strong>`;
+    let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
     if (daySessions.length > 0 && (game.tracking.score || game.tracking.won)) {
-      // Detailed View
       daySessions.forEach(s => {
-        let rowHtml = `<div class="tooltip-row">`;
-        
-        // Win/Loss Tag
+        let rowHtml = `<div style="margin-top:2px; display:flex; align-items:center;">`;
         if (game.tracking.won && s.won != null) {
           rowHtml += s.won 
-            ? `<span class="tooltip-tag tag-win">WIN</span>` 
-            : `<span class="tooltip-tag tag-loss">LOSS</span>`;
+            ? `<span class="tooltip-tag tag-win">W</span>` 
+            : `<span class="tooltip-tag tag-loss">L</span>`;
         }
-        
-        // Score Tag
         if (game.tracking.score && s.score != null) {
-          rowHtml += `<span class="tooltip-tag tag-score">${s.score} pts</span>`;
+          rowHtml += `<span class="tooltip-tag tag-score">${s.score}</span>`;
         }
-        
-        // Fallback if empty
         if ((!game.tracking.won || s.won == null) && (!game.tracking.score || s.score == null)) {
           rowHtml += `<span>Play logged</span>`;
         }
-
         rowHtml += `</div>`;
         content += rowHtml;
       });
     } else {
-      // Simple Count View
-      content += `<div style="margin-top:2px">${count} play${count !== 1 ? "s" : ""}</div>`;
+      content += `<div>${count} play${count !== 1 ? "s" : ""}</div>`;
     }
 
     tooltip.innerHTML = content;
@@ -214,28 +215,24 @@ async function handlePlayClick(dateKey, delta) {
     return;
   }
 
-  // 2. If multiple sessions, check if they are all identical (same W/L and same Score)
+  // 2. If multiple sessions, check if they are all identical
   const allIdentical = daySessions.every(s => {
     const first = daySessions[0];
     return s.won === first.won && s.score === first.score;
   });
 
   if (allIdentical) {
-    // If they are all the same, just remove the last one without asking
     removeSessionDirectly(dateKey, daySessions[daySessions.length - 1]);
   } else {
-    // 3. Differing data -> Show Popup to select which one
     showRemovalModal(dateKey, daySessions);
   }
 }
 
 async function removeSessionDirectly(dateKey, sessionObj) {
-  // Update sessions array
   if (sessionObj) {
     const idx = game.sessions.indexOf(sessionObj);
     if (idx > -1) game.sessions.splice(idx, 1);
   } else {
-    // Fallback for legacy data (remove last empty session for this date)
     const idx = game.sessions.findLastIndex(s => s.date === dateKey);
     if (idx > -1) game.sessions.splice(idx, 1);
   }
@@ -252,8 +249,8 @@ function showRemovalModal(dateKey, sessions) {
     <div class="modal">
       <div class="close-button">×</div>
       <h2>Remove Play</h2>
-      <p style="text-align:center; color:var(--muted); margin-bottom:1rem">Select which play to remove for ${dateKey}</p>
-      <div class="removal-list">
+      <p style="text-align:center; color:var(--subtext); margin-bottom:1rem">Select which play to remove for ${dateKey}</p>
+      <div style="max-height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:12px;">
   `;
 
   sessions.forEach((s, i) => {
@@ -262,16 +259,14 @@ function showRemovalModal(dateKey, sessions) {
     if (game.tracking.score && s.score != null) details.push(`Score: ${s.score}`);
     if (details.length === 0) details.push(`Play #${i+1}`);
 
-    // Add class for styling border
-    let classExtra = "";
-    if (s.won === true) classExtra = "win";
-    if (s.won === false) classExtra = "loss";
+    let icon = s.won ? "🏆" : (s.won === false ? "💀" : "🎲");
 
     html += `
-      <button class="removal-option ${classExtra}" data-index="${i}">
-        <span>${details.join(" · ")}</span>
-        <span style="opacity:0.5">🗑️</span>
-      </button>
+      <div class="removal-option" data-index="${i}">
+        <span style="font-size:1.2rem; margin-right:10px">${icon}</span>
+        <span style="flex:1; font-weight:500;">${details.join(" · ")}</span>
+        <span style="color:var(--danger)">Delete</span>
+      </div>
     `;
   });
 
@@ -280,12 +275,11 @@ function showRemovalModal(dateKey, sessions) {
 
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
   
-  // Handle clicks on list items
   const buttons = backdrop.querySelectorAll(".removal-option");
   buttons.forEach(btn => {
     btn.onclick = async () => {
       const idx = parseInt(btn.dataset.index);
-      const sessionToRemove = sessions[idx]; // Get the actual object from the filtered list
+      const sessionToRemove = sessions[idx];
       await removeSessionDirectly(dateKey, sessionToRemove);
       backdrop.remove();
     };
@@ -302,24 +296,24 @@ function showPlayModal(dateKey) {
     <div class="modal">
       <div class="close-button">×</div>
       <h2>Log Play</h2>
-      <p style="text-align:center; color:var(--muted); margin-bottom:1rem">${dateKey}</p>
+      <p style="text-align:center; color:var(--subtext); margin-bottom:1rem">${dateKey}</p>
   `;
 
   if (game.tracking.score) {
-    html += `<input id="logScore" type="number" placeholder="Enter Score">`;
+    html += `<input id="logScore" type="number" class="ui-input" placeholder="Enter Score" style="margin-bottom:1rem">`;
   }
 
   if (game.tracking.won) {
     html += `
-      <div class="play-log-options">
-        <button class="result-btn" data-val="win">Won</button>
-        <button class="result-btn" data-val="loss">Lost</button>
+      <div style="display:flex; gap:10px; margin-bottom:1rem">
+        <button class="result-btn" data-val="win" style="flex:1; background:var(--card); color:var(--text); border:1px solid var(--border)">Won</button>
+        <button class="result-btn" data-val="loss" style="flex:1; background:var(--card); color:var(--text); border:1px solid var(--border)">Lost</button>
       </div>
       <input type="hidden" id="logWon" value="">
     `;
   }
 
-  html += `<button id="confirmPlay">Save Play</button></div>`;
+  html += `<button id="confirmPlay" style="width:100%">Save Play</button></div>`;
   backdrop.innerHTML = html;
 
   const winBtn = backdrop.querySelector('button[data-val="win"]');
@@ -328,13 +322,21 @@ function showPlayModal(dateKey) {
 
   if (winBtn && lossBtn) {
     winBtn.onclick = () => {
-      winBtn.classList.add('selected-win');
-      lossBtn.classList.remove('selected-loss');
+      winBtn.style.background = "rgba(52, 199, 89, 0.2)";
+      winBtn.style.borderColor = "var(--success)";
+      winBtn.style.color = "var(--success)";
+      lossBtn.style.background = "var(--card)";
+      lossBtn.style.borderColor = "var(--border)";
+      lossBtn.style.color = "var(--text)";
       wonInput.value = "true";
     };
     lossBtn.onclick = () => {
-      lossBtn.classList.add('selected-loss');
-      winBtn.classList.remove('selected-win');
+      lossBtn.style.background = "rgba(255, 59, 48, 0.2)";
+      lossBtn.style.borderColor = "var(--danger)";
+      lossBtn.style.color = "var(--danger)";
+      winBtn.style.background = "var(--card)";
+      winBtn.style.borderColor = "var(--border)";
+      winBtn.style.color = "var(--text)";
       wonInput.value = "false";
     };
   }
@@ -388,7 +390,7 @@ async function renderBadges() {
   ];
 
   if (badges.length === 0) {
-    badgeContainer.innerHTML = "<p style='opacity:0.6'>No achievements yet.</p>";
+    badgeContainer.innerHTML = "<p style='opacity:0.6; width:100%; text-align:center;'>No achievements yet.</p>";
     return;
   }
 
@@ -433,9 +435,9 @@ async function computeAllTimeRankBadges() {
   const rankIndex = sorted.findIndex(g => g.id === game.id);
   if (rankIndex === -1 || rankIndex > 2) return [];
   const ranks = {
-    1: { type: "crown",  title: "All-Time Champion" },
+    1: { type: "crown",  title: "All-Time King" },
     2: { type: "silver", title: "Grand Strategist" },
-    3: { type: "bronze", title: "Tabletop Contender" }
+    3: { type: "bronze", title: "Pro Player" }
   };
   const rank = rankIndex + 1;
   return [{
@@ -448,9 +450,9 @@ async function computeAllTimeRankBadges() {
 function computeMilestoneBadges() {
   const total = game.plays || 0;
   const milestones = [
-    { value: 50, type: "legend",  title: "Legend of the Table" },
-    { value: 20, type: "guild",   title: "Guild Tactician" },
-    { value: 5,  type: "meeple",  title: "Rookie Roller" }
+    { value: 50, type: "legend",  title: "Legendary" },
+    { value: 20, type: "guild",   title: "Guild Veteran" },
+    { value: 5,  type: "dice",    title: "Rookie" }
   ];
   return milestones.filter(m => total >= m.value).map(m => ({ ...m, subtitle: `${m.value}+ Plays` }));
 }
@@ -463,32 +465,32 @@ editBtn.onclick = () => {
     <div class="modal">
       <div class="close-button">×</div>
       <h2>Edit Game</h2>
-      <input id="editName" value="${game.name}" placeholder="Game Name">
-      <input id="editImage" value="${game.image || ''}" placeholder="Image URL">
+      <input id="editName" class="ui-input" value="${game.name}" placeholder="Game Name" style="margin-bottom:10px">
+      <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL" style="margin-bottom:10px">
       
       <div class="row">
-        <input id="editPMin" type="number" value="${game.players.min ?? ''}" placeholder="Min Players">
-        <input id="editPMax" type="number" value="${game.players.max ?? ''}" placeholder="Max Players">
+        <input id="editPMin" type="number" class="ui-input" value="${game.players.min ?? ''}" placeholder="Min Players">
+        <input id="editPMax" type="number" class="ui-input" value="${game.players.max ?? ''}" placeholder="Max Players">
       </div>
       <div class="row">
-        <input id="editTMin" type="number" value="${game.playTime.min ?? ''}" placeholder="Min Time">
-        <input id="editTMax" type="number" value="${game.playTime.max ?? ''}" placeholder="Max Time">
+        <input id="editTMin" type="number" class="ui-input" value="${game.playTime.min ?? ''}" placeholder="Min Time">
+        <input id="editTMax" type="number" class="ui-input" value="${game.playTime.max ?? ''}" placeholder="Max Time">
       </div>
 
       <div class="toggle-group">
-        <label class="toggle-label">
-          <input type="checkbox" id="editTrackScore" ${game.tracking.score ? 'checked' : ''}> Track Score
+        <label style="display:flex; align-items:center; gap:8px">
+          <input type="checkbox" id="editTrackScore" ${game.tracking.score ? 'checked' : ''} style="width:18px; height:18px"> Track Score
         </label>
-        <label class="toggle-label">
-          <input type="checkbox" id="editTrackWon" ${game.tracking.won ? 'checked' : ''}> Track Win/Loss
+        <label style="display:flex; align-items:center; gap:8px">
+          <input type="checkbox" id="editTrackWon" ${game.tracking.won ? 'checked' : ''} style="width:18px; height:18px"> Track W/L
         </label>
       </div>
 
-      <input id="editRating" type="number" step="0.1" value="${game.rating ?? ''}" placeholder="Rating (0-10)">
+      <input id="editRating" class="ui-input" type="number" step="0.1" value="${game.rating ?? ''}" placeholder="Rating (0-10)" style="margin-bottom:10px">
       <textarea id="editReview" placeholder="Your review...">${game.review || ''}</textarea>
       
-      <button id="saveEdit" style="margin-bottom:10px">Save Changes</button>
-      <button id="deleteGameBtn" class="danger">Delete Game</button>
+      <button id="saveEdit" style="width:100%; margin-top:1rem; margin-bottom:10px">Save Changes</button>
+      <button id="deleteGameBtn" class="danger" style="width:100%">Delete Game</button>
     </div>
   `;
 
@@ -520,7 +522,7 @@ editBtn.onclick = () => {
 
   // DELETE
   backdrop.querySelector("#deleteGameBtn").onclick = async () => {
-    if (confirm(`Are you sure you want to delete "${game.name}"? This cannot be undone.`)) {
+    if (confirm(`Are you sure you want to delete "${game.name}"?`)) {
       await deleteGame(game.id);
       window.location.href = "catalogue.html";
     }
