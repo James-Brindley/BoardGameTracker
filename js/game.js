@@ -21,7 +21,6 @@ const editBtn = document.getElementById("editToggle");
 // New Container for Advanced Stats
 const advancedStatsContainer = document.createElement('div');
 advancedStatsContainer.id = "advancedStats";
-// Insert it after the main stats card (before review header)
 document.querySelector('.game-stats').after(advancedStatsContainer);
 
 async function init() {
@@ -116,7 +115,7 @@ function renderAdvancedStats() {
 }
 
 /* =============================
-   TRACKER & UPDATES
+   TRACKER & UPDATES (IMPROVED TOOLTIP)
 ============================= */
 function renderTracker() {
   trackerGrid.innerHTML = "";
@@ -140,10 +139,47 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
+    // --- ENHANCED TOOLTIP LOGIC ---
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}/${year}`;
-    tooltip.innerHTML = `${formattedDate}<br>${count} play${count !== 1 ? "s" : ""}`;
+    
+    // Check if we have detailed session data for this day
+    const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
+
+    let content = `<strong>${formattedDate}</strong>`;
+
+    if (daySessions.length > 0 && (game.tracking.score || game.tracking.won)) {
+      // Detailed View
+      daySessions.forEach(s => {
+        let rowHtml = `<div class="tooltip-row">`;
+        
+        // Win/Loss Tag
+        if (game.tracking.won && s.won != null) {
+          rowHtml += s.won 
+            ? `<span class="tooltip-tag tag-win">WIN</span>` 
+            : `<span class="tooltip-tag tag-loss">LOSS</span>`;
+        }
+        
+        // Score Tag
+        if (game.tracking.score && s.score != null) {
+          rowHtml += `<span class="tooltip-tag tag-score">${s.score} pts</span>`;
+        }
+        
+        // Fallback if empty
+        if ((!game.tracking.won || s.won == null) && (!game.tracking.score || s.score == null)) {
+          rowHtml += `<span>Play logged</span>`;
+        }
+
+        rowHtml += `</div>`;
+        content += rowHtml;
+      });
+    } else {
+      // Simple Count View
+      content += `<div style="margin-top:2px">${count} play${count !== 1 ? "s" : ""}</div>`;
+    }
+
+    tooltip.innerHTML = content;
     cell.appendChild(tooltip);
 
     cell.onclick = () => handlePlayClick(dateKey, 1);
@@ -155,31 +191,107 @@ function renderTracker() {
   }
 }
 
-/* LOGIC TO HANDLE CLICKS VS MODALS */
+/* LOGIC TO HANDLE CLICKS & SMART REMOVAL */
 async function handlePlayClick(dateKey, delta) {
-  // If Removing (-1)
-  if (delta === -1) {
-    updatePlayCount(dateKey, -1);
-    // Remove last session for this date
-    if (game.sessions) {
-      const idx = game.sessions.findLastIndex(s => s.date === dateKey);
-      if (idx !== -1) game.sessions.splice(idx, 1);
+  // === ADDING PLAY ===
+  if (delta === 1) {
+    if (game.tracking.score || game.tracking.won) {
+      showPlayModal(dateKey);
+    } else {
+      updatePlayCount(dateKey, 1);
+      game.sessions.push({ date: dateKey, timestamp: Date.now() });
+      await saveGame();
     }
-    await saveGame();
     return;
   }
 
-  // If Adding (+1)
-  // Check if we need to prompt for details
-  if (game.tracking.score || game.tracking.won) {
-    showPlayModal(dateKey);
-  } else {
-    // Just simple increment
-    updatePlayCount(dateKey, 1);
-    // Push empty session for consistency
-    game.sessions.push({ date: dateKey, timestamp: Date.now() });
-    await saveGame();
+  // === REMOVING PLAY (SMART DELETE) ===
+  const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
+  
+  // 1. If no detailed sessions (legacy data) or only 1 session, just delete it directly
+  if (daySessions.length <= 1) {
+    removeSessionDirectly(dateKey, daySessions[0]); 
+    return;
   }
+
+  // 2. If multiple sessions, check if they are all identical (same W/L and same Score)
+  const allIdentical = daySessions.every(s => {
+    const first = daySessions[0];
+    return s.won === first.won && s.score === first.score;
+  });
+
+  if (allIdentical) {
+    // If they are all the same, just remove the last one without asking
+    removeSessionDirectly(dateKey, daySessions[daySessions.length - 1]);
+  } else {
+    // 3. Differing data -> Show Popup to select which one
+    showRemovalModal(dateKey, daySessions);
+  }
+}
+
+async function removeSessionDirectly(dateKey, sessionObj) {
+  // Update sessions array
+  if (sessionObj) {
+    const idx = game.sessions.indexOf(sessionObj);
+    if (idx > -1) game.sessions.splice(idx, 1);
+  } else {
+    // Fallback for legacy data (remove last empty session for this date)
+    const idx = game.sessions.findLastIndex(s => s.date === dateKey);
+    if (idx > -1) game.sessions.splice(idx, 1);
+  }
+
+  updatePlayCount(dateKey, -1);
+  await saveGame();
+}
+
+function showRemovalModal(dateKey, sessions) {
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  
+  let html = `
+    <div class="modal">
+      <div class="close-button">×</div>
+      <h2>Remove Play</h2>
+      <p style="text-align:center; color:var(--muted); margin-bottom:1rem">Select which play to remove for ${dateKey}</p>
+      <div class="removal-list">
+  `;
+
+  sessions.forEach((s, i) => {
+    let details = [];
+    if (game.tracking.won && s.won != null) details.push(s.won ? "Win" : "Loss");
+    if (game.tracking.score && s.score != null) details.push(`Score: ${s.score}`);
+    if (details.length === 0) details.push(`Play #${i+1}`);
+
+    // Add class for styling border
+    let classExtra = "";
+    if (s.won === true) classExtra = "win";
+    if (s.won === false) classExtra = "loss";
+
+    html += `
+      <button class="removal-option ${classExtra}" data-index="${i}">
+        <span>${details.join(" · ")}</span>
+        <span style="opacity:0.5">🗑️</span>
+      </button>
+    `;
+  });
+
+  html += `</div></div>`;
+  backdrop.innerHTML = html;
+
+  backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
+  
+  // Handle clicks on list items
+  const buttons = backdrop.querySelectorAll(".removal-option");
+  buttons.forEach(btn => {
+    btn.onclick = async () => {
+      const idx = parseInt(btn.dataset.index);
+      const sessionToRemove = sessions[idx]; // Get the actual object from the filtered list
+      await removeSessionDirectly(dateKey, sessionToRemove);
+      backdrop.remove();
+    };
+  });
+
+  document.body.appendChild(backdrop);
 }
 
 function showPlayModal(dateKey) {
@@ -210,7 +322,6 @@ function showPlayModal(dateKey) {
   html += `<button id="confirmPlay">Save Play</button></div>`;
   backdrop.innerHTML = html;
 
-  // Handle Win/Loss button selection
   const winBtn = backdrop.querySelector('button[data-val="win"]');
   const lossBtn = backdrop.querySelector('button[data-val="loss"]');
   const wonInput = backdrop.querySelector('#logWon');
