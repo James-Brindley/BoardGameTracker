@@ -2,58 +2,76 @@
 <html>
 <head>
   <title>Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
   <script>
-    // Apply theme immediately to prevent flash of light mode
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
   </script>
 </head>
 <body>
 <header>
-  <h1>⚙️ Settings</h1>
+  <h1>Settings</h1>
   <nav>
     <a href="index.html">Stats</a>
-    <a href="catalogue.html">Catalogue</a>
-    <a href="settings.html">Settings</a>
+    <a href="catalogue.html">Library</a>
+    <a href="settings.html" class="active">Settings</a>
   </nav>
 </header>
 
 <main>
   <div class="card settings-section">
-    <h2>Appearance</h2>
-    <p>Choose how the app looks.</p>
-    <button id="themeToggle">Toggle Dark Mode</button>
-    <h3 style="margin-top:1.5rem">Primary Colour</h3>
+    <div class="settings-header">
+        <h2>Appearance</h2>
+    </div>
+    <div class="settings-item">
+        <span>Dark Mode</span>
+        <button id="themeToggle" class="secondary">Toggle</button>
+    </div>
+    <div class="settings-header">
+        <span style="font-size:0.8rem; text-transform:uppercase; color:var(--subtext); font-weight:600;">Accent Color</span>
+    </div>
     <div class="accent-picker" id="accentPicker"></div>
   </div>
 
   <div class="card settings-section">
-    <h2>Data (Cloud Backup)</h2>
-    <p>Export your cloud data to a JSON file or import a previous backup.</p>
-    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:1rem;">
-      <button id="exportData">Export Cloud Data</button>
-      <button id="importData">Import to Cloud</button>
-      <input id="importFile" type="file" accept="application/json" hidden>
+    <div class="settings-header">
+        <h2>Data Management</h2>
+        <p style="font-size:0.85rem; color:var(--subtext); margin:0;">Backup and restore your library.</p>
     </div>
-    <button id="resetData" class="danger">Delete All Cloud Data</button>
+    <div class="settings-item">
+        <span>Export Backup</span>
+        <button id="exportData" class="secondary">Download</button>
+    </div>
+    <div class="settings-item">
+        <span>Import Backup</span>
+        <button id="importData" class="secondary">Upload</button>
+        <input id="importFile" type="file" accept="application/json" hidden>
+    </div>
+    <div class="settings-item">
+        <span style="color:var(--danger)">Reset Library</span>
+        <button id="resetData" class="danger">Delete All</button>
+    </div>
   </div>
 
   <div class="card settings-section">
-    <h2>Account</h2>
-    <p id="userEmail">Loading account info...</p>
-    <button id="logoutBtn" class="danger" style="margin-top: 10px;">Log Out</button>
+    <div class="settings-header">
+        <h2>Account</h2>
+    </div>
+    <div class="settings-item">
+        <span id="userEmail" style="color:var(--subtext)">Loading...</span>
+        <button id="logoutBtn" style="background:rgba(120,120,128,0.2); color:var(--text)">Log Out</button>
+    </div>
   </div>
 </main>
 
 <script type="module">
   import { logout, getCurrentUser, getGames, importGames, clearAllGames } from './js/data.js';
 
-  /* ---------- ACCOUNT & INITIALIZATION ---------- */
   async function initSettings() {
     const user = await getCurrentUser();
     if (user) {
-      document.getElementById('userEmail').textContent = `Logged in as: ${user.email}`;
+      document.getElementById('userEmail').textContent = user.email;
     } else {
       window.location.href = 'login.html';
     }
@@ -61,10 +79,9 @@
   initSettings();
 
   document.getElementById('logoutBtn').onclick = async () => {
-    if (confirm("Are you sure you want to log out?")) await logout();
+    if (confirm("Log out now?")) await logout();
   };
 
-  /* ---------- THEME & ACCENT ---------- */
   const themeToggle = document.getElementById("themeToggle");
   themeToggle.onclick = () => {
     const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -72,7 +89,7 @@
     document.documentElement.setAttribute("data-theme", next);
   };
 
-  const ACCENT_COLORS = ["#e63232","#f3722c","#f8961e","#ffd043","#7fc96b","#43aa8b","#4d908e","#577590","#277da1","#90be6d"];
+  const ACCENT_COLORS = ["#007AFF", "#FF3B30", "#FF9500", "#34C759", "#AF52DE", "#5856D6", "#FF2D55", "#A2845E"];
   const picker = document.getElementById("accentPicker");
 
   ACCENT_COLORS.forEach(color => {
@@ -86,20 +103,20 @@
       localStorage.setItem("accent", color);
       document.querySelectorAll(".accent-swatch").forEach(s => s.classList.remove("active"));
       swatch.classList.add("active");
+      
+      // Update accent RGB for transparencies
+      // Note: In a full production app we would calculate RGB values here
     };
     picker.appendChild(swatch);
   });
 
-  /* ---------- DATA MANAGEMENT ---------- */
   document.getElementById("exportData").onclick = async () => {
     const games = await getGames();
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ games }));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "game_tracker_backup.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", "tracker_backup.json");
+    dlAnchorElem.click();
   };
 
   const fileInput = document.getElementById("importFile");
@@ -116,13 +133,13 @@
         if (!confirm(`Import ${gamesToImport.length} games?`)) return;
         await importGames(gamesToImport);
         location.reload();
-      } catch (err) { alert("Import failed: " + err.message); }
+      } catch (err) { alert("Import failed"); }
     };
     reader.readAsText(file);
   };
 
   document.getElementById("resetData").onclick = async () => {
-    if (confirm("Delete EVERYTHING from the server? This cannot be undone.")) {
+    if (confirm("Delete EVERYTHING? This cannot be undone.")) {
       await clearAllGames();
       location.reload();
     }
