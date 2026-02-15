@@ -1,11 +1,8 @@
 import { supabase } from "./supabaseClient.js";
 
-// Check if user is logged in
 async function checkAuth() {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.href = 'login.html';
-  }
+  if (!session) window.location.href = 'login.html';
   return session.user;
 }
 
@@ -19,7 +16,7 @@ export async function logout() {
   window.location.href = 'login.html';
 }
 
-// 1. GET ALL GAMES
+// 1. GET GAMES (Mapped with new fields)
 export async function getGames() {
   await checkAuth();
   const { data, error } = await supabase.from('games').select('*');
@@ -35,10 +32,13 @@ export async function getGames() {
     players: g.players || { min: null, max: null },
     playTime: g.play_time || { min: null, max: null },
     playHistory: g.play_history || {},
+    // New Fields
+    tracking: g.tracking_type || { score: false, won: false }, 
+    sessions: g.sessions || [] 
   }));
 }
 
-// 2. ADD SINGLE GAME
+// 2. ADD GAME
 export async function addGame(gameObj) {
   const user = await checkAuth();
   const { data, error } = await supabase.from('games').insert([{
@@ -50,12 +50,15 @@ export async function addGame(gameObj) {
     players: gameObj.players,
     play_time: gameObj.playTime,
     play_history: gameObj.playHistory,
-    plays: gameObj.plays
+    plays: gameObj.plays,
+    // New Fields
+    tracking_type: gameObj.tracking,
+    sessions: []
   }]).select();
   return data ? data[0] : null;
 }
 
-// 3. UPDATE SINGLE GAME
+// 3. UPDATE GAME
 export async function updateGame(gameObj) {
   await checkAuth();
   await supabase.from('games').update({
@@ -66,11 +69,21 @@ export async function updateGame(gameObj) {
     players: gameObj.players,
     play_time: gameObj.playTime,
     play_history: gameObj.playHistory,
-    plays: gameObj.plays
+    plays: gameObj.plays,
+    // New Fields
+    tracking_type: gameObj.tracking,
+    sessions: gameObj.sessions
   }).eq('id', gameObj.id);
 }
 
-// 4. BULK IMPORT
+// 4. DELETE GAME (New)
+export async function deleteGame(id) {
+  await checkAuth();
+  const { error } = await supabase.from('games').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// 5. IMPORT/CLEAR (Existing)
 export async function importGames(gamesArray) {
   const user = await checkAuth();
   const formattedGames = gamesArray.map(g => ({
@@ -80,16 +93,16 @@ export async function importGames(gamesArray) {
     rating: g.rating,
     review: g.review,
     players: g.players,
-    play_time: g.playTime || g.play_time, // Handles both camelCase and snake_case imports
+    play_time: g.playTime || g.play_time,
     play_history: g.playHistory || g.play_history,
-    plays: g.plays
+    plays: g.plays,
+    tracking_type: g.tracking || { score: false, won: false },
+    sessions: g.sessions || []
   }));
-
   const { error } = await supabase.from('games').insert(formattedGames);
   if (error) throw error;
 }
 
-// 5. DELETE EVERYTHING
 export async function clearAllGames() {
   const user = await checkAuth();
   const { error } = await supabase.from('games').delete().eq('user_id', user.id);
