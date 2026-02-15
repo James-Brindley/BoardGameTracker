@@ -4,6 +4,7 @@ const list = document.getElementById("list");
 const search = document.getElementById("search");
 const sort = document.getElementById("sort");
 const addBtn = document.getElementById("addGame");
+
 const filterPlayers = document.getElementById("filterPlayers");
 const filterTime = document.getElementById("filterTime");
 const filterRating = document.getElementById("filterRating");
@@ -16,7 +17,8 @@ function formatRange(min, max, suffix="") {
 }
 
 async function render() {
-  list.innerHTML = `<div class="card">Loading collection...</div>`;
+  list.innerHTML = `<div class="card" style="text-align:center; color:var(--subtext)">Loading library...</div>`;
+  
   let games = await getGames();
 
   const searchValue = search.value.toLowerCase();
@@ -25,25 +27,39 @@ async function render() {
   const ratingValue = parseFloat(filterRating.value);
   const statusValue = filterPlayed.value;
 
-  if (searchValue) games = games.filter(g => g.name.toLowerCase().includes(searchValue));
+  if (searchValue) {
+    games = games.filter(g => g.name.toLowerCase().includes(searchValue));
+  }
 
   if (!isNaN(playersValue)) {
     games = games.filter(g =>
-      g.players?.min != null && g.players?.max != null &&
-      playersValue >= g.players.min && playersValue <= g.players.max
+      g.players?.min != null &&
+      g.players?.max != null &&
+      playersValue >= g.players.min &&
+      playersValue <= g.players.max
     );
   }
+
   if (!isNaN(timeValue)) {
     games = games.filter(g =>
-      g.playTime?.min != null && g.playTime?.max != null &&
-      timeValue >= g.playTime.min && timeValue <= g.playTime.max
+      g.playTime?.min != null &&
+      g.playTime?.max != null &&
+      timeValue >= g.playTime.min &&
+      timeValue <= g.playTime.max
     );
   }
+
   if (!isNaN(ratingValue)) {
     games = games.filter(g => g.rating != null && g.rating >= ratingValue);
   }
-  if (statusValue === "played") games = games.filter(g => g.plays > 0);
-  if (statusValue === "unplayed") games = games.filter(g => g.plays === 0);
+
+  if (statusValue === "played") {
+    games = games.filter(g => g.plays > 0);
+  }
+
+  if (statusValue === "unplayed") {
+    games = games.filter(g => g.plays === 0);
+  }
 
   games.sort((a, b) =>
     sort.value === "name"
@@ -52,27 +68,34 @@ async function render() {
   );
 
   list.innerHTML = "";
+
   if (!games.length) {
-    list.innerHTML = `<div class="card">No games found</div>`;
+    list.innerHTML = `<div class="card" style="text-align:center">No games found matching filters.</div>`;
     return;
   }
 
   games.forEach(g => {
     const card = document.createElement("div");
     card.className = "game-card";
+
+    // New HTML Structure for Glassmorphism/iOS look
     card.innerHTML = `
-      <img src="${g.image || "https://via.placeholder.com/400"}">
+      <img src="${g.image || "https://via.placeholder.com/400"}" loading="lazy">
       <div class="card-header">
         <strong>${g.name}</strong>
-        <span>⭐ ${g.rating ?? "—"}</span>
+        ${g.rating ? `<span style="font-size:0.8rem; background:rgba(255,215,0,0.2); color:#D4AF37; padding:2px 6px; border-radius:6px;">★ ${g.rating}</span>` : ''}
       </div>
       <div class="card-stats">
-        <span>${formatRange(g.players?.min, g.players?.max, " players")}</span>
-        <span>${formatRange(g.playTime?.min, g.playTime?.max, " min")}</span>
+        <span>👥 ${formatRange(g.players?.min, g.players?.max)}</span>
+        <span>⏱ ${formatRange(g.playTime?.min, g.playTime?.max, "m")}</span>
       </div>
-      <div class="plays">${g.plays || 0} plays</div>
+      <div class="plays">${g.plays || 0} Plays</div>
     `;
-    card.onclick = () => { location.href = `game.html?id=${g.id}`; };
+
+    card.onclick = () => {
+      location.href = `game.html?id=${g.id}`;
+    };
+
     list.appendChild(card);
   });
 }
@@ -81,32 +104,38 @@ addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
 
+  // New Modal UI structure
   backdrop.innerHTML = `
     <div class="modal">
       <div class="close-button">×</div>
-      <h2>Add Game</h2>
-      <input id="newName" placeholder="Game name">
+      <h2>Add New Game</h2>
       
-      <div class="row">
-        <input id="pMin" type="number" placeholder="Players min">
-        <input id="pMax" type="number" placeholder="Players max">
-      </div>
-      <div class="row">
-        <input id="tMin" type="number" placeholder="Time min (mins)">
-        <input id="tMax" type="number" placeholder="Time max (mins)">
+      <div style="margin-bottom:1rem">
+        <label class="stat-label" style="margin-bottom:5px">Game Details</label>
+        <input id="newName" class="ui-input" placeholder="Game Name" style="margin-bottom:10px">
+        <input id="newImage" class="ui-input" placeholder="Image URL (optional)">
       </div>
 
+      <div class="row">
+        <input id="pMin" type="number" class="ui-input" placeholder="Min Players">
+        <input id="pMax" type="number" class="ui-input" placeholder="Max Players">
+      </div>
+
+      <div class="row">
+        <input id="tMin" type="number" class="ui-input" placeholder="Min Time (m)">
+        <input id="tMax" type="number" class="ui-input" placeholder="Max Time (m)">
+      </div>
+      
       <div class="toggle-group">
-        <label class="toggle-label">
-          <input type="checkbox" id="trackScore"> Track Score
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem;">
+          <input type="checkbox" id="trackScore" style="accent-color:var(--accent); width:18px; height:18px;"> Track Score
         </label>
-        <label class="toggle-label">
-          <input type="checkbox" id="trackWon"> Track Win/Loss
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem;">
+          <input type="checkbox" id="trackWon" style="accent-color:var(--accent); width:18px; height:18px;"> Track Win/Loss
         </label>
       </div>
 
-      <input id="newImage" placeholder="Image URL (optional)">
-      <button id="saveNew">Add Game</button>
+      <button id="saveNew" style="width:100%; margin-top:1rem">Add to Library</button>
     </div>
   `;
 
@@ -131,7 +160,6 @@ addBtn.onclick = () => {
         max: Number(backdrop.querySelector("#tMax").value) || null
       },
       playHistory: {},
-      // Capture New Settings
       tracking: {
         score: backdrop.querySelector("#trackScore").checked,
         won: backdrop.querySelector("#trackWon").checked
@@ -142,6 +170,7 @@ addBtn.onclick = () => {
     backdrop.remove();
     render();
   };
+
   document.body.appendChild(backdrop);
 };
 
