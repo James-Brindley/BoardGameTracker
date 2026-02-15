@@ -42,7 +42,7 @@ body {
   padding-bottom: 40px;
 }
 
-/* ---------- HEADER (New Layout: Left, Center, Right) ---------- */
+/* ---------- HEADER (Left, Center, Right) ---------- */
 header {
   position: sticky;
   top: 0;
@@ -52,8 +52,6 @@ header {
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   padding: 0.8rem 1.5rem;
-  
-  /* Grid Layout for perfect centering */
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -75,7 +73,7 @@ header {
 }
 
 .site-logo {
-  height: 32px; /* Adjust based on your logo image */
+  height: 32px;
   width: auto;
   cursor: pointer;
   border-radius: 8px;
@@ -138,10 +136,9 @@ main {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* More visible headings */
 h2 {
-  font-size: 1.6rem; /* Larger */
-  font-weight: 800; /* Bolder */
+  font-size: 1.6rem;
+  font-weight: 800;
   margin-bottom: 1.2rem;
   letter-spacing: -0.8px;
   color: var(--text);
@@ -219,13 +216,12 @@ button.danger { background-color: var(--danger); }
   border-bottom: 1px solid var(--border);
 }
 
-/* Fixed: Rating wrap issue */
 .card-header {
   padding: 1rem 1rem 0.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: nowrap; /* Prevent wrapping */
+  flex-wrap: nowrap;
   gap: 10px;
 }
 
@@ -234,7 +230,7 @@ button.danger { background-color: var(--danger); }
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* Truncate name */
+  text-overflow: ellipsis;
   min-width: 0;
 }
 
@@ -244,7 +240,7 @@ button.danger { background-color: var(--danger); }
   color: #D4AF37;
   padding: 2px 6px;
   border-radius: 6px;
-  flex-shrink: 0; /* Never shrink the rating */
+  flex-shrink: 0;
   white-space: nowrap;
 }
 
@@ -356,7 +352,7 @@ button.danger { background-color: var(--danger); }
 .win-text { color: var(--success); }
 .loss-text { color: var(--danger); }
 
-/* ---------- TRACKER GRID ---------- */
+/* ---------- TRACKER GRID (Full Width) ---------- */
 .tracker-container {
   background: var(--card);
   border-radius: var(--radius);
@@ -374,13 +370,11 @@ button.danger { background-color: var(--danger); }
 
 .tracker-header h2 { margin: 0; font-weight: 800; }
 
-/* Grid changes for smaller appearance */
 .tracker-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
-  max-width: 600px; /* Constrain width to make it look "smaller" */
-  margin: 0 auto; /* Center it */
+  width: 100%; /* Fit to either side */
 }
 
 .tracker-grid.small { gap: 4px; }
@@ -398,7 +392,7 @@ button.danger { background-color: var(--danger); }
 
 /* Thicker Outline */
 .tracker-day.today {
-  border: 3px solid var(--accent); /* Thicker */
+  border: 3px solid var(--accent);
   z-index: 2;
 }
 
