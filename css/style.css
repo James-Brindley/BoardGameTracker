@@ -39,7 +39,7 @@ body {
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.5;
-  padding-bottom: 40px; /* Space for bottom scroll */
+  padding-bottom: 40px;
 }
 
 /* ---------- HEADER (Glassmorphism) ---------- */
@@ -92,7 +92,7 @@ nav a.active, nav a[aria-current="page"] {
 
 /* ---------- LAYOUT & CARDS ---------- */
 main {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
   animation: fadeIn 0.4s ease-out;
@@ -168,10 +168,11 @@ button.danger {
   background-color: var(--danger);
 }
 
-/* ---------- CATALOGUE GRID ---------- */
+/* ---------- CATALOGUE GRID (Updated for 4 columns) ---------- */
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* Reduced min-width to 220px to allow 4 columns on standard screens */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.5rem;
 }
 
@@ -194,7 +195,7 @@ button.danger {
 
 .game-card img {
   width: 100%;
-  height: 180px;
+  height: 160px;
   object-fit: cover;
   border-bottom: 1px solid var(--border);
 }
@@ -207,7 +208,7 @@ button.danger {
 }
 
 .card-header strong {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -216,7 +217,7 @@ button.danger {
 
 .card-stats {
   padding: 0 1rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--subtext);
   display: flex;
   gap: 0.8rem;
@@ -316,6 +317,7 @@ button.danger {
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
+  margin-bottom: 2.5rem; /* Added padding so it doesn't touch the Review section */
   justify-content: center;
 }
 
@@ -374,7 +376,6 @@ button.danger {
 .tracker-day.today { border: 2px solid var(--accent); }
 
 /* Heatmap Colors */
-.level-1 { background-color: rgba(var(--accent-rgb), 0.3); } /* Needs JS handling or simple CSS variable fallback */
 .level-1 { background-color: color-mix(in srgb, var(--accent) 30%, transparent); }
 .level-2 { background-color: color-mix(in srgb, var(--accent) 50%, transparent); }
 .level-3 { background-color: color-mix(in srgb, var(--accent) 70%, transparent); }
@@ -423,7 +424,7 @@ button.danger {
 .tag-loss { background: var(--danger); color: white; }
 .tag-score { background: rgba(255,255,255,0.2); }
 
-/* ---------- PODIUMS ---------- */
+/* ---------- PODIUMS (Redesigned) ---------- */
 .podium {
   display: flex;
   justify-content: center;
@@ -444,26 +445,58 @@ button.danger {
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
 }
 
+/* Better image incorporation */
 .podium-card img {
-  width: 60px;
-  height: 60px;
+  width: 100%;
+  height: 100px; /* Taller */
   border-radius: 14px;
   object-fit: cover;
-  margin-bottom: 0.5rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 0.8rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-
-.podium-1 { height: 260px; border: 2px solid #FFD700; order: 2; z-index: 2; }
-.podium-2 { height: 220px; order: 1; opacity: 0.9; }
-.podium-3 { height: 200px; order: 3; opacity: 0.8; }
 
 .rank-badge {
   font-size: 1.5rem;
   font-weight: 800;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.05);
 }
+
+/* Distinct Metal Colors */
+.podium-1 { 
+  height: 290px; 
+  order: 2; 
+  z-index: 2; 
+  border: 2px solid #FFD700; 
+  background: linear-gradient(to bottom, var(--card), rgba(255, 215, 0, 0.05));
+}
+.podium-1 .rank-badge { background: #FFD700; color: #000; }
+
+.podium-2 { 
+  height: 250px; 
+  order: 1; 
+  border: 2px solid #C0C0C0; 
+  background: linear-gradient(to bottom, var(--card), rgba(192, 192, 192, 0.05));
+}
+.podium-2 .rank-badge { background: #C0C0C0; color: #000; }
+
+.podium-3 { 
+  height: 230px; 
+  order: 3; 
+  border: 2px solid #CD7F32; 
+  background: linear-gradient(to bottom, var(--card), rgba(205, 127, 50, 0.05));
+}
+.podium-3 .rank-badge { background: #CD7F32; color: #FFF; }
 
 /* ---------- LISTS (iOS Settings Style) ---------- */
 .top10-row, .removal-option {
@@ -566,6 +599,7 @@ button.danger {
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
 }
 
 @media (min-width: 600px) {
@@ -577,13 +611,14 @@ button.danger {
   to { transform: translateY(0); }
 }
 
-.modal h2 { text-align: center; }
+.modal h2 { text-align: center; margin-bottom: 1.5rem; font-size: 1.2rem; }
 
+/* Improved Close Button (iOS Style) */
 .close-button {
   position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  background: rgba(120,120,128,0.1);
+  top: 1rem;
+  right: 1rem;
+  background: rgba(120,120,128,0.15);
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -593,6 +628,13 @@ button.danger {
   cursor: pointer;
   font-size: 1.2rem;
   color: var(--subtext);
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.close-button:hover {
+  background: rgba(120,120,128,0.25);
+  color: var(--text);
 }
 
 .toggle-group {
@@ -605,6 +647,17 @@ button.danger {
 }
 
 .row { display: flex; gap: 10px; margin-bottom: 10px; }
+
+/* Edit Menu Headers */
+.input-header {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--subtext);
+  font-weight: 600;
+  margin-bottom: 4px;
+  margin-left: 4px;
+  margin-top: 10px;
+}
 
 /* ---------- BADGES ---------- */
 .badge-grid {
@@ -629,6 +682,8 @@ button.danger {
 .badge-legend { background: linear-gradient(135deg, #2c3e50, #000000); color: white; }
 .badge-guild { background: linear-gradient(135deg, #10ac84, #1dd1a1); color: white; }
 .badge-dice { background: linear-gradient(135deg, #54a0ff, #2e86de); color: white; }
+.badge-empire { background: linear-gradient(135deg, #ff7675, #d63031); color: white; }
+.badge-trophy { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; }
 
 .badge-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 4px; }
 .badge-sub { font-size: 0.8rem; opacity: 0.8; font-weight: 500; }
