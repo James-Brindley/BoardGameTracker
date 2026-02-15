@@ -2,58 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Catalogue</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="catalogue-page">
 
-<header class="header-compact">
-  <h1>📚 Games Catalogue</h1>
+<header>
+  <h1>Library</h1>
   <nav>
     <a href="index.html">Stats</a>
-    <a href="catalogue.html">Catalogue</a>
+    <a href="catalogue.html" class="active">Library</a>
     <a href="settings.html">Settings</a>
   </nav>
 </header>
 
 <main>
-  <div class="card catalogue-toolbar">
-    <input id="search" class="ui-input" placeholder="Search games…">
-    <select id="sort" class="ui-select">
-      <option value="name">Name</option>
-      <option value="plays">Plays</option>
-      <option value="rating">Rating</option>
-    </select>
-    <button id="addGame">＋ Add</button>
+  <div class="catalogue-toolbar card">
+    <div style="width:100%; display:flex; gap:10px;">
+        <input id="search" class="ui-input" placeholder="Search games…">
+        <button id="addGame" style="white-space:nowrap;">＋ Add</button>
+    </div>
+    
+    <div style="width:100%; display:flex; gap:10px; overflow-x:auto; padding-bottom:5px;">
+        <select id="sort" class="ui-select" style="flex:1">
+          <option value="name">Sort: Name</option>
+          <option value="plays">Sort: Plays</option>
+          <option value="rating">Sort: Rating</option>
+        </select>
+        
+        <select id="filterPlayed" class="ui-select" style="flex:1">
+          <option value="all">All</option>
+          <option value="played">Played</option>
+          <option value="unplayed">Unplayed</option>
+        </select>
+    </div>
+
+    <div class="catalogue-filters" style="width:100%">
+        <div class="filter-group">
+          <input id="filterPlayers" type="number" class="ui-input" placeholder="Players (exact)">
+        </div>
+
+        <div class="filter-group">
+          <input id="filterTime" type="number" class="ui-input" placeholder="Max Time (m)">
+        </div>
+
+        <div class="filter-group">
+          <input id="filterRating" type="number" step="0.1" class="ui-input" placeholder="Min Rating">
+        </div>
+    </div>
   </div>
 
-  <div class="card catalogue-filters">
-    <div class="filter-group">
-      <label>Players (exact count)</label>
-      <input id="filterPlayers" type="number" class="ui-input" placeholder="e.g. 3">
-    </div>
-
-    <div class="filter-group">
-      <label>Max Playtime (mins)</label>
-      <input id="filterTime" type="number" class="ui-input" placeholder="e.g. 60">
-    </div>
-
-    <div class="filter-group">
-      <label>Min Rating</label>
-      <input id="filterRating" type="number" step="0.1" class="ui-input" placeholder="e.g. 7.5">
-    </div>
-
-    <div class="filter-group">
-      <label>Status</label>
-      <select id="filterPlayed" class="ui-select">
-        <option value="all">All</option>
-        <option value="played">Played</option>
-        <option value="unplayed">Unplayed</option>
-      </select>
-    </div>
-  </div>
-
-  <div id="list" class="catalogue-grid"></div>
+  <div id="list" class="game-grid"></div>
 </main>
 
 <script type="module" src="js/theme.js"></script>
