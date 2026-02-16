@@ -39,14 +39,3 @@ document.addEventListener("DOMContentLoaded", () => {
     themeBtn.onclick = toggleTheme;
   }
 });
-
-/* !!! EMERGENCY KILL SWITCH FOR SERVICE WORKER !!! */
-/* This will delete the cache and force your browser to load new code */
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-    for(let registration of registrations) {
-      registration.unregister();
-      console.log("Service Worker Unregistered");
-    }
-  });
-}
