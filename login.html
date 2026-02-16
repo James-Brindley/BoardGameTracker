@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/x-icon" href="images/TCG_Logos.webp">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body style="display:flex; align-items:center; justify-content:center; height:100vh;">
   <div class="card login-container">
@@ -54,5 +55,10 @@
     };
   </script>
 <script type="module" src="js/theme.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
 </body>
 </html>
