@@ -102,6 +102,10 @@ button.danger { background-color: var(--danger); }
 .tracker-tooltip { position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; }
 .tracker-day:hover .tracker-tooltip { opacity: 1; }
 
+/* TOOLTIP COLORS */
+.tooltip-win { color: var(--success); font-weight: 800; }
+.tooltip-loss { color: var(--danger); font-weight: 800; }
+
 /* PODIUMS */
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 1rem; margin: 2rem 0; }
 .podium-card { width: 30%; display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--card); padding: 1rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); cursor: pointer; border: 1px solid var(--border); position: relative; overflow: hidden; }
@@ -116,7 +120,7 @@ button.danger { background-color: var(--danger); }
 
 /* LISTS & SETTINGS */
 .top10-row, .removal-option { display: flex; align-items: center; padding: 12px; background: var(--card); border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
-.top10-row img { width: 50px !important; height: 50px !important; border-radius: 10px; object-fit: cover; margin-right: 1rem; flex-shrink: 0; }
+.top10-row img { width: 50px !important; height: 50px !important; min-width: 50px; border-radius: 10px; object-fit: cover; margin-right: 1rem; flex-shrink: 0; }
 .top10-rank { font-weight: 700; color: var(--subtext); width: 30px; }
 
 .settings-section { padding: 0; overflow: hidden; }
@@ -124,7 +128,7 @@ button.danger { background-color: var(--danger); }
 .settings-item { width: 100%; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .settings-item span { flex-grow: 1; }
 .settings-item button { flex-shrink: 0; }
-.accent-picker { display: flex; gap: 12px; padding: 1rem 1.5rem; overflow-x: auto; }
+.accent-picker { display: flex; gap: 12px; padding: 1rem 1.5rem; overflow-x: auto; flex-wrap: wrap; }
 .accent-swatch { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; flex-shrink: 0; border: 2px solid transparent; }
 .accent-swatch.active { border-color: var(--text); }
 
@@ -135,86 +139,55 @@ button.danger { background-color: var(--danger); }
 .input-header { font-size: 0.75rem; text-transform: uppercase; color: var(--subtext); font-weight: 600; margin-bottom: 4px; margin-left: 4px; margin-top: 10px; }
 .row { display: flex; gap: 10px; margin-bottom: 10px; }
 
-/* --- MENACING BADGE DESIGNS --- */
-.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.2rem; justify-items: center; margin-top: 1rem; }
+/* --- MEDAL BADGES (Circular) --- */
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1.5rem; justify-items: center; margin-top: 1rem; }
 
 .badge {
   position: relative;
   width: 100%;
-  max-width: 140px;
+  max-width: 120px;
   aspect-ratio: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  background: var(--card);
+  border-radius: 50% !important; /* Force Circle */
   color: white;
   transition: transform 0.2s;
-  /* Default shadow */
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-  padding: 1rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  border: 4px solid rgba(255,255,255,0.15); /* Ring effect */
+  padding: 0.8rem;
+  cursor: help; /* Hint for tooltip */
 }
 
-.badge:hover { transform: scale(1.05) translateY(-5px); z-index: 5; }
+.badge:hover { transform: scale(1.08); z-index: 5; }
 
-/* Inner Content */
+/* Text within Badge */
 .badge-title { 
   font-weight: 900; 
-  font-size: 0.8rem; 
-  margin-bottom: 2px; 
+  font-size: 0.7rem; 
+  margin-bottom: 4px; 
   text-transform: uppercase; 
-  letter-spacing: 1px; 
-  text-shadow: 0 2px 2px rgba(0,0,0,0.5); 
-  z-index: 2;
+  letter-spacing: 0.5px; 
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6); 
+  line-height: 1.2;
 }
 .badge-sub { 
-  font-size: 0.7rem; 
+  font-size: 0.65rem; 
   font-weight: 700; 
-  background: rgba(0,0,0,0.4); 
+  background: rgba(0,0,0,0.3); 
   padding: 2px 8px; 
-  border-radius: 4px; 
-  z-index: 2;
+  border-radius: 99px; 
+  white-space: nowrap;
 }
 
-/* SHAPES via Clip-Path */
-
-/* Rank 1 (Gold): Star/Burst */
-.shape-star {
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  background: linear-gradient(135deg, #FFD700, #FDB931, #FFD700);
-}
-
-/* Rank 2 (Silver): Hexagon */
-.shape-hex {
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: linear-gradient(135deg, #E0E0E0, #BDBDBD, #E0E0E0);
-}
-
-/* Rank 3 (Bronze): Pentagon/Shield */
-.shape-shield {
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background: linear-gradient(135deg, #CD7F32, #A0522D, #CD7F32);
-}
-
-/* Wins (Diamond) */
-.shape-diamond {
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  /* Background set by tier class */
-}
-
-/* Plays (Standard Crest) */
-.shape-crest {
-  clip-path: polygon(50% 0, 100% 0, 100% 80%, 50% 100%, 0 80%, 0 0);
-  /* Background set by tier class */
-}
-
-/* COLOR TIERS */
-.tier-bronze { background: linear-gradient(145deg, #8E2DE2, #4A00E0); } /* Purple */
-.tier-silver { background: linear-gradient(145deg, #11998e, #38ef7d); } /* Green */
-.tier-gold { background: linear-gradient(145deg, #F2994A, #F2C94C); } /* Gold */
-.tier-menacing { background: linear-gradient(145deg, #cb2d3e, #ef473a); } /* Red */
-.tier-legend { background: linear-gradient(145deg, #232526, #414345); border: 1px solid gold; } /* Black/Onyx */
+/* TIER COLORS (Medal Gradients) */
+.tier-bronze { background: linear-gradient(135deg, #cd7f32, #8d5524); border-color: #e0ac84; }
+.tier-silver { background: linear-gradient(135deg, #bdc3c7, #7f8c8d); border-color: #dfe6e9; }
+.tier-gold { background: linear-gradient(135deg, #f1c40f, #b7950b); border-color: #f9e79f; }
+.tier-diamond { background: linear-gradient(135deg, #3498db, #8e44ad); border-color: #85c1e9; }
+.tier-legend { background: linear-gradient(135deg, #2c3e50, #000000); border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
 
 .login-container { max-width: 400px; margin: 10vh auto; text-align: center; }
 
