@@ -116,16 +116,7 @@ button.danger { background-color: var(--danger); }
 
 /* LISTS & SETTINGS */
 .top10-row, .removal-option { display: flex; align-items: center; padding: 12px; background: var(--card); border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
-/* FIX: Rigid Image Sizing */
-.top10-row img { 
-  width: 50px !important; 
-  height: 50px !important; 
-  min-width: 50px; 
-  max-width: 50px;
-  border-radius: 10px; 
-  object-fit: cover; 
-  margin-right: 1rem; 
-}
+.top10-row img { width: 50px !important; height: 50px !important; border-radius: 10px; object-fit: cover; margin-right: 1rem; flex-shrink: 0; }
 .top10-rank { font-weight: 700; color: var(--subtext); width: 30px; }
 
 .settings-section { padding: 0; overflow: hidden; }
@@ -144,8 +135,9 @@ button.danger { background-color: var(--danger); }
 .input-header { font-size: 0.75rem; text-transform: uppercase; color: var(--subtext); font-weight: 600; margin-bottom: 4px; margin-left: 4px; margin-top: 10px; }
 .row { display: flex; gap: 10px; margin-bottom: 10px; }
 
-/* MENACING BADGES */
-.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1.5rem; justify-items: center; }
+/* --- MENACING BADGE DESIGNS --- */
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.2rem; justify-items: center; margin-top: 1rem; }
+
 .badge {
   position: relative;
   width: 100%;
@@ -159,53 +151,70 @@ button.danger { background-color: var(--danger); }
   background: var(--card);
   color: white;
   transition: transform 0.2s;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  /* Default shadow */
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+  padding: 1rem;
 }
-.badge:hover { transform: scale(1.05); z-index: 2; }
 
-/* Text Styles */
-.badge-title { font-weight: 900; font-size: 0.8rem; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-.badge-sub { font-size: 0.7rem; font-weight: 600; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 4px; backdrop-filter: blur(4px); }
+.badge:hover { transform: scale(1.05) translateY(-5px); z-index: 5; }
 
-/* --- BADGE SHAPES & COLORS --- */
-
-/* TIER 0-1 (Low): Circle */
-.badge-tier-0, .badge-tier-1 {
-  border-radius: 50%;
-  border: 4px solid rgba(255,255,255,0.1);
+/* Inner Content */
+.badge-title { 
+  font-weight: 900; 
+  font-size: 0.8rem; 
+  margin-bottom: 2px; 
+  text-transform: uppercase; 
+  letter-spacing: 1px; 
+  text-shadow: 0 2px 2px rgba(0,0,0,0.5); 
+  z-index: 2;
 }
-.badge-tier-0 { background: linear-gradient(145deg, #7f8c8d, #2c3e50); } /* Stone */
-.badge-tier-1 { background: linear-gradient(145deg, #cd7f32, #8d5524); } /* Bronze */
+.badge-sub { 
+  font-size: 0.7rem; 
+  font-weight: 700; 
+  background: rgba(0,0,0,0.4); 
+  padding: 2px 8px; 
+  border-radius: 4px; 
+  z-index: 2;
+}
 
-/* TIER 2-3 (Mid): Hexagon */
-.badge-tier-2, .badge-tier-3 {
+/* SHAPES via Clip-Path */
+
+/* Rank 1 (Gold): Star/Burst */
+.shape-star {
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  background: linear-gradient(135deg, #FFD700, #FDB931, #FFD700);
+}
+
+/* Rank 2 (Silver): Hexagon */
+.shape-hex {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  background: linear-gradient(135deg, #E0E0E0, #BDBDBD, #E0E0E0);
+}
+
+/* Rank 3 (Bronze): Pentagon/Shield */
+.shape-shield {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  border-radius: 0;
+  background: linear-gradient(135deg, #CD7F32, #A0522D, #CD7F32);
 }
-/* Fake border via inset shadow for clip-path */
-.badge-tier-2 { background: linear-gradient(145deg, #bdc3c7, #7f8c8d); } /* Silver */
-.badge-tier-3 { background: linear-gradient(145deg, #f1c40f, #b7950b); } /* Gold */
 
-/* TIER 4-5 (High): Shield/Crest */
-.badge-tier-4, .badge-tier-5 {
-  clip-path: polygon(50% 0, 100% 15%, 100% 85%, 50% 100%, 0 85%, 0 15%);
-  border-radius: 0;
-}
-.badge-tier-4 { background: linear-gradient(145deg, #c0392b, #8e44ad); } /* Red/Purple */
-.badge-tier-5 { 
-  background: linear-gradient(145deg, #000000, #434343); 
-  border: 2px solid #FFD700; /* Gold border workaround won't show with clip-path, using shadow */
-  box-shadow: inset 0 0 20px #FFD700; 
-} /* Onyx/Gold */
-
-/* WIN BADGES (Diamonds) */
-.badge-win-1, .badge-win-3, .badge-win-5 {
+/* Wins (Diamond) */
+.shape-diamond {
   clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  aspect-ratio: 1/1.2;
+  /* Background set by tier class */
 }
-.badge-win-1 { background: linear-gradient(145deg, #27ae60, #145a32); } /* Green */
-.badge-win-3 { background: linear-gradient(145deg, #2980b9, #154360); } /* Blue */
-.badge-win-5 { background: linear-gradient(145deg, #d35400, #6e2c00); } /* Fire */
+
+/* Plays (Standard Crest) */
+.shape-crest {
+  clip-path: polygon(50% 0, 100% 0, 100% 80%, 50% 100%, 0 80%, 0 0);
+  /* Background set by tier class */
+}
+
+/* COLOR TIERS */
+.tier-bronze { background: linear-gradient(145deg, #8E2DE2, #4A00E0); } /* Purple */
+.tier-silver { background: linear-gradient(145deg, #11998e, #38ef7d); } /* Green */
+.tier-gold { background: linear-gradient(145deg, #F2994A, #F2C94C); } /* Gold */
+.tier-menacing { background: linear-gradient(145deg, #cb2d3e, #ef473a); } /* Red */
+.tier-legend { background: linear-gradient(145deg, #232526, #414345); border: 1px solid gold; } /* Black/Onyx */
 
 .login-container { max-width: 400px; margin: 10vh auto; text-align: center; }
 
