@@ -24,19 +24,11 @@ if(!advancedStatsContainer) {
     document.querySelector('.game-stats-grid').after(advancedStatsContainer);
 }
 
-let tagsContainer = document.getElementById("gameTags");
-if (!tagsContainer) {
-    tagsContainer = document.createElement("div");
-    tagsContainer.id = "gameTags";
-    tagsContainer.className = "tags-container";
-    document.querySelector(".game-hero").appendChild(tagsContainer);
-}
-
 async function init() {
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
 
-  const games = await getGames(); // Fetch ALL games to calculate ranks
+  const games = await getGames();
   game = games.find(g => g.id === id);
 
   if (!game) {
@@ -48,13 +40,12 @@ async function init() {
   if (!game.tracking) game.tracking = { score: false, won: false };
   if (!game.sessions) game.sessions = [];
   if (!game.playHistory) game.playHistory = {};
-  if (!game.tags) game.tags = [];
 
   document.title = game.name;
   
-  if (editBtn) editBtn.onclick = showEditModal;
+  if(editBtn) editBtn.onclick = showEditModal;
 
-  render(games); // Pass all games to render for badge calculation
+  render(games); // Pass all games for badge logic
 }
 
 function render(allGames = []) {
@@ -77,11 +68,9 @@ function render(allGames = []) {
       : `${game.players.min}`;
   } else { playerView.textContent = "—"; }
 
-  if(game.tags) tagsContainer.innerHTML = game.tags.map(t => `<span class="tag-pill">${t}</span>`).join("");
-
   renderAdvancedStats();
   renderTracker();
-  if (allGames.length > 0) renderBadges(allGames);
+  if(allGames.length > 0) renderBadges(allGames);
 }
 
 function renderAdvancedStats() {
@@ -152,7 +141,7 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // Tooltip
+    // TOOLTIP LOGIC (Updated for stacking)
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
@@ -160,22 +149,37 @@ function renderTracker() {
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
     if (daySessions.length > 0 && (game.tracking.score || game.tracking.won)) {
-      daySessions.forEach(s => {
-        let rowHtml = `<div style="margin-top:2px; display:flex; align-items:center; gap:4px">`;
-        if (game.tracking.won && s.won != null) {
-          rowHtml += s.won 
-            ? `<span class="tooltip-tag tag-win">W</span>` 
-            : `<span class="tooltip-tag tag-loss">L</span>`;
-        }
-        if (game.tracking.score && s.score != null) {
-          rowHtml += `<span class="tooltip-tag tag-score">${s.score}</span>`;
-        }
-        if ((!game.tracking.won || s.won == null) && (!game.tracking.score || s.score == null)) {
-          rowHtml += `<span style="font-size:0.7rem">Played</span>`;
-        }
-        rowHtml += `</div>`;
-        content += rowHtml;
-      });
+      // Check if any session has a score. If so, use detailed list mode.
+      const anyScore = daySessions.some(s => s.score != null);
+
+      if (!anyScore && game.tracking.won) {
+        // STACK MODE: Just Wins/Losses
+        const wins = daySessions.filter(s => s.won === true).length;
+        const losses = daySessions.filter(s => s.won === false).length;
+        let stackHtml = `<div style="margin-top:2px;">`;
+        if (wins > 0) stackHtml += `<span class="tooltip-win">W</span> x${wins} `;
+        if (losses > 0) stackHtml += `<span class="tooltip-loss">L</span> x${losses}`;
+        stackHtml += `</div>`;
+        content += stackHtml;
+      } else {
+        // LIST MODE: Detailed
+        daySessions.forEach(s => {
+          let rowHtml = `<div style="margin-top:2px; display:flex; align-items:center; gap:4px">`;
+          if (game.tracking.won && s.won != null) {
+            rowHtml += s.won 
+              ? `<span class="tooltip-tag tag-win">W</span>` 
+              : `<span class="tooltip-tag tag-loss">L</span>`;
+          }
+          if (game.tracking.score && s.score != null) {
+            rowHtml += `<span class="tooltip-tag tag-score">${s.score}</span>`;
+          }
+          if ((!game.tracking.won || s.won == null) && (!game.tracking.score || s.score == null)) {
+            rowHtml += `<span style="font-size:0.7rem">Played</span>`;
+          }
+          rowHtml += `</div>`;
+          content += rowHtml;
+        });
+      }
     } else {
       content += `<div>${count} play${count !== 1 ? "s" : ""}</div>`;
     }
@@ -207,8 +211,10 @@ async function handlePlayClick(dateKey, delta) {
   if (daySessions.length <= 1) {
     removeSessionDirectly(dateKey, daySessions[0]); 
   } else {
-    const allIdentical = daySessions.every(s => s.won === daySessions[0].won && s.score === daySessions[0].score);
-    if (allIdentical) removeSessionDirectly(dateKey, daySessions[daySessions.length - 1]);
+    // Check identical
+    const first = daySessions[0];
+    const allSame = daySessions.every(s => s.won === first.won && s.score === first.score);
+    if (allSame) removeSessionDirectly(dateKey, daySessions[daySessions.length - 1]);
     else showRemovalModal(dateKey, daySessions);
   }
 }
@@ -235,29 +241,63 @@ function updatePlayCount(dateKey, delta) {
 
 async function saveGame() {
   await updateGame(game);
-  // Re-fetch all games to update rank badges correctly
-  const allGames = await getGames();
+  const allGames = await getGames(); // Refresh for badges
   render(allGames);
 }
 
-// === BADGE LOGIC ===
+// BADGE LOGIC OVERHAUL
 function renderBadges(allGames) {
     badgeContainer.innerHTML = "";
     
-    // 1. ALL TIME RANK (Gold/Silver/Bronze)
-    const sortedByPlays = [...allGames].sort((a,b) => (b.plays||0) - (a.plays||0));
-    const rankIndex = sortedByPlays.findIndex(g => g.id === game.id);
-    
-    if (rankIndex === 0 && game.plays > 0) createBadge("All-Time #1", "Top Played", "shape-star");
-    else if (rankIndex === 1 && game.plays > 0) createBadge("All-Time #2", "2nd Place", "shape-hex");
-    else if (rankIndex === 2 && game.plays > 0) createBadge("All-Time #3", "3rd Place", "shape-shield");
+    // Helper: Get Tier Class
+    const getTier = (val) => {
+        if (val >= 50) return "tier-legend"; // Legend
+        if (val >= 40) return "tier-diamond";
+        if (val >= 30) return "tier-gold";
+        if (val >= 20) return "tier-silver";
+        if (val >= 5) return "tier-bronze";
+        return "tier-bronze";
+    };
 
-    // 2. MONTHLY CHAMPION (Previous Months)
-    const myMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0, 7)));
-    let isMonthlyChamp = false;
+    // 1. ALL-TIME RANK
+    const sorted = [...allGames].sort((a,b) => (b.plays||0) - (a.plays||0));
+    const rank = sorted.findIndex(g => g.id === game.id);
+    if(rank === 0 && game.plays > 0) createBadge("All-Time #1", "Top Played", "tier-gold");
+    else if(rank === 1 && game.plays > 0) createBadge("All-Time #2", "2nd Place", "tier-silver");
+    else if(rank === 2 && game.plays > 0) createBadge("All-Time #3", "3rd Place", "tier-bronze");
+
+    // 2. PLAY MILESTONES (5, 10, 15... 50)
+    const p = game.plays || 0;
+    // Find highest milestone 5-50
+    let bestPlay = 0;
+    for(let i=5; i<=50; i+=5) { if(p >= i) bestPlay = i; }
     
+    if(bestPlay > 0) {
+        createBadge("Veteran", `${bestPlay}+ Plays`, getTier(bestPlay));
+    }
+
+    // 3. WIN MILESTONES (5, 10... 50)
+    if (game.sessions) {
+        const wins = game.sessions.filter(s => s.won === true).length;
+        let bestWin = 0;
+        for(let i=5; i<=50; i+=5) { if(wins >= i) bestWin = i; }
+        
+        if(bestWin > 0) {
+            createBadge("Victor", `${bestWin}+ Wins`, getTier(bestWin));
+        }
+    }
+
+    // 4. MONTHLY CHAMPION (Previous Months Only)
+    // Counts how many times this game was #1 in a past month
+    const myMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0, 7)));
+    const currentMonthKey = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+    
+    let champMonths = []; // Store "January 2024" strings
+
     myMonths.forEach(month => {
-        // Calculate plays for THIS month for ALL games
+        if (month >= currentMonthKey) return; // Skip current or future
+
+        // Check if this game is #1 for that month
         let maxPlays = 0;
         let bestGameId = null;
         
@@ -273,91 +313,71 @@ function renderBadges(allGames) {
         });
 
         if (bestGameId === game.id && maxPlays > 0) {
-            isMonthlyChamp = true;
+            const [y, m] = month.split('-');
+            const dateStr = new Date(y, m-1).toLocaleString('default', { month: 'short', year: '2-digit' });
+            champMonths.push(dateStr);
         }
     });
 
-    if (isMonthlyChamp) {
-        createBadge("Champion", "Monthly Top", "shape-star"); // Reuse gold star
+    if (champMonths.length > 0) {
+        // Calculate Tier based on count (1x = bronze, 5x = silver, etc.)
+        // Mapping arbitrary count to existing tiers for visual flair
+        let count = champMonths.length;
+        let tierClass = "tier-bronze";
+        if(count >= 3) tierClass = "tier-silver";
+        if(count >= 5) tierClass = "tier-gold";
+        if(count >= 10) tierClass = "tier-legend";
+
+        // Create Badge with Tooltip logic via title attribute
+        const badgeDiv = document.createElement("div");
+        badgeDiv.className = `badge ${tierClass}`;
+        badgeDiv.title = "Months Won:\n" + champMonths.join("\n"); // Native browser tooltip
+        badgeDiv.innerHTML = `
+            <div class="badge-title">Champion</div>
+            <div class="badge-sub">x${count} Months</div>
+        `;
+        badgeContainer.appendChild(badgeDiv);
     }
-
-    // 3. WINS (Upgrading)
-    if (game.sessions) {
-        const wins = game.sessions.filter(s => s.won === true).length;
-        let winBadge = null;
-        if (wins >= 50) winBadge = { t: "Dominator", s: "50 Wins", c: "tier-legend" };
-        else if (wins >= 25) winBadge = { t: "Conqueror", s: "25 Wins", c: "tier-menacing" };
-        else if (wins >= 10) winBadge = { t: "Victor", s: "10 Wins", c: "tier-gold" };
-        else if (wins >= 5) winBadge = { t: "Winner", s: "5 Wins", c: "tier-silver" };
-        
-        if (winBadge) createBadge(winBadge.t, winBadge.s, "shape-diamond " + winBadge.c);
-    }
-
-    // 4. PLAYS (Upgrading)
-    const p = game.plays || 0;
-    let playBadge = null;
-    if (p >= 50) playBadge = { t: "Legend", s: "50+ Plays", c: "tier-legend" };
-    else if (p >= 30) playBadge = { t: "Warlord", s: "30+ Plays", c: "tier-menacing" };
-    else if (p >= 20) playBadge = { t: "Veteran", s: "20+ Plays", c: "tier-gold" };
-    else if (p >= 10) playBadge = { t: "Regular", s: "10+ Plays", c: "tier-silver" };
-    else if (p >= 5) playBadge = { t: "Novice", s: "5+ Plays", c: "tier-bronze" };
-
-    if (playBadge) createBadge(playBadge.t, playBadge.s, "shape-crest " + playBadge.c);
 
     if (badgeContainer.children.length === 0) {
-        badgeContainer.innerHTML = `<p style="grid-column:1/-1; text-align:center; opacity:0.5; font-size:0.8rem">No badges earned yet.</p>`;
+        badgeContainer.innerHTML = `<p style="grid-column:1/-1;text-align:center;opacity:0.5;font-size:0.8rem">Play more to earn badges.</p>`;
     }
 }
 
-function createBadge(title, sub, classes) {
+function createBadge(title, sub, tierClass) {
     const el = document.createElement("div");
-    el.className = `badge ${classes}`;
+    el.className = `badge ${tierClass}`;
     el.innerHTML = `<div class="badge-title">${title}</div><div class="badge-sub">${sub}</div>`;
     badgeContainer.appendChild(el);
 }
 
-// Modal Logic
+// Modal & Nav (Existing code)
 function showEditModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
   backdrop.innerHTML = `
-    <div class="modal">
-      <div class="close-button">×</div>
-      <h2>Edit Game</h2>
-      <div class="input-header">Basic Info</div>
-      <input id="editName" class="ui-input" value="${game.name}">
-      <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL" style="margin-top:10px">
-      <div class="input-header">Stats</div>
-      <div class="row"><input id="editPMin" class="ui-input" value="${game.players.min||''}"><input id="editPMax" class="ui-input" value="${game.players.max||''}"></div>
-      <div class="row"><input id="editTMin" class="ui-input" value="${game.playTime.min||''}"><input id="editTMax" class="ui-input" value="${game.playTime.max||''}"></div>
-      <div class="input-header">Tags</div>
-      <input id="editTags" class="ui-input" value="${(game.tags||[]).join(', ')}">
-      <div class="toggle-group" style="margin-top:10px"><label><input type="checkbox" id="editTrackScore" ${game.tracking.score?'checked':''}> Score</label><label><input type="checkbox" id="editTrackWon" ${game.tracking.won?'checked':''}> Win/Loss</label></div>
-      <div class="input-header">Review</div>
-      <input id="editRating" class="ui-input" value="${game.rating||''}">
-      <textarea id="editReview" style="margin-top:5px">${game.review||''}</textarea>
-      <button id="saveEdit" style="width:100%; margin-top:15px">Save</button>
-      <button id="deleteGameBtn" class="danger" style="width:100%; margin-top:10px">Delete</button>
-    </div>
+    <div class="modal"><div class="close-button">×</div><h2>Edit Game</h2>
+    <div class="input-header">Basic</div><input id="editName" class="ui-input" value="${game.name}">
+    <input id="editImage" class="ui-input" value="${game.image||''}" placeholder="Image URL" style="margin-top:10px">
+    <div class="input-header">Stats</div>
+    <div class="row"><input id="editPMin" class="ui-input" value="${game.players.min||''}"><input id="editPMax" class="ui-input" value="${game.players.max||''}"></div>
+    <div class="row"><input id="editTMin" class="ui-input" value="${game.playTime.min||''}"><input id="editTMax" class="ui-input" value="${game.playTime.max||''}"></div>
+    <div class="toggle-group" style="margin-top:10px"><label><input type="checkbox" id="editTrackScore" ${game.tracking.score?'checked':''}> Score</label><label><input type="checkbox" id="editTrackWon" ${game.tracking.won?'checked':''}> Win/Loss</label></div>
+    <div class="input-header">Review</div><input id="editRating" class="ui-input" value="${game.rating||''}" placeholder="0-10"><textarea id="editReview" style="margin-top:5px">${game.review||''}</textarea>
+    <button id="saveEdit" style="width:100%;margin-top:15px">Save</button><button id="deleteGameBtn" class="danger" style="width:100%;margin-top:10px">Delete</button></div>
   `;
-  backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
-  
-  backdrop.querySelector("#saveEdit").onclick = async () => {
-      game.name = backdrop.querySelector("#editName").value;
-      game.image = backdrop.querySelector("#editImage").value;
-      game.rating = parseFloat(backdrop.querySelector("#editRating").value);
-      game.review = backdrop.querySelector("#editReview").value;
-      game.tags = backdrop.querySelector("#editTags").value.split(",").map(t=>t.trim()).filter(t=>t);
-      game.tracking.score = backdrop.querySelector("#editTrackScore").checked;
-      game.tracking.won = backdrop.querySelector("#editTrackWon").checked;
-      await updateGame(game);
-      backdrop.remove();
-      saveGame(); // Refetch
+  backdrop.querySelector(".close-button").onclick=()=>backdrop.remove();
+  backdrop.querySelector("#saveEdit").onclick=async()=>{
+      game.name=backdrop.querySelector("#editName").value;
+      game.image=backdrop.querySelector("#editImage").value;
+      game.rating=parseFloat(backdrop.querySelector("#editRating").value);
+      game.review=backdrop.querySelector("#editReview").value;
+      game.players={min:backdrop.querySelector("#editPMin").value,max:backdrop.querySelector("#editPMax").value};
+      game.playTime={min:backdrop.querySelector("#editTMin").value,max:backdrop.querySelector("#editTMax").value};
+      game.tracking={score:backdrop.querySelector("#editTrackScore").checked,won:backdrop.querySelector("#editTrackWon").checked};
+      await updateGame(game); backdrop.remove(); saveGame();
   };
-  
-  backdrop.querySelector("#deleteGameBtn").onclick = async () => {
-      if(confirm("Delete?")) { await deleteGame(game.id); window.location.href="catalogue.html"; }
-  };
+  backdrop.querySelector("#deleteGameBtn").onclick=async()=>{if(confirm("Delete?")){await deleteGame(game.id);window.location.href="catalogue.html";}};
   document.body.appendChild(backdrop);
 }
 
@@ -390,7 +410,7 @@ function showPlayModal(dateKey) {
 }
 
 function showRemovalModal(dateKey, sessions) {
-    if(confirm("Delete last play?")) removeSessionDirectly(dateKey, sessions[sessions.length-1]);
+    if(confirm("Remove last play?")) removeSessionDirectly(dateKey, sessions[sessions.length-1]);
 }
 
 document.getElementById("prevMonth").onclick = () => { view.setMonth(view.getMonth() - 1); renderTracker(); };
