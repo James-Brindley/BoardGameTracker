@@ -1,4 +1,4 @@
-import { getGames, updateGame, deleteGame } from "./data.js";
+import { getGames, updateGame, deleteGame, uploadImage } from "./data.js";
 
 /* =============================
    INITIALIZATION
@@ -6,7 +6,6 @@ import { getGames, updateGame, deleteGame } from "./data.js";
 let game = null;
 let view = new Date();
 
-// DOM ELEMENTS
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
@@ -19,12 +18,33 @@ const trackerGrid = document.getElementById("gameTracker");
 const monthLabel = document.getElementById("monthLabel");
 const editBtn = document.getElementById("editToggle");
 
-// Insert Advanced Stats Container if it doesn't exist
+// New Container for Advanced Stats
 let advancedStatsContainer = document.getElementById("advancedStats");
 if(!advancedStatsContainer) {
     advancedStatsContainer = document.createElement('div');
     advancedStatsContainer.id = "advancedStats";
     document.querySelector('.game-stats-grid').after(advancedStatsContainer);
+}
+
+// New Container for Tags
+let tagsContainer = document.getElementById("gameTags");
+if (!tagsContainer) {
+    tagsContainer = document.createElement("div");
+    tagsContainer.id = "gameTags";
+    tagsContainer.className = "tags-container";
+    tagsContainer.style.justifyContent = "center";
+    tagsContainer.style.marginBottom = "2rem";
+    document.querySelector(".game-hero").appendChild(tagsContainer);
+}
+
+// Add Share Button
+if (!document.getElementById("shareBtn")) {
+    const shareBtn = document.createElement("button");
+    shareBtn.id = "shareBtn";
+    shareBtn.className = "share-btn";
+    shareBtn.innerHTML = "📤";
+    shareBtn.onclick = shareGame;
+    document.querySelector(".game-hero").appendChild(shareBtn);
 }
 
 async function init() {
@@ -42,9 +62,20 @@ async function init() {
   // Ensure defaults
   if (!game.tracking) game.tracking = { score: false, won: false };
   if (!game.sessions) game.sessions = [];
+  if (!game.tags) game.tags = [];
 
   document.title = game.name;
   render();
+}
+
+function shareGame() {
+    const text = `Check out my stats for ${game.name}! \nPlays: ${game.plays || 0}\nRating: ${game.rating || "Unrated"}/10`;
+    if (navigator.share) {
+        navigator.share({ title: game.name, text: text, url: window.location.href });
+    } else {
+        navigator.clipboard.writeText(text + " " + window.location.href);
+        alert("Link copied to clipboard!");
+    }
 }
 
 /* =============================
@@ -70,12 +101,14 @@ function render() {
       : `${game.players.min}`;
   } else { playerView.textContent = "—"; }
 
+  // Render Tags
+  tagsContainer.innerHTML = game.tags.map(t => `<span class="tag-pill">${t}</span>`).join("");
+
   renderAdvancedStats();
   renderTracker();
   renderBadges();
 }
 
-/* RENDER SCORE / WIN LOSS */
 function renderAdvancedStats() {
   const hasData = game.sessions && game.sessions.length > 0;
   const showScore = game.tracking.score || (hasData && game.sessions.some(s => s.score != null));
@@ -91,23 +124,19 @@ function renderAdvancedStats() {
   
   advancedStatsContainer.style.display = 'flex';
 
-  // 1. HIGH SCORE
   if (showScore) {
     const scores = game.sessions.filter(s => s.score != null).map(s => s.score);
     const highScore = scores.length ? Math.max(...scores) : "—";
-    
     const div = document.createElement('div');
     div.className = "stat-widget";
     div.innerHTML = `<div class="label">High Score</div><div class="value">${highScore}</div>`;
     advancedStatsContainer.appendChild(div);
   }
 
-  // 2. WIN / LOSS
   if (showWon) {
     const validSessions = game.sessions.filter(s => s.won != null);
     const wins = validSessions.filter(s => s.won === true).length;
     const losses = validSessions.filter(s => s.won === false).length;
-    // Calculate Win %
     const total = wins + losses;
     const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
@@ -148,14 +177,11 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // Tooltip
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
     
-    // Check if we have detailed session data for this day
     const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
-
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
     if (daySessions.length > 0 && (game.tracking.score || game.tracking.won)) {
@@ -230,7 +256,6 @@ async function removeSessionDirectly(dateKey, sessionObj) {
     const idx = game.sessions.findLastIndex(s => s.date === dateKey);
     if (idx > -1) game.sessions.splice(idx, 1);
   }
-
   updatePlayCount(dateKey, -1);
   await saveGame();
 }
@@ -252,7 +277,6 @@ function showRemovalModal(dateKey, sessions) {
     if (game.tracking.won && s.won != null) details.push(s.won ? "Win" : "Loss");
     if (game.tracking.score && s.score != null) details.push(`Score: ${s.score}`);
     if (details.length === 0) details.push(`Play #${i+1}`);
-
     let icon = s.won ? "🏆" : (s.won === false ? "💀" : "🎲");
 
     html += `
@@ -266,7 +290,6 @@ function showRemovalModal(dateKey, sessions) {
 
   html += `</div></div>`;
   backdrop.innerHTML = html;
-
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
   
   const buttons = backdrop.querySelectorAll(".removal-option");
@@ -278,7 +301,6 @@ function showRemovalModal(dateKey, sessions) {
       backdrop.remove();
     };
   });
-
   document.body.appendChild(backdrop);
 }
 
@@ -381,7 +403,7 @@ async function renderBadges() {
     ...computeMonthlyTopBadges(allGames),
     ...(await computeAllTimeRankBadges()),
     ...computeMilestoneBadges(),
-    ...computeWinBadges() // NEW
+    ...computeWinBadges()
   ];
 
   if (badges.length === 0) {
@@ -403,7 +425,6 @@ async function renderBadges() {
 function computeMonthlyTopBadges(allGames) {
   const results = [];
   const playMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0,7)));
-  
   playMonths.forEach(monthStr => {
     const rankings = allGames.map(g => {
       const mPlays = Object.entries(g.playHistory || {})
@@ -444,7 +465,6 @@ async function computeAllTimeRankBadges() {
 
 function computeMilestoneBadges() {
   const total = game.plays || 0;
-  // Added 10, 30, 40 as requested
   const milestones = [
     { value: 50, type: "legend",  title: "Legendary" },
     { value: 40, type: "empire",  title: "Empire Builder" },
@@ -453,25 +473,18 @@ function computeMilestoneBadges() {
     { value: 10, type: "dice",    title: "Roller" },
     { value: 5,  type: "dice",    title: "Rookie" }
   ];
-  
-  // Find only the HIGHEST achieved milestone
   const achieved = milestones.find(m => total >= m.value);
   return achieved ? [{ ...achieved, subtitle: `${achieved.value}+ Plays` }] : [];
 }
 
-// NEW: Win Badges (Every 5 up to 50)
 function computeWinBadges() {
   if (!game.sessions) return [];
   const wins = game.sessions.filter(s => s.won === true).length;
   if (wins === 0) return [];
-
-  // Generate milestones 50, 45, 40... down to 5
   const winMilestones = [];
   for (let i = 50; i >= 5; i -= 5) {
     winMilestones.push({ value: i, type: "trophy", title: "Victory Road" });
   }
-
-  // Return only the highest unlocked
   const achieved = winMilestones.find(m => wins >= m.value);
   return achieved ? [{ ...achieved, subtitle: `${achieved.value}+ Wins` }] : [];
 }
@@ -487,7 +500,12 @@ editBtn.onclick = () => {
       
       <div class="input-header">Basic Info</div>
       <input id="editName" class="ui-input" value="${game.name}" placeholder="Game Name" style="margin-bottom:10px">
-      <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL" style="margin-bottom:10px">
+      
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+        <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL">
+        <label for="imgUploadEdit" class="secondary" style="padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:600; font-size:0.9rem; background:rgba(120,120,128,0.15); color:var(--accent);">Upload</label>
+        <input id="imgUploadEdit" type="file" accept="image/*" hidden>
+      </div>
       
       <div class="input-header">Player Count</div>
       <div class="row">
@@ -501,7 +519,10 @@ editBtn.onclick = () => {
         <input id="editTMax" type="number" class="ui-input" value="${game.playTime.max ?? ''}" placeholder="Max">
       </div>
 
-      <div class="toggle-group">
+      <div class="input-header">Tags (comma separated)</div>
+      <input id="editTags" class="ui-input" value="${(game.tags || []).join(', ')}" placeholder="e.g. Card Game, Family">
+
+      <div class="toggle-group" style="margin-top:1rem">
         <label style="display:flex; align-items:center; gap:8px">
           <input type="checkbox" id="editTrackScore" ${game.tracking.score ? 'checked' : ''} style="width:18px; height:18px"> Track Score
         </label>
@@ -521,12 +542,33 @@ editBtn.onclick = () => {
 
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
 
+  // UPLOAD logic
+  const fileInput = backdrop.querySelector("#imgUploadEdit");
+  fileInput.onchange = async () => {
+    if (fileInput.files.length > 0) {
+        const btn = backdrop.querySelector("label[for='imgUploadEdit']");
+        btn.textContent = "...";
+        try {
+            const url = await uploadImage(fileInput.files[0]);
+            backdrop.querySelector("#editImage").value = url;
+            btn.textContent = "Done";
+        } catch (e) {
+            alert("Upload failed. Ensure bucket exists.");
+            btn.textContent = "Upload";
+        }
+    }
+  };
+
   // SAVE
   backdrop.querySelector("#saveEdit").onclick = async () => {
     game.name = backdrop.querySelector("#editName").value.trim();
     game.image = backdrop.querySelector("#editImage").value.trim() || null;
     game.review = backdrop.querySelector("#editReview").value.trim();
     game.rating = parseFloat(backdrop.querySelector("#editRating").value) || null;
+    
+    const tagsStr = backdrop.querySelector("#editTags").value;
+    game.tags = tagsStr ? tagsStr.split(",").map(t => t.trim()).filter(t => t) : [];
+
     game.players = {
       min: Number(backdrop.querySelector("#editPMin").value) || null,
       max: Number(backdrop.querySelector("#editPMax").value) || null
