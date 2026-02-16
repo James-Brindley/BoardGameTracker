@@ -141,7 +141,7 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // TOOLTIP STACKING LOGIC
+    // TOOLTIP
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
@@ -246,6 +246,26 @@ async function saveGame() {
 function renderBadges(allGames) {
     badgeContainer.innerHTML = "";
     
+    // Helper: Determine Color Class (Up to 10)
+    const getTier = (val) => {
+        if (val >= 10) return "tier-legend"; // 10+
+        if (val >= 9) return "tier-diamond";
+        if (val >= 7) return "tier-platinum";
+        if (val >= 5) return "tier-gold";
+        if (val >= 3) return "tier-silver";
+        return "tier-bronze"; // 1-2
+    };
+
+    // Helper for large counts (plays/wins up to 50)
+    const getHighTier = (val) => {
+        if (val >= 50) return "tier-legend";
+        if (val >= 40) return "tier-diamond";
+        if (val >= 30) return "tier-platinum"; // Updated to use platinum/diamond spread
+        if (val >= 20) return "tier-gold";
+        if (val >= 10) return "tier-silver";
+        return "tier-bronze";
+    };
+
     // 1. All-Time Rank
     const sorted = [...allGames].sort((a,b) => (b.plays||0) - (a.plays||0));
     const rank = sorted.findIndex(g => g.id === game.id);
@@ -253,18 +273,17 @@ function renderBadges(allGames) {
     else if(rank === 1 && game.plays > 0) createBadge("All-Time #2", "2nd Place", "rank-2");
     else if(rank === 2 && game.plays > 0) createBadge("All-Time #3", "3rd Place", "rank-3");
 
-    // 2. Play Count (Every 5 up to 50)
+    // 2. Play Count (5, 10, 15... 50)
     const p = game.plays || 0;
     let bestPlay = 0;
-    // Find the highest step of 5 that is <= current plays
     for(let i=50; i>=5; i-=5) { 
         if(p >= i) { bestPlay = i; break; } 
     }
     if(bestPlay > 0) {
-        createBadge("Veteran", `${bestPlay}+ Plays`, `tier-${bestPlay}`);
+        createBadge("Veteran", `${bestPlay}+ Plays`, getHighTier(bestPlay));
     }
 
-    // 3. Wins (Every 5 up to 50)
+    // 3. Wins (5, 10... 50)
     if (game.sessions) {
         const wins = game.sessions.filter(s => s.won === true).length;
         let bestWin = 0;
@@ -272,18 +291,18 @@ function renderBadges(allGames) {
             if(wins >= i) { bestWin = i; break; } 
         }
         if(bestWin > 0) {
-            createBadge("Victor", `${bestWin}+ Wins`, `tier-${bestWin}`);
+            createBadge("Victor", `${bestWin}+ Wins`, getHighTier(bestWin));
         }
     }
 
-    // 4. Monthly Champion (Stacked + Tooltip)
+    // 4. Monthly Champion (Stacked + HTML Tooltip)
     const myMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0, 7)));
     const currentMonthKey = new Date().toISOString().slice(0, 7);
     
     let wonMonths = [];
 
     myMonths.forEach(month => {
-        if (month >= currentMonthKey) return;
+        if (month >= currentMonthKey) return; // Skip current
 
         let maxPlays = 0;
         let bestGameId = null;
@@ -307,24 +326,25 @@ function renderBadges(allGames) {
     });
 
     if (wonMonths.length > 0) {
-        // Calculate Tier based on count
         let count = wonMonths.length;
-        let tierVal = 5;
-        if (count >= 50) tierVal = 50;
-        else if (count >= 40) tierVal = 40;
-        else if (count >= 30) tierVal = 30;
-        else if (count >= 20) tierVal = 20;
-        else if (count >= 15) tierVal = 15;
-        else if (count >= 10) tierVal = 10;
-        else if (count >= 5) tierVal = 5;
-        
-        // Custom Tooltip Badge
+        // Use the lower-range tier helper (1-10)
+        let tierClass = getTier(count);
+
         const div = document.createElement("div");
-        div.className = `badge tier-${tierVal}`;
+        div.className = `badge ${tierClass}`;
+        
+        // HTML Tooltip Content
+        const tooltipHtml = `
+            <div class="badge-tooltip">
+                <div style="border-bottom:1px solid rgba(255,255,255,0.2); margin-bottom:4px; padding-bottom:2px;">MONTHS WON</div>
+                ${wonMonths.join("<br>")}
+            </div>
+        `;
+        
         div.innerHTML = `
             <div class="badge-title">Champion</div>
             <div class="badge-sub">x${count} Months</div>
-            <div class="badge-tooltip">Months Won:<br>${wonMonths.join("<br>")}</div>
+            ${tooltipHtml}
         `;
         badgeContainer.appendChild(div);
     }
