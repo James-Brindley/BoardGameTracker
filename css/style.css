@@ -48,7 +48,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; animation: fadeI
 .card { background: var(--card); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
 h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 1.2rem; letter-spacing: -0.5px; color: var(--text); }
 
-/* UI ELEMENTS */
+/* CONTROLS */
 .ui-input, .ui-select, textarea { width: 100%; background: rgba(120, 120, 128, 0.1); border: none; padding: 12px 16px; border-radius: 12px; font-size: 1rem; color: var(--text); outline: none; transition: background 0.2s; font-family: inherit; }
 button { background-color: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 99px; font-size: 1rem; font-weight: 600; cursor: pointer; }
 button:hover { opacity: 0.9; }
@@ -99,10 +99,12 @@ button.danger { background-color: var(--danger); }
 .level-4 { background-color: color-mix(in srgb, var(--accent) 90%, transparent); }
 .level-5 { background-color: var(--accent); }
 .day-number { position: absolute; top: 4px; left: 6px; font-size: 0.65rem; color: var(--subtext); }
-.tracker-tooltip { position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+.tracker-tooltip { position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: rgba(20,20,25,0.95); backdrop-filter: blur(10px); color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 .tracker-day:hover .tracker-tooltip { opacity: 1; }
-.tooltip-win { color: #4cd964; font-weight: 700; margin-right: 2px; }
-.tooltip-loss { color: #ff3b30; font-weight: 700; margin-right: 2px; }
+
+/* Tooltip Text Colors */
+.tooltip-win { color: #4cd964; font-weight: 800; }
+.tooltip-loss { color: #ff3b30; font-weight: 800; }
 
 /* PODIUMS */
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 1rem; margin: 2rem 0; }
@@ -137,7 +139,7 @@ button.danger { background-color: var(--danger); }
 .input-header { font-size: 0.75rem; text-transform: uppercase; color: var(--subtext); font-weight: 600; margin-bottom: 4px; margin-left: 4px; margin-top: 10px; }
 .row { display: flex; gap: 10px; margin-bottom: 10px; }
 
-/* --- MEDAL BADGES (Circular & Progressive) --- */
+/* --- MEDAL BADGES (Circular + Tiers) --- */
 .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1.5rem; justify-items: center; margin-top: 1rem; }
 
 .badge {
@@ -150,27 +152,26 @@ button.danger { background-color: var(--danger); }
   justify-content: center;
   align-items: center;
   text-align: center;
-  border-radius: 50% !important; /* Force Circle */
+  border-radius: 50%;
   color: white;
   transition: transform 0.2s;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  border: 4px solid rgba(255,255,255,0.15); /* Ring effect */
-  padding: 0.8rem;
-  /* Standard Cursor unless tooltip enabled */
-  cursor: default;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  /* Double Border effect for medal look */
+  border: 4px solid rgba(255,255,255,0.2); 
+  outline: 2px solid transparent; 
+  padding: 0.5rem;
 }
-
-.badge[title] { cursor: help; } /* Only badges with tooltips show help cursor */
 
 .badge:hover { transform: scale(1.08); z-index: 5; }
 
+/* Medal Ribbon/Text */
 .badge-title { 
   font-weight: 900; 
   font-size: 0.7rem; 
-  margin-bottom: 4px; 
+  margin-bottom: 2px; 
   text-transform: uppercase; 
   letter-spacing: 0.5px; 
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6); 
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7); 
   line-height: 1.2;
 }
 .badge-sub { 
@@ -180,25 +181,41 @@ button.danger { background-color: var(--danger); }
   padding: 2px 8px; 
   border-radius: 99px; 
   white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* --- PROGRESSIVE LEVEL COLORS (5-50) --- */
-/* Level 5-10: Bronze Range */
-.lvl-5, .lvl-10 { background: linear-gradient(135deg, #cd7f32, #8d5524); border-color: #e0ac84; }
+/* --- TIER COLORS --- */
+/* Bronze (Levels 5-15) */
+.tier-bronze { 
+  background: linear-gradient(135deg, #cd7f32, #8d5524); 
+  outline-color: #a0522d;
+}
 
-/* Level 15-25: Silver Range */
-.lvl-15, .lvl-20, .lvl-25 { background: linear-gradient(135deg, #bdc3c7, #7f8c8d); border-color: #dfe6e9; }
+/* Silver (Levels 20-25) */
+.tier-silver { 
+  background: linear-gradient(135deg, #bdc3c7, #7f8c8d); 
+  outline-color: #95a5a6;
+}
 
-/* Level 30-40: Gold Range */
-.lvl-30, .lvl-35, .lvl-40 { background: linear-gradient(135deg, #f1c40f, #b7950b); border-color: #f9e79f; }
+/* Gold (Levels 30-35) */
+.tier-gold { 
+  background: linear-gradient(135deg, #f1c40f, #b7950b); 
+  outline-color: #f39c12;
+  box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4);
+}
 
-/* Level 45-50: Diamond/Legend */
-.lvl-45, .lvl-50 { background: linear-gradient(135deg, #3498db, #8e44ad); border-color: #85c1e9; box-shadow: 0 0 15px rgba(52, 152, 219, 0.4); }
+/* Platinum/Diamond (Levels 40-45) */
+.tier-platinum { 
+  background: linear-gradient(135deg, #00c6ff, #0072ff); 
+  outline-color: #3498db;
+}
 
-/* SPECIAL ALL-TIME RANKS */
-.rank-gold { background: linear-gradient(135deg, #FFD700, #FDB931); border-color: #FFD700; }
-.rank-silver { background: linear-gradient(135deg, #C0C0C0, #E0E0E0); border-color: #C0C0C0; }
-.rank-bronze { background: linear-gradient(135deg, #CD7F32, #A0522D); border-color: #CD7F32; }
+/* Legend (Level 50+) */
+.tier-legend { 
+  background: linear-gradient(135deg, #2c3e50, #000000); 
+  outline-color: #FFD700; 
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
 
 .login-container { max-width: 400px; margin: 10vh auto; text-align: center; }
 
