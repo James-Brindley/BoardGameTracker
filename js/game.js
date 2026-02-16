@@ -28,7 +28,7 @@ async function init() {
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
 
-  const games = await getGames(); // Fetch ALL games for ranking
+  const games = await getGames();
   game = games.find(g => g.id === id);
 
   if (!game) {
@@ -141,7 +141,7 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // TOOLTIP
+    // TOOLTIP STACKING LOGIC
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
@@ -149,32 +149,32 @@ function renderTracker() {
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
     if (daySessions.length > 0 && (game.tracking.score || game.tracking.won)) {
-      // Check if scores exist. If so, list them. If only W/L, stack them.
-      const hasScores = daySessions.some(s => s.score != null);
+      // Check if any score exists
+      const hasScore = daySessions.some(s => s.score != null);
 
-      if (!hasScores && game.tracking.won) {
-        // Stack Mode (W x3, L x1)
+      if (!hasScore && game.tracking.won) {
+        // Stack Mode: Wins/Losses Only
         const wins = daySessions.filter(s => s.won === true).length;
         const losses = daySessions.filter(s => s.won === false).length;
-        let stackHtml = `<div>`;
-        if (wins > 0) stackHtml += `<span class="tooltip-win">W</span> x${wins} `;
-        if (losses > 0) stackHtml += `<span class="tooltip-loss">L</span> x${losses}`;
-        stackHtml += `</div>`;
-        content += stackHtml;
+        let stackRow = `<div style="margin-top:2px;">`;
+        if (wins > 0) stackRow += `<span class="tooltip-win">W</span> x${wins} `;
+        if (losses > 0) stackRow += `<span class="tooltip-loss">L</span> x${losses}`;
+        stackRow += `</div>`;
+        content += stackRow;
       } else {
-        // List Mode
+        // Detailed Mode
         daySessions.forEach(s => {
-          let rowHtml = `<div style="margin-top:2px;">`;
+          let rowHtml = `<div style="margin-top:2px; display:flex; align-items:center; gap:4px">`;
           if (game.tracking.won && s.won != null) {
             rowHtml += s.won 
-              ? `<span class="tooltip-win">W</span> ` 
-              : `<span class="tooltip-loss">L</span> `;
+              ? `<span class="tooltip-tag tag-win">W</span>` 
+              : `<span class="tooltip-tag tag-loss">L</span>`;
           }
           if (game.tracking.score && s.score != null) {
-            rowHtml += `${s.score} pts`;
+            rowHtml += `<span class="tooltip-tag tag-score">${s.score}</span>`;
           }
-          if (!game.tracking.won && !game.tracking.score) {
-            rowHtml += `Played`;
+          if ((!game.tracking.won || s.won == null) && (!game.tracking.score || s.score == null)) {
+            rowHtml += `<span style="font-size:0.7rem">Played</span>`;
           }
           rowHtml += `</div>`;
           content += rowHtml;
@@ -207,15 +207,12 @@ async function handlePlayClick(dateKey, delta) {
     }
     return;
   }
-  // Remove
   const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
   if (daySessions.length <= 1) {
     removeSessionDirectly(dateKey, daySessions[0]); 
   } else {
-    // Check identical
-    const first = daySessions[0];
-    const allSame = daySessions.every(s => s.won === first.won && s.score === first.score);
-    if (allSame) removeSessionDirectly(dateKey, daySessions[daySessions.length - 1]);
+    const allIdentical = daySessions.every(s => s.won === daySessions[0].won && s.score === daySessions[0].score);
+    if (allIdentical) removeSessionDirectly(dateKey, daySessions[daySessions.length - 1]);
     else showRemovalModal(dateKey, daySessions);
   }
 }
@@ -246,61 +243,54 @@ async function saveGame() {
   render(allGames);
 }
 
-// === BADGE LOGIC ===
+// === BADGES ===
 function renderBadges(allGames) {
     badgeContainer.innerHTML = "";
     
-    // Helper to get CSS class for 5-step increments
-    const getLevelClass = (val) => {
-        // Map any value >5 to nearest 5 floor (e.g. 13 -> 10)
-        let tier = Math.floor(val / 5) * 5;
-        if (tier > 50) tier = 50; 
-        if (tier < 5) return null;
-        return `lvl-${tier}`;
+    // Helper to determine color tier based on count (5-50)
+    const getTier = (val) => {
+        if (val >= 50) return "tier-legend";
+        if (val >= 40) return "tier-platinum";
+        if (val >= 30) return "tier-gold";
+        if (val >= 20) return "tier-silver";
+        return "tier-bronze"; // 5-19
     };
 
-    // 1. ALL TIME RANK (1, 2, 3)
+    // 1. All-Time Rank
     const sorted = [...allGames].sort((a,b) => (b.plays||0) - (a.plays||0));
     const rank = sorted.findIndex(g => g.id === game.id);
-    if(rank === 0 && game.plays > 0) createBadge("All-Time #1", "Top Played", "rank-gold");
-    else if(rank === 1 && game.plays > 0) createBadge("All-Time #2", "2nd Place", "rank-silver");
-    else if(rank === 2 && game.plays > 0) createBadge("All-Time #3", "3rd Place", "rank-bronze");
+    if(rank === 0 && game.plays > 0) createBadge("All-Time #1", "Most Played", "tier-gold");
+    else if(rank === 1 && game.plays > 0) createBadge("All-Time #2", "2nd Place", "tier-silver");
+    else if(rank === 2 && game.plays > 0) createBadge("All-Time #3", "3rd Place", "tier-bronze");
 
-    // 2. PLAY COUNT (Every 5 up to 50)
+    // 2. Play Count (5, 10, 15... 50)
     const p = game.plays || 0;
-    const playLvl = getLevelClass(p);
-    if (playLvl) {
-        // Find distinct milestones for text, but color changes every 5
-        let title = "Novice";
-        if (p >= 50) title = "Legend";
-        else if (p >= 30) title = "Master";
-        else if (p >= 20) title = "Veteran";
-        
-        createBadge(title, `${p} Plays`, playLvl);
+    let bestPlay = 0;
+    for(let i=5; i<=50; i+=5) { if(p >= i) bestPlay = i; }
+    
+    if(bestPlay > 0) {
+        createBadge("Veteran", `${bestPlay}+ Plays`, getTier(bestPlay));
     }
 
-    // 3. WIN COUNT (Every 5 up to 50)
+    // 3. Wins (5, 10... 50)
     if (game.sessions) {
         const wins = game.sessions.filter(s => s.won === true).length;
-        const winLvl = getLevelClass(wins);
-        if (winLvl) {
-            let title = "Winner";
-            if (wins >= 50) title = "Dominator";
-            else if (wins >= 25) title = "Conqueror";
-            else if (wins >= 10) title = "Victor";
-            
-            createBadge(title, `${wins} Wins`, winLvl);
+        let bestWin = 0;
+        for(let i=5; i<=50; i+=5) { if(wins >= i) bestWin = i; }
+        
+        if(bestWin > 0) {
+            createBadge("Victor", `${bestWin}+ Wins`, getTier(bestWin));
         }
     }
 
-    // 4. MONTHLY CHAMPION (Previous Months, Stacked)
+    // 4. Monthly Champion (Stacked)
     const myMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0, 7)));
-    const currentMonthKey = new Date().toISOString().slice(0, 7); 
+    const currentMonthKey = new Date().toISOString().slice(0, 7);
     
-    let champMonths = [];
+    let wonMonths = [];
 
     myMonths.forEach(month => {
-        if (month >= currentMonthKey) return; // Only past months
+        if (month >= currentMonthKey) return; // Skip current
 
         let maxPlays = 0;
         let bestGameId = null;
@@ -319,39 +309,43 @@ function renderBadges(allGames) {
         if (bestGameId === game.id && maxPlays > 0) {
             const [y, m] = month.split('-');
             const dateStr = new Date(y, m-1).toLocaleString('default', { month: 'short', year: '2-digit' });
-            champMonths.push(dateStr);
+            wonMonths.push(dateStr);
         }
     });
 
-    if (champMonths.length > 0) {
-        // Color based on how many times won
-        const count = champMonths.length;
-        const champLvl = getLevelClass(count * 5); // Scale it up so 1 win = lvl 5 color, 2 = lvl 10 color
-        const badgeClass = champLvl || "lvl-5";
+    if (wonMonths.length > 0) {
+        let count = wonMonths.length;
+        let tierClass = "tier-bronze";
+        if (count >= 3) tierClass = "tier-silver";
+        if (count >= 5) tierClass = "tier-gold";
+        if (count >= 10) tierClass = "tier-legend";
 
-        const badgeDiv = document.createElement("div");
-        badgeDiv.className = `badge ${badgeClass}`;
-        badgeDiv.title = "Months Won:\n" + champMonths.join("\n"); // Tooltip
-        badgeDiv.innerHTML = `
+        const div = document.createElement("div");
+        div.className = `badge ${tierClass}`;
+        // Tooltip logic
+        div.title = "Months Won:\n" + wonMonths.join("\n");
+        div.style.cursor = "help"; 
+        
+        div.innerHTML = `
             <div class="badge-title">Champion</div>
             <div class="badge-sub">x${count} Months</div>
         `;
-        badgeContainer.appendChild(badgeDiv);
+        badgeContainer.appendChild(div);
     }
 
     if (badgeContainer.children.length === 0) {
-        badgeContainer.innerHTML = `<p style="grid-column:1/-1;text-align:center;opacity:0.5;font-size:0.8rem">Play more to earn badges.</p>`;
+        badgeContainer.innerHTML = `<p style="grid-column:1/-1;text-align:center;opacity:0.5;">Play more to earn badges.</p>`;
     }
 }
 
-function createBadge(title, sub, classes) {
+function createBadge(title, sub, tierClass) {
     const el = document.createElement("div");
-    el.className = `badge ${classes}`;
+    el.className = `badge ${tierClass}`;
     el.innerHTML = `<div class="badge-title">${title}</div><div class="badge-sub">${sub}</div>`;
     badgeContainer.appendChild(el);
 }
 
-// EDIT MODAL
+// Modal & Nav
 function showEditModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
