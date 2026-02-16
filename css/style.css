@@ -208,7 +208,6 @@ button.danger { background-color: var(--danger); }
   z-index: 20;
 }
 
-/* Triangle arrow for tooltip */
 .badge-tooltip::after {
   content: "";
   position: absolute;
@@ -224,54 +223,37 @@ button.danger { background-color: var(--danger); }
   opacity: 1;
 }
 
-/* --- TIER COLORS (Medal Gradients) --- */
-/* Bronze */
-.tier-bronze { 
-  background: linear-gradient(135deg, #cd7f32, #8d5524); 
-  border-color: #e0ac84;
-}
+/* --- PROGRESSIVE TIER COLORS (Every 5 Steps) --- */
 
-/* Silver */
-.tier-silver { 
-  background: linear-gradient(135deg, #bdc3c7, #7f8c8d); 
-  border-color: #dfe6e9;
-}
+/* BRONZE FAMILY (5, 10, 15) - Getting richer/darker */
+.tier-5  { background: linear-gradient(135deg, #cd7f32, #8d5524); border-color: #a0522d; }
+.tier-10 { background: linear-gradient(135deg, #d35400, #a04000); border-color: #e67e22; }
+.tier-15 { background: linear-gradient(135deg, #b03a2e, #7b241c); border-color: #cd6155; }
 
-/* Gold */
-.tier-gold { 
-  background: linear-gradient(135deg, #f1c40f, #b7950b); 
-  border-color: #f9e79f;
-  box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4);
-}
+/* SILVER FAMILY (20, 25, 30) - Getting shinier/bluer */
+.tier-20 { background: linear-gradient(135deg, #bdc3c7, #7f8c8d); border-color: #ecf0f1; }
+.tier-25 { background: linear-gradient(135deg, #95a5a6, #535c68); border-color: #bdc3c7; }
+.tier-30 { background: linear-gradient(135deg, #7f8c8d, #2c3e50); border-color: #95a5a6; }
 
-/* Platinum (Blue/Cyan) */
-.tier-platinum { 
-  background: linear-gradient(135deg, #00c6ff, #0072ff); 
-  border-color: #3498db;
-}
+/* GOLD FAMILY (35, 40, 45) - Getting brighter/richer */
+.tier-35 { background: linear-gradient(135deg, #f1c40f, #b7950b); border-color: #f9e79f; }
+.tier-40 { background: linear-gradient(135deg, #f39c12, #d35400); border-color: #f1c40f; }
+.tier-45 { background: linear-gradient(135deg, #e67e22, #d35400); border-color: #f39c12; }
 
-/* Diamond (Purple/Blue) */
-.tier-diamond { 
-  background: linear-gradient(135deg, #8E2DE2, #4A00E0); 
-  border-color: #a29bfe;
-  box-shadow: 0 8px 25px rgba(142, 45, 226, 0.4);
-}
-
-/* Legend (Black/Gold) */
-.tier-legend { 
+/* LEGEND TIER (50+) - Onyx/Gold */
+.tier-50 { 
   background: linear-gradient(135deg, #2c3e50, #000000); 
   border-color: #FFD700; 
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); 
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); 
 }
 
-/* Rank Badges (Distinct Borders) */
+/* Rank Badges */
 .rank-1 { background: linear-gradient(135deg, #FFD700, #f1c40f); border-color: #fff; }
 .rank-2 { background: linear-gradient(135deg, #C0C0C0, #95a5a6); border-color: #fff; }
 .rank-3 { background: linear-gradient(135deg, #CD7F32, #a0522d); border-color: #fff; }
 
 .login-container { max-width: 400px; margin: 10vh auto; text-align: center; }
 
-/* MOBILE RESPONSIVENESS */
 @media (max-width: 768px) {
   .desktop-nav { display: none !important; }
   .mobile-menu-btn { display: flex !important; }
