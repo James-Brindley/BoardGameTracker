@@ -102,7 +102,7 @@ button.danger { background-color: var(--danger); }
 .tracker-tooltip { position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: rgba(20,20,25,0.95); backdrop-filter: blur(10px); color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 .tracker-day:hover .tracker-tooltip { opacity: 1; }
 
-/* Tooltip Text Colors */
+/* Tooltip Colors */
 .tooltip-win { color: #4cd964; font-weight: 800; }
 .tooltip-loss { color: #ff3b30; font-weight: 800; }
 
@@ -139,7 +139,7 @@ button.danger { background-color: var(--danger); }
 .input-header { font-size: 0.75rem; text-transform: uppercase; color: var(--subtext); font-weight: 600; margin-bottom: 4px; margin-left: 4px; margin-top: 10px; }
 .row { display: flex; gap: 10px; margin-bottom: 10px; }
 
-/* --- MEDAL BADGES (Circular + Tiers) --- */
+/* --- MEDAL BADGES (Circular) --- */
 .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1.5rem; justify-items: center; margin-top: 1rem; }
 
 .badge {
@@ -152,23 +152,23 @@ button.danger { background-color: var(--danger); }
   justify-content: center;
   align-items: center;
   text-align: center;
-  border-radius: 50%;
+  border-radius: 50% !important; /* Force Circle */
   color: white;
   transition: transform 0.2s;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  /* Double Border effect for medal look */
-  border: 4px solid rgba(255,255,255,0.2); 
-  outline: 2px solid transparent; 
-  padding: 0.5rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  border: 5px solid rgba(255,255,255,0.15); /* Thick border for colors */
+  padding: 0.8rem;
+  /* Hint cursor only if it has a tooltip inside */
 }
 
+.badge:has(.badge-tooltip) { cursor: help; }
 .badge:hover { transform: scale(1.08); z-index: 5; }
 
-/* Medal Ribbon/Text */
+/* Text within Badge */
 .badge-title { 
   font-weight: 900; 
   font-size: 0.7rem; 
-  margin-bottom: 2px; 
+  margin-bottom: 4px; 
   text-transform: uppercase; 
   letter-spacing: 0.5px; 
   text-shadow: 0 1px 3px rgba(0,0,0,0.7); 
@@ -181,41 +181,65 @@ button.danger { background-color: var(--danger); }
   padding: 2px 8px; 
   border-radius: 99px; 
   white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* --- TIER COLORS --- */
-/* Bronze (Levels 5-15) */
-.tier-bronze { 
-  background: linear-gradient(135deg, #cd7f32, #8d5524); 
-  outline-color: #a0522d;
+/* --- BADGE POPUP TOOLTIP --- */
+.badge-tooltip {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 25, 0.95);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: pre-wrap; /* Allows multiline */
+  text-align: center;
+  width: max-content;
+  max-width: 200px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 20;
 }
 
-/* Silver (Levels 20-25) */
-.tier-silver { 
-  background: linear-gradient(135deg, #bdc3c7, #7f8c8d); 
-  outline-color: #95a5a6;
+.badge:hover .badge-tooltip {
+  opacity: 1;
 }
 
-/* Gold (Levels 30-35) */
-.tier-gold { 
-  background: linear-gradient(135deg, #f1c40f, #b7950b); 
-  outline-color: #f39c12;
-  box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4);
-}
+/* --- PROGRESSIVE TIER COLORS (Every 5 Steps) --- */
 
-/* Platinum/Diamond (Levels 40-45) */
-.tier-platinum { 
-  background: linear-gradient(135deg, #00c6ff, #0072ff); 
-  outline-color: #3498db;
-}
+/* BRONZE TIERS (5, 10, 15) */
+.tier-5  { background: linear-gradient(135deg, #cd7f32, #8d5524); border-color: #a0522d; }
+.tier-10 { background: linear-gradient(135deg, #d35400, #a04000); border-color: #e67e22; }
+.tier-15 { background: linear-gradient(135deg, #b03a2e, #7b241c); border-color: #cd6155; }
 
-/* Legend (Level 50+) */
-.tier-legend { 
+/* SILVER TIERS (20, 25, 30) */
+.tier-20 { background: linear-gradient(135deg, #bdc3c7, #7f8c8d); border-color: #ecf0f1; }
+.tier-25 { background: linear-gradient(135deg, #95a5a6, #535c68); border-color: #bdc3c7; }
+.tier-30 { background: linear-gradient(135deg, #7f8c8d, #2c3e50); border-color: #95a5a6; }
+
+/* GOLD TIERS (35, 40, 45) */
+.tier-35 { background: linear-gradient(135deg, #f1c40f, #b7950b); border-color: #f9e79f; }
+.tier-40 { background: linear-gradient(135deg, #f39c12, #d35400); border-color: #f1c40f; }
+.tier-45 { background: linear-gradient(135deg, #e67e22, #d35400); border-color: #f39c12; }
+
+/* LEGEND TIER (50+) */
+.tier-50 { 
   background: linear-gradient(135deg, #2c3e50, #000000); 
-  outline-color: #FFD700; 
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  border-color: #FFD700; 
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); 
 }
+
+/* Rank Badges */
+.rank-1 { background: linear-gradient(135deg, #FFD700, #f1c40f); border-color: #fff; }
+.rank-2 { background: linear-gradient(135deg, #C0C0C0, #95a5a6); border-color: #fff; }
+.rank-3 { background: linear-gradient(135deg, #CD7F32, #a0522d); border-color: #fff; }
 
 .login-container { max-width: 400px; margin: 10vh auto; text-align: center; }
 
