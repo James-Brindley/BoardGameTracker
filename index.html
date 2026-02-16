@@ -6,6 +6,7 @@
   <title>Stats</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -33,17 +34,14 @@
 </div>
 
 <main>
-
   <section class="card">
     <div class="tracker-header">
       <button id="prevMonth" class="secondary" style="padding:8px 16px;">←</button>
       <h2 id="monthLabel" style="margin:0">Month</h2>
       <button id="nextMonth" class="secondary" style="padding:8px 16px;">→</button>
     </div>
-
     <div class="podium" id="monthPodium"></div>
     <div id="monthRest"></div>
-
     <div class="tracker-container">
         <div class="tracker-grid small" id="globalTracker"></div>
     </div>
@@ -56,10 +54,14 @@
     <div class="podium" id="allTimePodium"></div>
     <div id="top10"></div>
   </section>
-
 </main>
 
 <script type="module" src="js/theme.js"></script>
 <script type="module" src="js/stats.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
 </body>
 </html>
