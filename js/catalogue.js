@@ -21,7 +21,7 @@ async function render() {
   
   let games = await getGames();
 
-  // Safety check
+  // Safety Check
   if (!games || !Array.isArray(games)) {
       list.innerHTML = `<div class="card" style="text-align:center">Error loading games.</div>`;
       return;
@@ -71,7 +71,7 @@ async function render() {
   list.innerHTML = "";
 
   if (games.length === 0) {
-    list.innerHTML = `<div class="card" style="text-align:center; padding:2rem; grid-column:1/-1;">No games found.</div>`;
+    list.innerHTML = `<div class="card" style="text-align:center; padding:3rem; grid-column:1/-1;">No games found.</div>`;
     return;
   }
 
@@ -109,11 +109,9 @@ addBtn.onclick = () => {
       <div class="close-button">×</div>
       <h2>Add New Game</h2>
       
-      <div style="margin-bottom:1rem">
-        <div class="input-header">Game Details</div>
-        <input id="newName" class="ui-input" placeholder="Game Name" style="margin-bottom:10px">
-        <input id="newImage" class="ui-input" placeholder="Image URL (optional)">
-      </div>
+      <div class="input-header">Game Details</div>
+      <input id="newName" class="ui-input" placeholder="Game Name" style="margin-bottom:10px">
+      <input id="newImage" class="ui-input" placeholder="Image URL (optional)">
 
       <div class="row">
         <input id="pMin" type="number" class="ui-input" placeholder="Min Players">
