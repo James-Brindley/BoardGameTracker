@@ -3,7 +3,7 @@ import { getGames, updateGame, deleteGame, uploadImage } from "./data.js";
 let game = null;
 let view = new Date();
 
-// DOM Elements
+// Elements
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
@@ -57,7 +57,6 @@ async function init() {
       editBtn.onclick = showEditModal;
   }
 
-  // FIX: Force render immediately
   render();
 }
 
@@ -157,10 +156,12 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
+    // Tooltip
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
     
+    // Safety check for game.sessions
     const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
