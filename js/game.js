@@ -3,7 +3,7 @@ import { getGames, updateGame, deleteGame, uploadImage } from "./data.js";
 let game = null;
 let view = new Date();
 
-// Elements
+// DOM Elements
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
@@ -44,7 +44,7 @@ async function init() {
     return;
   }
 
-  // Set defaults if missing
+  // Set defaults
   if (!game.tracking) game.tracking = { score: false, won: false };
   if (!game.sessions) game.sessions = [];
   if (!game.tags) game.tags = [];
@@ -52,11 +52,12 @@ async function init() {
 
   document.title = game.name;
   
-  // Bind Edit Button here to ensure it works
+  // FIX: Bind Edit Button Here
   if (editBtn) {
       editBtn.onclick = showEditModal;
   }
 
+  // FIX: Force render immediately
   render();
 }
 
@@ -68,7 +69,6 @@ function render() {
   ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
   reviewView.textContent = game.review?.trim() || "No review logged.";
 
-  // Stats
   if (game.playTime?.min != null) {
     playTimeView.textContent = (game.playTime.max && game.playTime.max !== game.playTime.min) 
       ? `${game.playTime.min}–${game.playTime.max}m` 
@@ -81,7 +81,6 @@ function render() {
       : `${game.players.min}`;
   } else { playerView.textContent = "—"; }
 
-  // Tags
   tagsContainer.innerHTML = game.tags.map(t => `<span class="tag-pill">${t}</span>`).join("");
 
   renderAdvancedStats();
@@ -158,12 +157,10 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // Tooltip
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
     
-    // Safety check for game.sessions
     const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
@@ -211,12 +208,10 @@ async function handlePlayClick(dateKey, delta) {
     }
     return;
   }
-  // Delete logic
   const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
   if (daySessions.length <= 1) {
     removeSessionDirectly(dateKey, daySessions[0]); 
   } else {
-    // Check if identical
     const allIdentical = daySessions.every(s => s.won === daySessions[0].won && s.score === daySessions[0].score);
     if (allIdentical) removeSessionDirectly(dateKey, daySessions[daySessions.length - 1]);
     else showRemovalModal(dateKey, daySessions);
@@ -334,8 +329,6 @@ function showEditModal() {
   document.body.appendChild(backdrop);
 }
 
-// Removal/Play Modal helpers would go here (same as before) but kept concise for response limit.
-// Ensure showPlayModal / showRemovalModal are defined as per previous response.
 function showPlayModal(dateKey) {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
@@ -355,8 +348,8 @@ function showPlayModal(dateKey) {
         const btnWin = backdrop.querySelector("#btnWin");
         const btnLoss = backdrop.querySelector("#btnLoss");
         const inp = backdrop.querySelector("#logWon");
-        btnWin.onclick = () => { inp.value="true"; btnWin.style.background="var(--success)"; btnWin.style.color="white"; btnLoss.style.background="var(--bg)"; };
-        btnLoss.onclick = () => { inp.value="false"; btnLoss.style.background="var(--danger)"; btnLoss.style.color="white"; btnWin.style.background="var(--bg)"; };
+        btnWin.onclick = () => { inp.value="true"; btnWin.style.background="var(--success)"; btnWin.style.color="white"; btnLoss.style.background="var(--bg)"; btnLoss.style.color="var(--accent)"; };
+        btnLoss.onclick = () => { inp.value="false"; btnLoss.style.background="var(--danger)"; btnLoss.style.color="white"; btnWin.style.background="var(--bg)"; btnWin.style.color="var(--accent)"; };
     }
 
     backdrop.querySelector("#confirmPlay").onclick = async () => {
@@ -371,23 +364,25 @@ function showPlayModal(dateKey) {
 }
 
 function showRemovalModal(dateKey, sessions) {
-    // Basic implementation to allow delete
     if(confirm("Remove last play?")) removeSessionDirectly(dateKey, sessions[sessions.length-1]);
 }
 
-// Badges
+// BADGES - Corrected Logic
 function renderBadges() {
     badgeContainer.innerHTML = "";
-    // Badge Logic (simplified for brevity, ensuring it runs)
-    if(game.plays >= 5) createBadge("Rookie", "5+ Plays", "dice");
-    if(game.plays >= 20) createBadge("Veteran", "20+ Plays", "guild");
-    if(game.plays >= 50) createBadge("Legend", "50+ Plays", "legend");
     
-    // Monthly
-    const months = new Set(Object.keys(game.playHistory).map(d=>d.slice(0,7)));
-    if(months.size > 0) {
-        // In a real app we check global stats, here we assume if it's your most played locally
-        // Keeping it simple: Just show a badge if you played a lot in a month
+    // Play Milestones
+    const plays = game.plays || 0;
+    if(plays >= 50) createBadge("Legend", "50+ Plays", "legend");
+    else if(plays >= 30) createBadge("Master", "30+ Plays", "guild");
+    else if(plays >= 10) createBadge("Roller", "10+ Plays", "dice");
+    
+    // Wins
+    if (game.sessions) {
+        const wins = game.sessions.filter(s => s.won === true).length;
+        if(wins >= 50) createBadge("Champion", "50 Wins", "gold");
+        else if(wins >= 25) createBadge("Winner", "25 Wins", "silver");
+        else if(wins >= 5) createBadge("Rookie", "5 Wins", "bronze");
     }
 }
 
