@@ -100,11 +100,6 @@ async function render() {
 addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
-  // ... (HTML content same as previous response for brevity) ...
-  // *Re-inserting strictly the HTML part if you need it, but the key fix was render()*
-  // Assuming you have the modal HTML from previous turn. 
-  // Let me know if you need full modal code again.
-  // Short version for "Paste compliance":
   backdrop.innerHTML = `
     <div class="modal">
       <div class="close-button">×</div>
