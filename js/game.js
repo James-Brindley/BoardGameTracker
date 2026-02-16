@@ -141,7 +141,7 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // TOOLTIP
+    // TOOLTIP STACKING LOGIC
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
@@ -246,24 +246,25 @@ async function saveGame() {
 function renderBadges(allGames) {
     badgeContainer.innerHTML = "";
     
-    // Helper: Determine Color Class (Up to 10)
-    const getTier = (val) => {
-        if (val >= 10) return "tier-legend"; // 10+
-        if (val >= 9) return "tier-diamond";
-        if (val >= 7) return "tier-platinum";
-        if (val >= 5) return "tier-gold";
-        if (val >= 3) return "tier-silver";
-        return "tier-bronze"; // 1-2
+    // Helper: Determine Color Class (Up to 10 for Monthly)
+    // Maps 1..10 to 5..50 to use the same color CSS logic
+    const getMonthTier = (count) => {
+        if (count >= 10) return "tier-50"; // Legend
+        if (count >= 9) return "tier-45";
+        if (count >= 8) return "tier-40";
+        if (count >= 7) return "tier-35";
+        if (count >= 6) return "tier-30";
+        if (count >= 5) return "tier-25";
+        if (count >= 4) return "tier-20";
+        if (count >= 3) return "tier-15";
+        if (count >= 2) return "tier-10";
+        return "tier-5"; // 1 win
     };
 
-    // Helper for large counts (plays/wins up to 50)
+    // Helper: Determine Color Class (Up to 50 for Plays/Wins)
     const getHighTier = (val) => {
-        if (val >= 50) return "tier-legend";
-        if (val >= 40) return "tier-diamond";
-        if (val >= 30) return "tier-platinum"; // Updated to use platinum/diamond spread
-        if (val >= 20) return "tier-gold";
-        if (val >= 10) return "tier-silver";
-        return "tier-bronze";
+        // Just returns tier-X directly since we have classes for them now
+        return `tier-${val}`;
     };
 
     // 1. All-Time Rank
@@ -276,6 +277,7 @@ function renderBadges(allGames) {
     // 2. Play Count (5, 10, 15... 50)
     const p = game.plays || 0;
     let bestPlay = 0;
+    // Find the highest step of 5 that is <= current plays
     for(let i=50; i>=5; i-=5) { 
         if(p >= i) { bestPlay = i; break; } 
     }
@@ -327,8 +329,9 @@ function renderBadges(allGames) {
 
     if (wonMonths.length > 0) {
         let count = wonMonths.length;
-        // Use the lower-range tier helper (1-10)
-        let tierClass = getTier(count);
+        // Cap at 10 for coloring purposes
+        let displayCount = count > 10 ? 10 : count;
+        let tierClass = getMonthTier(displayCount);
 
         const div = document.createElement("div");
         div.className = `badge ${tierClass}`;
