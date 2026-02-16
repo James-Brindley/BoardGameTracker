@@ -1,4 +1,4 @@
-import { getGames, addGame, uploadImage } from "./data.js";
+import { getGames, addGame } from "./data.js";
 
 const list = document.getElementById("list");
 const search = document.getElementById("search");
@@ -21,7 +21,7 @@ async function render() {
   
   let games = await getGames();
 
-  // If no games exist or error
+  // Safety check
   if (!games || !Array.isArray(games)) {
       list.innerHTML = `<div class="card" style="text-align:center">Error loading games.</div>`;
       return;
@@ -33,28 +33,35 @@ async function render() {
   const ratingValue = parseFloat(filterRating.value);
   const statusValue = filterPlayed.value;
 
-  // Search
   if (searchValue) {
-    games = games.filter(g => 
-      (g.name && g.name.toLowerCase().includes(searchValue)) || 
-      (g.tags && g.tags.some(t => t.toLowerCase().includes(searchValue)))
+    games = games.filter(g => g.name.toLowerCase().includes(searchValue));
+  }
+
+  if (!isNaN(playersValue)) {
+    games = games.filter(g =>
+      g.players?.min != null &&
+      g.players?.max != null &&
+      playersValue >= g.players.min &&
+      playersValue <= g.players.max
     );
   }
 
-  // Filters
-  if (!isNaN(playersValue)) {
-    games = games.filter(g => g.players?.min != null && playersValue >= g.players.min && playersValue <= g.players.max);
-  }
   if (!isNaN(timeValue)) {
-    games = games.filter(g => g.playTime?.min != null && timeValue >= g.playTime.min && timeValue <= g.playTime.max);
+    games = games.filter(g =>
+      g.playTime?.min != null &&
+      g.playTime?.max != null &&
+      timeValue >= g.playTime.min &&
+      timeValue <= g.playTime.max
+    );
   }
+
   if (!isNaN(ratingValue)) {
     games = games.filter(g => g.rating != null && g.rating >= ratingValue);
   }
+
   if (statusValue === "played") games = games.filter(g => g.plays > 0);
   if (statusValue === "unplayed") games = games.filter(g => g.plays === 0);
 
-  // Sort
   games.sort((a, b) =>
     sort.value === "name"
       ? a.name.localeCompare(b.name)
@@ -64,18 +71,13 @@ async function render() {
   list.innerHTML = "";
 
   if (games.length === 0) {
-    list.innerHTML = `<div class="card" style="text-align:center; padding:3rem; grid-column:1/-1;">No games found.</div>`;
+    list.innerHTML = `<div class="card" style="text-align:center; padding:2rem; grid-column:1/-1;">No games found.</div>`;
     return;
   }
 
   games.forEach(g => {
     const card = document.createElement("div");
     card.className = "game-card";
-
-    let tagsHtml = "";
-    if (g.tags && g.tags.length > 0) {
-        tagsHtml = `<div style="padding:0 1rem 0.5rem;">${g.tags.slice(0,3).map(t => `<span class="tag-pill" style="font-size:0.65rem; padding:2px 6px;">${t}</span>`).join("")}</div>`;
-    }
 
     card.innerHTML = `
       <img src="${g.image || "https://via.placeholder.com/400"}" loading="lazy">
@@ -87,36 +89,87 @@ async function render() {
         <span>👥 ${formatRange(g.players?.min, g.players?.max)}</span>
         <span>⏱ ${formatRange(g.playTime?.min, g.playTime?.max, "m")}</span>
       </div>
-      ${tagsHtml}
       <div class="plays">${g.plays || 0} Plays</div>
     `;
 
-    card.onclick = () => { location.href = `game.html?id=${g.id}`; };
+    card.onclick = () => {
+      location.href = `game.html?id=${g.id}`;
+    };
+
     list.appendChild(card);
   });
 }
 
-// Add Game Modal (Kept same logic, just ensuring it triggers render)
 addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
+
   backdrop.innerHTML = `
     <div class="modal">
       <div class="close-button">×</div>
       <h2>Add New Game</h2>
-      <input id="newName" class="ui-input" placeholder="Game Name">
-      <button id="saveNew" style="width:100%; margin-top:1rem">Add</button>
+      
+      <div style="margin-bottom:1rem">
+        <div class="input-header">Game Details</div>
+        <input id="newName" class="ui-input" placeholder="Game Name" style="margin-bottom:10px">
+        <input id="newImage" class="ui-input" placeholder="Image URL (optional)">
+      </div>
+
+      <div class="row">
+        <input id="pMin" type="number" class="ui-input" placeholder="Min Players">
+        <input id="pMax" type="number" class="ui-input" placeholder="Max Players">
+      </div>
+
+      <div class="row">
+        <input id="tMin" type="number" class="ui-input" placeholder="Min Time (m)">
+        <input id="tMax" type="number" class="ui-input" placeholder="Max Time (m)">
+      </div>
+      
+      <div class="toggle-group">
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem;">
+          <input type="checkbox" id="trackScore" style="accent-color:var(--accent); width:18px; height:18px;"> Track Score
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem;">
+          <input type="checkbox" id="trackWon" style="accent-color:var(--accent); width:18px; height:18px;"> Track Win/Loss
+        </label>
+      </div>
+
+      <button id="saveNew" style="width:100%; margin-top:1rem">Add to Library</button>
     </div>
   `;
+
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
+
   backdrop.querySelector("#saveNew").onclick = async () => {
-      const name = backdrop.querySelector("#newName").value;
-      if(name) {
-          await addGame({ name, plays:0, players:{}, playTime:{}, tags:[], tracking:{score:false, won:false}, playHistory:{} });
-          backdrop.remove();
-          render();
+    const name = backdrop.querySelector("#newName").value.trim();
+    if (!name) return alert("Game name required");
+
+    const newGame = {
+      name,
+      image: backdrop.querySelector("#newImage").value.trim() || null,
+      plays: 0,
+      rating: null,
+      review: "",
+      players: {
+        min: Number(backdrop.querySelector("#pMin").value) || null,
+        max: Number(backdrop.querySelector("#pMax").value) || null
+      },
+      playTime: {
+        min: Number(backdrop.querySelector("#tMin").value) || null,
+        max: Number(backdrop.querySelector("#tMax").value) || null
+      },
+      playHistory: {},
+      tracking: {
+        score: backdrop.querySelector("#trackScore").checked,
+        won: backdrop.querySelector("#trackWon").checked
       }
+    };
+
+    await addGame(newGame);
+    backdrop.remove();
+    render();
   };
+
   document.body.appendChild(backdrop);
 };
 
