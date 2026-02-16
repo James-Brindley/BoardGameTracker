@@ -16,7 +16,7 @@ export async function logout() {
   window.location.href = 'login.html';
 }
 
-// 1. GET GAMES (Mapped with new fields)
+// 1. GET GAMES (Includes Tags)
 export async function getGames() {
   await checkAuth();
   const { data, error } = await supabase.from('games').select('*');
@@ -32,9 +32,9 @@ export async function getGames() {
     players: g.players || { min: null, max: null },
     playTime: g.play_time || { min: null, max: null },
     playHistory: g.play_history || {},
-    // New Fields
     tracking: g.tracking_type || { score: false, won: false }, 
-    sessions: g.sessions || [] 
+    sessions: g.sessions || [],
+    tags: g.tags || [] // New Field
   }));
 }
 
@@ -51,9 +51,9 @@ export async function addGame(gameObj) {
     play_time: gameObj.playTime,
     play_history: gameObj.playHistory,
     plays: gameObj.plays,
-    // New Fields
     tracking_type: gameObj.tracking,
-    sessions: []
+    sessions: [],
+    tags: gameObj.tags // New Field
   }]).select();
   return data ? data[0] : null;
 }
@@ -70,20 +70,40 @@ export async function updateGame(gameObj) {
     play_time: gameObj.playTime,
     play_history: gameObj.playHistory,
     plays: gameObj.plays,
-    // New Fields
     tracking_type: gameObj.tracking,
-    sessions: gameObj.sessions
+    sessions: gameObj.sessions,
+    tags: gameObj.tags // New Field
   }).eq('id', gameObj.id);
 }
 
-// 4. DELETE GAME (New)
+// 4. DELETE GAME
 export async function deleteGame(id) {
   await checkAuth();
   const { error } = await supabase.from('games').delete().eq('id', id);
   if (error) throw error;
 }
 
-// 5. IMPORT/CLEAR (Existing)
+// 5. UPLOAD IMAGE (New)
+export async function uploadImage(file) {
+  await checkAuth();
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+  const filePath = `${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('game-images')
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from('game-images')
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+}
+
+// 6. IMPORT/CLEAR
 export async function importGames(gamesArray) {
   const user = await checkAuth();
   const formattedGames = gamesArray.map(g => ({
@@ -97,7 +117,8 @@ export async function importGames(gamesArray) {
     play_history: g.playHistory || g.play_history,
     plays: g.plays,
     tracking_type: g.tracking || { score: false, won: false },
-    sessions: g.sessions || []
+    sessions: g.sessions || [],
+    tags: g.tags || []
   }));
   const { error } = await supabase.from('games').insert(formattedGames);
   if (error) throw error;
