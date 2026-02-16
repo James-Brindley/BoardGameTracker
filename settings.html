@@ -32,7 +32,7 @@
 <div class="mobile-nav-overlay" id="mobileNav">
   <a href="index.html">Stats</a>
   <a href="catalogue.html">Library</a>
-  <a href="settings.html" class="active">Settings</a>
+  <a href="settings.html">Settings</a>
 </div>
 
 <main>
@@ -164,11 +164,8 @@
 </script>
 <script type="module" src="js/theme.js"></script>
 <script>
-  // Ensure we register updated SW
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-      reg.update();
-    });
+    navigator.serviceWorker.register('sw.js');
   }
 </script>
 </body>
