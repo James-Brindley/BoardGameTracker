@@ -1,45 +1,12 @@
-const CACHE_NAME = "gametracker-v3-fix"; // Changed name to force update
-const ASSETS = [
-  "/",
-  "/index.html",
-  "/catalogue.html",
-  "/game.html",
-  "/settings.html",
-  "/login.html",
-  "/css/style.css",
-  "/js/theme.js",
-  "/js/data.js",
-  "/js/catalogue.js",
-  "/js/game.js",
-  "/js/stats.js",
-  "/js/supabaseClient.js"
-];
-
-self.addEventListener("install", (evt) => {
-  self.skipWaiting();
-  evt.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+self.addEventListener('install', (e) => {
+  self.skipWaiting(); // Force this new SW to become active
 });
 
-self.addEventListener("activate", (evt) => {
-  evt.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
-  );
-  self.clients.claim();
-});
-
-self.addEventListener("fetch", (evt) => {
-  // Network First strategy to ensure you see updates
-  evt.respondWith(
-    fetch(evt.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(evt.request, clone));
-        return res;
-    }).catch(() => caches.match(evt.request))
-  );
+self.addEventListener('activate', (e) => {
+  // Immediately unregister itself to kill the PWA cache
+  self.registration.unregister()
+    .then(() => self.clients.matchAll())
+    .then((clients) => {
+      clients.forEach(client => client.navigate(client.url)); // Force reload page
+    });
 });
