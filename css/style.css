@@ -103,8 +103,8 @@ button.danger { background-color: var(--danger); }
 .tracker-day:hover .tracker-tooltip { opacity: 1; }
 
 /* Tooltip Colors */
-.tooltip-win { color: #4cd964; font-weight: 800; }
-.tooltip-loss { color: #ff3b30; font-weight: 800; }
+.tooltip-win { color: #4cd964; font-weight: 800; margin-right: 2px; }
+.tooltip-loss { color: #ff3b30; font-weight: 800; margin-right: 2px; }
 
 /* PODIUMS */
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 1rem; margin: 2rem 0; }
@@ -156,7 +156,7 @@ button.danger { background-color: var(--danger); }
   color: white;
   transition: transform 0.2s;
   box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  border: 5px solid rgba(255,255,255,0.15); /* Thick border for colors */
+  border: 4px solid rgba(255,255,255,0.15); /* Ring effect */
   padding: 0.8rem;
   /* Hint cursor only if it has a tooltip inside */
 }
@@ -186,7 +186,7 @@ button.danger { background-color: var(--danger); }
 /* --- BADGE POPUP TOOLTIP --- */
 .badge-tooltip {
   position: absolute;
-  bottom: 110%;
+  bottom: 115%;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(20, 20, 25, 0.95);
@@ -199,8 +199,8 @@ button.danger { background-color: var(--danger); }
   white-space: pre-wrap; /* Allows multiline */
   text-align: center;
   width: max-content;
-  max-width: 200px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  max-width: 220px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
   border: 1px solid rgba(255,255,255,0.1);
   opacity: 0;
   pointer-events: none;
@@ -208,35 +208,63 @@ button.danger { background-color: var(--danger); }
   z-index: 20;
 }
 
+/* Triangle arrow for tooltip */
+.badge-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(20, 20, 25, 0.95) transparent transparent transparent;
+}
+
 .badge:hover .badge-tooltip {
   opacity: 1;
 }
 
-/* --- PROGRESSIVE TIER COLORS (Every 5 Steps) --- */
-
-/* BRONZE TIERS (5, 10, 15) */
-.tier-5  { background: linear-gradient(135deg, #cd7f32, #8d5524); border-color: #a0522d; }
-.tier-10 { background: linear-gradient(135deg, #d35400, #a04000); border-color: #e67e22; }
-.tier-15 { background: linear-gradient(135deg, #b03a2e, #7b241c); border-color: #cd6155; }
-
-/* SILVER TIERS (20, 25, 30) */
-.tier-20 { background: linear-gradient(135deg, #bdc3c7, #7f8c8d); border-color: #ecf0f1; }
-.tier-25 { background: linear-gradient(135deg, #95a5a6, #535c68); border-color: #bdc3c7; }
-.tier-30 { background: linear-gradient(135deg, #7f8c8d, #2c3e50); border-color: #95a5a6; }
-
-/* GOLD TIERS (35, 40, 45) */
-.tier-35 { background: linear-gradient(135deg, #f1c40f, #b7950b); border-color: #f9e79f; }
-.tier-40 { background: linear-gradient(135deg, #f39c12, #d35400); border-color: #f1c40f; }
-.tier-45 { background: linear-gradient(135deg, #e67e22, #d35400); border-color: #f39c12; }
-
-/* LEGEND TIER (50+) */
-.tier-50 { 
-  background: linear-gradient(135deg, #2c3e50, #000000); 
-  border-color: #FFD700; 
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); 
+/* --- TIER COLORS (Medal Gradients) --- */
+/* Bronze */
+.tier-bronze { 
+  background: linear-gradient(135deg, #cd7f32, #8d5524); 
+  border-color: #e0ac84;
 }
 
-/* Rank Badges */
+/* Silver */
+.tier-silver { 
+  background: linear-gradient(135deg, #bdc3c7, #7f8c8d); 
+  border-color: #dfe6e9;
+}
+
+/* Gold */
+.tier-gold { 
+  background: linear-gradient(135deg, #f1c40f, #b7950b); 
+  border-color: #f9e79f;
+  box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4);
+}
+
+/* Platinum (Blue/Cyan) */
+.tier-platinum { 
+  background: linear-gradient(135deg, #00c6ff, #0072ff); 
+  border-color: #3498db;
+}
+
+/* Diamond (Purple/Blue) */
+.tier-diamond { 
+  background: linear-gradient(135deg, #8E2DE2, #4A00E0); 
+  border-color: #a29bfe;
+  box-shadow: 0 8px 25px rgba(142, 45, 226, 0.4);
+}
+
+/* Legend (Black/Gold) */
+.tier-legend { 
+  background: linear-gradient(135deg, #2c3e50, #000000); 
+  border-color: #FFD700; 
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); 
+}
+
+/* Rank Badges (Distinct Borders) */
 .rank-1 { background: linear-gradient(135deg, #FFD700, #f1c40f); border-color: #fff; }
 .rank-2 { background: linear-gradient(135deg, #C0C0C0, #95a5a6); border-color: #fff; }
 .rank-3 { background: linear-gradient(135deg, #CD7F32, #a0522d); border-color: #fff; }
