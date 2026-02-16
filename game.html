@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Game</title>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/x-icon" href="images/TCG_Logos.webp">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
 
@@ -17,13 +17,20 @@
     <h1 style="font-size:1rem; opacity:0.8;">Details</h1>
   </div>
   <div class="header-right">
-    <nav>
+    <nav class="desktop-nav">
       <a href="index.html">Stats</a>
       <a href="catalogue.html">Library</a>
       <a href="settings.html">Settings</a>
     </nav>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
   </div>
 </header>
+
+<div class="mobile-nav-overlay" id="mobileNav">
+  <a href="index.html">Stats</a>
+  <a href="catalogue.html">Library</a>
+  <a href="settings.html">Settings</a>
+</div>
 
 <main>
   <div class="game-hero">
