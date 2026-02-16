@@ -99,12 +99,11 @@ button.danger { background-color: var(--danger); }
 .level-4 { background-color: color-mix(in srgb, var(--accent) 90%, transparent); }
 .level-5 { background-color: var(--accent); }
 .day-number { position: absolute; top: 4px; left: 6px; font-size: 0.65rem; color: var(--subtext); }
-.tracker-tooltip { position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; }
+.tracker-tooltip { position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: rgba(20,20,25,0.95); backdrop-filter: blur(10px); color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; border: 1px solid rgba(255,255,255,0.1); }
 .tracker-day:hover .tracker-tooltip { opacity: 1; }
-
-/* TOOLTIP COLORS */
-.tooltip-win { color: var(--success); font-weight: 800; }
-.tooltip-loss { color: var(--danger); font-weight: 800; }
+/* Tooltip Stacking Colors */
+.tooltip-win { color: #34C759; font-weight: 800; }
+.tooltip-loss { color: #FF3B30; font-weight: 800; }
 
 /* PODIUMS */
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 1rem; margin: 2rem 0; }
@@ -156,9 +155,9 @@ button.danger { background-color: var(--danger); }
   color: white;
   transition: transform 0.2s;
   box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  border: 4px solid rgba(255,255,255,0.15); /* Ring effect */
+  border: 5px solid rgba(255,255,255,0.1); /* Ring effect */
   padding: 0.8rem;
-  cursor: help; /* Hint for tooltip */
+  overflow: visible; /* Allow Tooltip */
 }
 
 .badge:hover { transform: scale(1.08); z-index: 5; }
@@ -182,12 +181,43 @@ button.danger { background-color: var(--danger); }
   white-space: nowrap;
 }
 
-/* TIER COLORS (Medal Gradients) */
-.tier-bronze { background: linear-gradient(135deg, #cd7f32, #8d5524); border-color: #e0ac84; }
-.tier-silver { background: linear-gradient(135deg, #bdc3c7, #7f8c8d); border-color: #dfe6e9; }
-.tier-gold { background: linear-gradient(135deg, #f1c40f, #b7950b); border-color: #f9e79f; }
-.tier-diamond { background: linear-gradient(135deg, #3498db, #8e44ad); border-color: #85c1e9; }
-.tier-legend { background: linear-gradient(135deg, #2c3e50, #000000); border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+/* --- BADGE TIERS (Colors) --- */
+/* 5-10: Bronze */
+.lvl-5, .lvl-10 { background: linear-gradient(135deg, #cd7f32, #8d5524); border-color: #cd7f32; }
+/* 15-20: Silver */
+.lvl-15, .lvl-20 { background: linear-gradient(135deg, #bdc3c7, #7f8c8d); border-color: #bdc3c7; }
+/* 25-30: Gold */
+.lvl-25, .lvl-30 { background: linear-gradient(135deg, #f1c40f, #b7950b); border-color: #f1c40f; }
+/* 35-40: Crimson (Menacing) */
+.lvl-35, .lvl-40 { background: linear-gradient(135deg, #c0392b, #8e44ad); border-color: #c0392b; }
+/* 45-50: Legend (Onyx) */
+.lvl-45, .lvl-50 { background: linear-gradient(135deg, #2c3e50, #000000); border-color: gold; box-shadow: 0 0 15px gold; }
+
+/* Standard Ranks */
+.rank-gold { background: linear-gradient(135deg, #FFD700, #FDB931); border-color: #FDB931; color:black; }
+.rank-silver { background: linear-gradient(135deg, #E0E0E0, #BDBDBD); border-color: #BDBDBD; color:black; }
+.rank-bronze { background: linear-gradient(135deg, #CD7F32, #A0522D); border-color: #A0522D; }
+
+/* Custom Badge Tooltip */
+.badge-tooltip {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.9);
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  width: 140px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.badge:hover .badge-tooltip { opacity: 1; }
 
 .login-container { max-width: 400px; margin: 10vh auto; text-align: center; }
 
