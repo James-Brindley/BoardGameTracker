@@ -16,7 +16,7 @@ export async function logout() {
   window.location.href = 'login.html';
 }
 
-// 1. GET GAMES (Includes Tags)
+// 1. GET GAMES
 export async function getGames() {
   await checkAuth();
   const { data, error } = await supabase.from('games').select('*');
@@ -33,8 +33,7 @@ export async function getGames() {
     playTime: g.play_time || { min: null, max: null },
     playHistory: g.play_history || {},
     tracking: g.tracking_type || { score: false, won: false }, 
-    sessions: g.sessions || [],
-    tags: g.tags || [] // New Field
+    sessions: g.sessions || []
   }));
 }
 
@@ -52,8 +51,7 @@ export async function addGame(gameObj) {
     play_history: gameObj.playHistory,
     plays: gameObj.plays,
     tracking_type: gameObj.tracking,
-    sessions: [],
-    tags: gameObj.tags // New Field
+    sessions: []
   }]).select();
   return data ? data[0] : null;
 }
@@ -71,8 +69,7 @@ export async function updateGame(gameObj) {
     play_history: gameObj.playHistory,
     plays: gameObj.plays,
     tracking_type: gameObj.tracking,
-    sessions: gameObj.sessions,
-    tags: gameObj.tags // New Field
+    sessions: gameObj.sessions
   }).eq('id', gameObj.id);
 }
 
@@ -83,27 +80,7 @@ export async function deleteGame(id) {
   if (error) throw error;
 }
 
-// 5. UPLOAD IMAGE (New)
-export async function uploadImage(file) {
-  await checkAuth();
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}.${fileExt}`;
-  const filePath = `${fileName}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from('game-images')
-    .upload(filePath, file);
-
-  if (uploadError) throw uploadError;
-
-  const { data } = supabase.storage
-    .from('game-images')
-    .getPublicUrl(filePath);
-
-  return data.publicUrl;
-}
-
-// 6. IMPORT/CLEAR
+// 5. IMPORT/CLEAR
 export async function importGames(gamesArray) {
   const user = await checkAuth();
   const formattedGames = gamesArray.map(g => ({
@@ -117,8 +94,7 @@ export async function importGames(gamesArray) {
     play_history: g.playHistory || g.play_history,
     plays: g.plays,
     tracking_type: g.tracking || { score: false, won: false },
-    sessions: g.sessions || [],
-    tags: g.tags || []
+    sessions: g.sessions || []
   }));
   const { error } = await supabase.from('games').insert(formattedGames);
   if (error) throw error;
