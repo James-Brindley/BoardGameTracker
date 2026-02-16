@@ -15,3 +15,22 @@ function toggleTheme() {
   localStorage.setItem("theme", next);
   document.documentElement.setAttribute("data-theme", next);
 }
+
+/* ---------- MOBILE MENU LOGIC ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("mobileMenuBtn");
+  const nav = document.getElementById("mobileNav");
+
+  if (btn && nav) {
+    btn.onclick = () => {
+      const isOpen = nav.classList.contains("open");
+      if (isOpen) {
+        nav.classList.remove("open");
+        btn.textContent = "☰";
+      } else {
+        nav.classList.add("open");
+        btn.textContent = "×"; // Switch to close icon
+      }
+    };
+  }
+});
