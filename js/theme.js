@@ -26,17 +26,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const isOpen = nav.classList.contains("open");
       if (isOpen) {
         nav.classList.remove("open");
-        btn.textContent = "☰"; // Hamburger icon
+        btn.textContent = "☰";
       } else {
         nav.classList.add("open");
-        btn.textContent = "×"; // Close icon
+        btn.textContent = "×";
       }
     };
   }
   
-  // Theme Toggle Button Logic (if present on page)
+  // Theme Toggle Binding
   const themeBtn = document.getElementById("themeToggle");
   if (themeBtn) {
     themeBtn.onclick = toggleTheme;
   }
 });
+
+/* !!! EMERGENCY KILL SWITCH FOR SERVICE WORKER !!! */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) {
+      registration.unregister();
+      console.log("Service Worker Unregistered");
+    }
+  });
+}
