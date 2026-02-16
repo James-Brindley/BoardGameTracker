@@ -52,8 +52,10 @@ function renderPodium(container, games, valueKey) {
     card.innerHTML = `
       <div class="rank-badge">${idx + 1}</div>
       <img src="${g.image || 'https://via.placeholder.com/400'}" loading="lazy">
-      <div style="font-weight:700; font-size:0.9rem; line-height:1.2; margin-bottom:4px">${g.name}</div>
-      <div style="font-size:0.8rem; color:var(--subtext)">${g[valueKey]} plays</div>
+      <div class="podium-info">
+        <div style="font-weight:700; font-size:0.9rem; line-height:1.2; margin-bottom:4px">${g.name}</div>
+        <div style="font-size:0.8rem; color:var(--subtext)">${g[valueKey]} plays</div>
+      </div>
     `;
     card.onclick = () => location.href = `game.html?id=${g.id}`;
     container.appendChild(card);
