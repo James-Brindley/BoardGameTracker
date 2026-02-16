@@ -26,11 +26,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const isOpen = nav.classList.contains("open");
       if (isOpen) {
         nav.classList.remove("open");
-        btn.textContent = "☰";
+        btn.textContent = "☰"; // Hamburger icon
       } else {
         nav.classList.add("open");
-        btn.textContent = "×"; // Switch to close icon
+        btn.textContent = "×"; // Close icon
       }
     };
+  }
+  
+  // Theme Toggle Button Logic (if present on page)
+  const themeBtn = document.getElementById("themeToggle");
+  if (themeBtn) {
+    themeBtn.onclick = toggleTheme;
   }
 });
