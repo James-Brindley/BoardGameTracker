@@ -1,9 +1,9 @@
-import { getGames, updateGame, deleteGame, uploadImage } from "./data.js";
+import { getGames, updateGame, deleteGame } from "./data.js";
 
 let game = null;
 let view = new Date();
 
-// DOM Elements
+// DOM ELEMENTS
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
@@ -24,14 +24,6 @@ if(!advancedStatsContainer) {
     document.querySelector('.game-stats-grid').after(advancedStatsContainer);
 }
 
-let tagsContainer = document.getElementById("gameTags");
-if (!tagsContainer) {
-    tagsContainer = document.createElement("div");
-    tagsContainer.id = "gameTags";
-    tagsContainer.className = "tags-container";
-    document.querySelector(".game-hero").appendChild(tagsContainer);
-}
-
 async function init() {
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
@@ -47,15 +39,12 @@ async function init() {
   // Set defaults
   if (!game.tracking) game.tracking = { score: false, won: false };
   if (!game.sessions) game.sessions = [];
-  if (!game.tags) game.tags = [];
   if (!game.playHistory) game.playHistory = {};
 
   document.title = game.name;
   
-  // FIX: Bind Edit Button Here
-  if (editBtn) {
-      editBtn.onclick = showEditModal;
-  }
+  // Bind edit button safely
+  if (editBtn) editBtn.onclick = showEditModal;
 
   render();
 }
@@ -79,8 +68,6 @@ function render() {
       ? `${game.players.min}–${game.players.max}` 
       : `${game.players.min}`;
   } else { playerView.textContent = "—"; }
-
-  tagsContainer.innerHTML = game.tags.map(t => `<span class="tag-pill">${t}</span>`).join("");
 
   renderAdvancedStats();
   renderTracker();
@@ -138,7 +125,7 @@ function renderTracker() {
   const month = view.getMonth();
   const today = new Date();
   
-  if (monthLabel) monthLabel.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
+  if(monthLabel) monthLabel.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
   
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -156,12 +143,10 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // Tooltip
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
     
-    // Safety check for game.sessions
     const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
@@ -244,7 +229,6 @@ async function saveGame() {
   render();
 }
 
-// EDIT MODAL
 function showEditModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -254,13 +238,8 @@ function showEditModal() {
       <h2>Edit Game</h2>
       
       <div class="input-header">Basic Info</div>
-      <input id="editName" class="ui-input" value="${game.name}" placeholder="Game Name">
-      
-      <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
-        <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL">
-        <label for="imgUploadEdit" class="secondary" style="padding:10px; border-radius:12px; cursor:pointer;">Upload</label>
-        <input id="imgUploadEdit" type="file" hidden>
-      </div>
+      <input id="editName" class="ui-input" value="${game.name}" placeholder="Game Name" style="margin-bottom:10px">
+      <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL" style="margin-bottom:10px">
       
       <div class="input-header">Specs</div>
       <div class="row">
@@ -271,9 +250,6 @@ function showEditModal() {
         <input id="editTMin" type="number" class="ui-input" value="${game.playTime.min ?? ''}" placeholder="Min T">
         <input id="editTMax" type="number" class="ui-input" value="${game.playTime.max ?? ''}" placeholder="Max T">
       </div>
-
-      <div class="input-header">Tags</div>
-      <input id="editTags" class="ui-input" value="${(game.tags || []).join(', ')}">
 
       <div class="toggle-group" style="margin-top:1rem">
         <label><input type="checkbox" id="editTrackScore" ${game.tracking.score ? 'checked' : ''}> Score</label>
@@ -291,40 +267,34 @@ function showEditModal() {
 
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
 
-  // Upload
-  const fileIn = backdrop.querySelector("#imgUploadEdit");
-  fileIn.onchange = async () => {
-      if(fileIn.files[0]) {
-          try {
-              const url = await uploadImage(fileIn.files[0]);
-              backdrop.querySelector("#editImage").value = url;
-              alert("Image Uploaded");
-          } catch(e) { alert("Upload failed"); }
-      }
-  };
-
-  // Save
   backdrop.querySelector("#saveEdit").onclick = async () => {
-      game.name = backdrop.querySelector("#editName").value.trim();
-      game.image = backdrop.querySelector("#editImage").value.trim() || null;
-      game.review = backdrop.querySelector("#editReview").value.trim();
-      game.rating = parseFloat(backdrop.querySelector("#editRating").value) || null;
-      game.tags = backdrop.querySelector("#editTags").value.split(",").map(t=>t.trim()).filter(t=>t);
-      game.players = { min: backdrop.querySelector("#editPMin").value, max: backdrop.querySelector("#editPMax").value };
-      game.playTime = { min: backdrop.querySelector("#editTMin").value, max: backdrop.querySelector("#editTMax").value };
-      game.tracking = { score: backdrop.querySelector("#editTrackScore").checked, won: backdrop.querySelector("#editTrackWon").checked };
-      
-      await updateGame(game);
-      backdrop.remove();
-      render();
+    game.name = backdrop.querySelector("#editName").value.trim();
+    game.image = backdrop.querySelector("#editImage").value.trim() || null;
+    game.review = backdrop.querySelector("#editReview").value.trim();
+    game.rating = parseFloat(backdrop.querySelector("#editRating").value) || null;
+    game.players = {
+      min: Number(backdrop.querySelector("#editPMin").value) || null,
+      max: Number(backdrop.querySelector("#editPMax").value) || null
+    };
+    game.playTime = {
+      min: Number(backdrop.querySelector("#editTMin").value) || null,
+      max: Number(backdrop.querySelector("#editTMax").value) || null
+    };
+    game.tracking = {
+      score: backdrop.querySelector("#editTrackScore").checked,
+      won: backdrop.querySelector("#editTrackWon").checked
+    };
+
+    await updateGame(game);
+    backdrop.remove();
+    render();
   };
 
-  // Delete
   backdrop.querySelector("#deleteGameBtn").onclick = async () => {
-      if(confirm("Delete this game?")) {
-          await deleteGame(game.id);
-          window.location.href = "catalogue.html";
-      }
+    if (confirm(`Are you sure you want to delete "${game.name}"?`)) {
+      await deleteGame(game.id);
+      window.location.href = "catalogue.html";
+    }
   };
 
   document.body.appendChild(backdrop);
@@ -368,28 +338,24 @@ function showRemovalModal(dateKey, sessions) {
     if(confirm("Remove last play?")) removeSessionDirectly(dateKey, sessions[sessions.length-1]);
 }
 
-// FIX: New Badge Logic with Classes
+// SHIELD BADGE LOGIC
 function renderBadges() {
     badgeContainer.innerHTML = "";
     
     const plays = game.plays || 0;
-    
-    // Check Play Tiers
     let playBadge = null;
-    if (plays >= 50) playBadge = { title: "LEGEND", sub: "50+ Plays", type: "tier-5" }; // Mythic/Onyx
-    else if (plays >= 40) playBadge = { title: "EMPEROR", sub: "40+ Plays", type: "tier-4" }; // Red
-    else if (plays >= 30) playBadge = { title: "WARLORD", sub: "30+ Plays", type: "tier-3" }; // Gold
-    else if (plays >= 20) playBadge = { title: "VETERAN", sub: "20+ Plays", type: "tier-2" }; // Silver
-    else if (plays >= 10) playBadge = { title: "SOLDIER", sub: "10+ Plays", type: "tier-1" }; // Bronze
-    else if (plays >= 5) playBadge = { title: "NOVICE", sub: "5+ Plays", type: "tier-0" }; // Stone
+    if (plays >= 50) playBadge = { title: "LEGEND", sub: "50+ Plays", type: "tier-5" };
+    else if (plays >= 40) playBadge = { title: "EMPEROR", sub: "40+ Plays", type: "tier-4" };
+    else if (plays >= 30) playBadge = { title: "WARLORD", sub: "30+ Plays", type: "tier-3" };
+    else if (plays >= 20) playBadge = { title: "VETERAN", sub: "20+ Plays", type: "tier-2" };
+    else if (plays >= 10) playBadge = { title: "SOLDIER", sub: "10+ Plays", type: "tier-1" };
+    else if (plays >= 5) playBadge = { title: "NOVICE", sub: "5+ Plays", type: "tier-0" };
 
     if (playBadge) createBadge(playBadge);
 
-    // Check Win Tiers
     if (game.sessions) {
         const wins = game.sessions.filter(s => s.won === true).length;
         let winBadge = null;
-        
         if (wins >= 50) winBadge = { title: "GODLIKE", sub: "50 Wins", type: "win-5" };
         else if (wins >= 25) winBadge = { title: "CONQUEROR", sub: "25 Wins", type: "win-3" };
         else if (wins >= 5) winBadge = { title: "VICTOR", sub: "5 Wins", type: "win-1" };
@@ -404,12 +370,15 @@ function renderBadges() {
 
 function createBadge(badgeData) {
     const el = document.createElement("div");
-    el.className = `badge badge-${badgeData.type}`;
+    el.className = `badge ${badgeData.type.startsWith('win') ? 'badge-gold' : ('badge-' + badgeData.type)}`;
+    
+    // Add specific classes for shapes defined in CSS
+    el.classList.add(badgeData.type);
+
     el.innerHTML = `<div class="badge-title">${badgeData.title}</div><div class="badge-sub">${badgeData.sub}</div>`;
     badgeContainer.appendChild(el);
 }
 
-// Nav
 document.getElementById("prevMonth").onclick = () => { view.setMonth(view.getMonth() - 1); renderTracker(); };
 document.getElementById("nextMonth").onclick = () => { view.setMonth(view.getMonth() + 1); renderTracker(); };
 
