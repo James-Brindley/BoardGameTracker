@@ -4,7 +4,7 @@
   <title>Settings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/x-icon" href="images/TCG_Logos.webp">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script>
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
@@ -13,19 +13,26 @@
 <body>
 <header>
   <div class="header-left">
-    <img src="images/Board_Games_Website_Logo.webp" alt="Logo" class="site-logo" onclick="location.href='index.html'">
+    <img src="logo.png" alt="Logo" class="site-logo" onclick="location.href='index.html'">
   </div>
   <div class="header-center">
     <h1>Settings</h1>
   </div>
   <div class="header-right">
-    <nav>
+    <nav class="desktop-nav">
       <a href="index.html">Stats</a>
       <a href="catalogue.html">Library</a>
       <a href="settings.html" class="active">Settings</a>
     </nav>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
   </div>
 </header>
+
+<div class="mobile-nav-overlay" id="mobileNav">
+  <a href="index.html">Stats</a>
+  <a href="catalogue.html">Library</a>
+  <a href="settings.html" class="active">Settings</a>
+</div>
 
 <main>
   <div class="card settings-section">
