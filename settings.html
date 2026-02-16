@@ -84,84 +84,91 @@
 <script type="module">
   import { logout, getCurrentUser, getGames, importGames, clearAllGames } from './js/data.js';
 
-  async function initSettings() {
-    const user = await getCurrentUser();
-    if (user) {
-      document.getElementById('userEmail').textContent = user.email;
-    } else {
-      window.location.href = 'login.html';
-    }
-  }
-  initSettings();
+  window.addEventListener('DOMContentLoaded', async () => {
+      // Init User
+      const user = await getCurrentUser();
+      if (user) {
+        document.getElementById('userEmail').textContent = user.email;
+      } else {
+        window.location.href = 'login.html';
+      }
 
-  document.getElementById('logoutBtn').onclick = async () => {
-    if (confirm("Log out now?")) await logout();
-  };
+      // Logout
+      document.getElementById('logoutBtn').onclick = async () => {
+        if (confirm("Log out now?")) await logout();
+      };
 
-  const themeToggle = document.getElementById("themeToggle");
-  themeToggle.onclick = () => {
-    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    localStorage.setItem("theme", next);
-    document.documentElement.setAttribute("data-theme", next);
-  };
+      // Theme
+      const themeToggle = document.getElementById("themeToggle");
+      themeToggle.onclick = () => {
+        const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        localStorage.setItem("theme", next);
+        document.documentElement.setAttribute("data-theme", next);
+      };
 
-  const ACCENT_COLORS = ["#007AFF", "#FF3B30", "#FF9500", "#34C759", "#AF52DE", "#5856D6", "#FF2D55", "#A2845E"];
-  const picker = document.getElementById("accentPicker");
+      // Accent Picker
+      const ACCENT_COLORS = ["#007AFF", "#FF3B30", "#FF9500", "#34C759", "#AF52DE", "#5856D6", "#FF2D55", "#A2845E"];
+      const picker = document.getElementById("accentPicker");
+      picker.innerHTML = ""; // Clear existing
+      
+      ACCENT_COLORS.forEach(color => {
+        const swatch = document.createElement("div");
+        swatch.className = "accent-swatch";
+        swatch.style.background = color;
+        if (localStorage.getItem("accent") === color) swatch.classList.add("active");
+        
+        swatch.onclick = () => {
+          document.documentElement.style.setProperty("--accent", color);
+          localStorage.setItem("accent", color);
+          document.querySelectorAll(".accent-swatch").forEach(s => s.classList.remove("active"));
+          swatch.classList.add("active");
+        };
+        picker.appendChild(swatch);
+      });
 
-  ACCENT_COLORS.forEach(color => {
-    const swatch = document.createElement("div");
-    swatch.className = "accent-swatch";
-    swatch.style.background = color;
-    if (localStorage.getItem("accent") === color) swatch.classList.add("active");
-    
-    swatch.onclick = () => {
-      document.documentElement.style.setProperty("--accent", color);
-      localStorage.setItem("accent", color);
-      document.querySelectorAll(".accent-swatch").forEach(s => s.classList.remove("active"));
-      swatch.classList.add("active");
-    };
-    picker.appendChild(swatch);
+      // Data
+      document.getElementById("exportData").onclick = async () => {
+        const games = await getGames();
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ games }));
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "tracker_backup.json");
+        dl.click();
+      };
+
+      const fileInput = document.getElementById("importFile");
+      document.getElementById("importData").onclick = () => fileInput.click();
+
+      fileInput.onchange = () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const data = JSON.parse(reader.result);
+            if (!confirm(`Import ${data.games?.length || 0} games?`)) return;
+            await importGames(data.games || []);
+            location.reload();
+          } catch (err) { alert("Import failed"); }
+        };
+        reader.readAsText(file);
+      };
+
+      document.getElementById("resetData").onclick = async () => {
+        if (confirm("Delete EVERYTHING?")) {
+          await clearAllGames();
+          location.reload();
+        }
+      };
   });
-
-  document.getElementById("exportData").onclick = async () => {
-    const games = await getGames();
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ games }));
-    const dlAnchorElem = document.createElement('a');
-    dlAnchorElem.setAttribute("href", dataStr);
-    dlAnchorElem.setAttribute("download", "tracker_backup.json");
-    dlAnchorElem.click();
-  };
-
-  const fileInput = document.getElementById("importFile");
-  document.getElementById("importData").onclick = () => fileInput.click();
-
-  fileInput.onchange = () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const data = JSON.parse(reader.result);
-        const gamesToImport = data.games || [];
-        if (!confirm(`Import ${gamesToImport.length} games?`)) return;
-        await importGames(gamesToImport);
-        location.reload();
-      } catch (err) { alert("Import failed"); }
-    };
-    reader.readAsText(file);
-  };
-
-  document.getElementById("resetData").onclick = async () => {
-    if (confirm("Delete EVERYTHING? This cannot be undone.")) {
-      await clearAllGames();
-      location.reload();
-    }
-  };
 </script>
 <script type="module" src="js/theme.js"></script>
 <script>
+  // Ensure we register updated SW
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      reg.update();
+    });
   }
 </script>
 </body>
