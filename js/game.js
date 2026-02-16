@@ -1,9 +1,12 @@
-import { getGames, updateGame, deleteGame, uploadImage } from "./data.js";
+import { getGames, updateGame, deleteGame } from "./data.js";
 
+/* =============================
+   INITIALIZATION
+============================= */
 let game = null;
 let view = new Date();
 
-// Elements
+// DOM ELEMENTS
 const title = document.getElementById("title");
 const image = document.getElementById("image");
 const plays = document.getElementById("plays");
@@ -16,20 +19,12 @@ const trackerGrid = document.getElementById("gameTracker");
 const monthLabel = document.getElementById("monthLabel");
 const editBtn = document.getElementById("editToggle");
 
-// Containers
+// Insert Advanced Stats Container if it doesn't exist
 let advancedStatsContainer = document.getElementById("advancedStats");
 if(!advancedStatsContainer) {
     advancedStatsContainer = document.createElement('div');
     advancedStatsContainer.id = "advancedStats";
     document.querySelector('.game-stats-grid').after(advancedStatsContainer);
-}
-
-let tagsContainer = document.getElementById("gameTags");
-if (!tagsContainer) {
-    tagsContainer = document.createElement("div");
-    tagsContainer.id = "gameTags";
-    tagsContainer.className = "tags-container";
-    document.querySelector(".game-hero").appendChild(tagsContainer);
 }
 
 async function init() {
@@ -44,22 +39,22 @@ async function init() {
     return;
   }
 
-  // Set defaults
+  // Ensure defaults
   if (!game.tracking) game.tracking = { score: false, won: false };
   if (!game.sessions) game.sessions = [];
-  if (!game.tags) game.tags = [];
   if (!game.playHistory) game.playHistory = {};
 
   document.title = game.name;
   
-  // FIX: Bind Edit Button Here
-  if (editBtn) {
-      editBtn.onclick = showEditModal;
-  }
+  // FIX: Bind edit button here
+  if(editBtn) editBtn.onclick = showEditModal;
 
   render();
 }
 
+/* =============================
+   RENDER FUNCTIONS
+============================= */
 function render() {
   title.textContent = game.name;
   image.src = game.image || "https://via.placeholder.com/800x360";
@@ -79,8 +74,6 @@ function render() {
       ? `${game.players.min}–${game.players.max}` 
       : `${game.players.min}`;
   } else { playerView.textContent = "—"; }
-
-  tagsContainer.innerHTML = game.tags.map(t => `<span class="tag-pill">${t}</span>`).join("");
 
   renderAdvancedStats();
   renderTracker();
@@ -133,12 +126,11 @@ function renderAdvancedStats() {
 function renderTracker() {
   if (!trackerGrid) return;
   trackerGrid.innerHTML = "";
-  
   const year = view.getFullYear();
   const month = view.getMonth();
   const today = new Date();
   
-  if (monthLabel) monthLabel.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
+  if(monthLabel) monthLabel.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
   
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -156,12 +148,10 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // Tooltip
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
     
-    // Safety check for game.sessions
     const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
@@ -244,7 +234,6 @@ async function saveGame() {
   render();
 }
 
-// EDIT MODAL
 function showEditModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -254,26 +243,20 @@ function showEditModal() {
       <h2>Edit Game</h2>
       
       <div class="input-header">Basic Info</div>
-      <input id="editName" class="ui-input" value="${game.name}" placeholder="Game Name">
+      <input id="editName" class="ui-input" value="${game.name}" placeholder="Game Name" style="margin-bottom:10px">
+      <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL" style="margin-bottom:10px">
       
-      <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
-        <input id="editImage" class="ui-input" value="${game.image || ''}" placeholder="Image URL">
-        <label for="imgUploadEdit" class="secondary" style="padding:10px; border-radius:12px; cursor:pointer;">Upload</label>
-        <input id="imgUploadEdit" type="file" hidden>
-      </div>
-      
-      <div class="input-header">Specs</div>
+      <div class="input-header">Player Count</div>
       <div class="row">
-        <input id="editPMin" type="number" class="ui-input" value="${game.players.min ?? ''}" placeholder="Min P">
-        <input id="editPMax" type="number" class="ui-input" value="${game.players.max ?? ''}" placeholder="Max P">
-      </div>
-      <div class="row">
-        <input id="editTMin" type="number" class="ui-input" value="${game.playTime.min ?? ''}" placeholder="Min T">
-        <input id="editTMax" type="number" class="ui-input" value="${game.playTime.max ?? ''}" placeholder="Max T">
+        <input id="editPMin" type="number" class="ui-input" value="${game.players.min ?? ''}" placeholder="Min">
+        <input id="editPMax" type="number" class="ui-input" value="${game.players.max ?? ''}" placeholder="Max">
       </div>
 
-      <div class="input-header">Tags</div>
-      <input id="editTags" class="ui-input" value="${(game.tags || []).join(', ')}">
+      <div class="input-header">Play Time (Minutes)</div>
+      <div class="row">
+        <input id="editTMin" type="number" class="ui-input" value="${game.playTime.min ?? ''}" placeholder="Min">
+        <input id="editTMax" type="number" class="ui-input" value="${game.playTime.max ?? ''}" placeholder="Max">
+      </div>
 
       <div class="toggle-group" style="margin-top:1rem">
         <label><input type="checkbox" id="editTrackScore" ${game.tracking.score ? 'checked' : ''}> Score</label>
@@ -281,50 +264,44 @@ function showEditModal() {
       </div>
 
       <div class="input-header">Review</div>
-      <input id="editRating" class="ui-input" type="number" step="0.1" value="${game.rating ?? ''}" placeholder="Rating 0-10">
-      <textarea id="editReview" placeholder="Review..." style="margin-top:10px">${game.review || ''}</textarea>
+      <input id="editRating" class="ui-input" type="number" step="0.1" value="${game.rating ?? ''}" placeholder="Rating (0-10)" style="margin-bottom:10px">
+      <textarea id="editReview" placeholder="Your review...">${game.review || ''}</textarea>
       
-      <button id="saveEdit" style="width:100%; margin-top:1.5rem">Save</button>
-      <button id="deleteGameBtn" class="danger" style="width:100%; margin-top:10px">Delete</button>
+      <button id="saveEdit" style="width:100%; margin-top:1.5rem; margin-bottom:10px">Save Changes</button>
+      <button id="deleteGameBtn" class="danger" style="width:100%">Delete Game</button>
     </div>
   `;
 
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
 
-  // Upload
-  const fileIn = backdrop.querySelector("#imgUploadEdit");
-  fileIn.onchange = async () => {
-      if(fileIn.files[0]) {
-          try {
-              const url = await uploadImage(fileIn.files[0]);
-              backdrop.querySelector("#editImage").value = url;
-              alert("Image Uploaded");
-          } catch(e) { alert("Upload failed"); }
-      }
-  };
-
-  // Save
   backdrop.querySelector("#saveEdit").onclick = async () => {
-      game.name = backdrop.querySelector("#editName").value;
-      game.image = backdrop.querySelector("#editImage").value;
-      game.review = backdrop.querySelector("#editReview").value;
-      game.rating = parseFloat(backdrop.querySelector("#editRating").value);
-      game.tags = backdrop.querySelector("#editTags").value.split(",").map(t=>t.trim()).filter(t=>t);
-      game.players = { min: backdrop.querySelector("#editPMin").value, max: backdrop.querySelector("#editPMax").value };
-      game.playTime = { min: backdrop.querySelector("#editTMin").value, max: backdrop.querySelector("#editTMax").value };
-      game.tracking = { score: backdrop.querySelector("#editTrackScore").checked, won: backdrop.querySelector("#editTrackWon").checked };
-      
-      await updateGame(game);
-      backdrop.remove();
-      render();
+    game.name = backdrop.querySelector("#editName").value.trim();
+    game.image = backdrop.querySelector("#editImage").value.trim() || null;
+    game.review = backdrop.querySelector("#editReview").value.trim();
+    game.rating = parseFloat(backdrop.querySelector("#editRating").value) || null;
+    game.players = {
+      min: Number(backdrop.querySelector("#editPMin").value) || null,
+      max: Number(backdrop.querySelector("#editPMax").value) || null
+    };
+    game.playTime = {
+      min: Number(backdrop.querySelector("#editTMin").value) || null,
+      max: Number(backdrop.querySelector("#editTMax").value) || null
+    };
+    game.tracking = {
+      score: backdrop.querySelector("#editTrackScore").checked,
+      won: backdrop.querySelector("#editTrackWon").checked
+    };
+
+    await updateGame(game);
+    backdrop.remove();
+    render();
   };
 
-  // Delete
   backdrop.querySelector("#deleteGameBtn").onclick = async () => {
-      if(confirm("Delete this game?")) {
-          await deleteGame(game.id);
-          window.location.href = "catalogue.html";
-      }
+    if (confirm(`Are you sure you want to delete "${game.name}"?`)) {
+      await deleteGame(game.id);
+      window.location.href = "catalogue.html";
+    }
   };
 
   document.body.appendChild(backdrop);
@@ -368,17 +345,14 @@ function showRemovalModal(dateKey, sessions) {
     if(confirm("Remove last play?")) removeSessionDirectly(dateKey, sessions[sessions.length-1]);
 }
 
-// BADGES - Corrected Logic
 function renderBadges() {
     badgeContainer.innerHTML = "";
     
-    // Play Milestones
     const plays = game.plays || 0;
     if(plays >= 50) createBadge("Legend", "50+ Plays", "legend");
     else if(plays >= 30) createBadge("Master", "30+ Plays", "guild");
     else if(plays >= 10) createBadge("Roller", "10+ Plays", "dice");
     
-    // Wins
     if (game.sessions) {
         const wins = game.sessions.filter(s => s.won === true).length;
         if(wins >= 50) createBadge("Champion", "50 Wins", "gold");
@@ -394,7 +368,6 @@ function createBadge(title, sub, type) {
     badgeContainer.appendChild(el);
 }
 
-// Nav
 document.getElementById("prevMonth").onclick = () => { view.setMonth(view.getMonth() - 1); renderTracker(); };
 document.getElementById("nextMonth").onclick = () => { view.setMonth(view.getMonth() + 1); renderTracker(); };
 
