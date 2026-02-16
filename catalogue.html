@@ -5,25 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Library</title>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/x-icon" href="images/TCG_Logos.webp">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body class="catalogue-page">
 
 <header>
   <div class="header-left">
-    <img src="images/Board_Games_Website_Logo.webp" alt="Logo" class="site-logo" onclick="location.href='index.html'">
+    <img src="logo.png" alt="Logo" class="site-logo" onclick="location.href='index.html'">
   </div>
   <div class="header-center">
     <h1>Library</h1>
   </div>
   <div class="header-right">
-    <nav>
+    <nav class="desktop-nav">
       <a href="index.html">Stats</a>
       <a href="catalogue.html" class="active">Library</a>
       <a href="settings.html">Settings</a>
     </nav>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
   </div>
 </header>
+
+<div class="mobile-nav-overlay" id="mobileNav">
+  <a href="index.html">Stats</a>
+  <a href="catalogue.html" class="active">Library</a>
+  <a href="settings.html">Settings</a>
+</div>
 
 <main>
   <div class="catalogue-toolbar card">
