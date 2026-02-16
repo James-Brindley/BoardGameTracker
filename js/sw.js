@@ -1,4 +1,4 @@
-const CACHE_NAME = "gametracker-v1";
+const CACHE_NAME = "gametracker-dev-v2";
 const ASSETS = [
   "/",
   "/index.html",
@@ -15,12 +15,45 @@ const ASSETS = [
   "/js/supabaseClient.js"
 ];
 
-self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
+// 1. Install Service Worker
+self.addEventListener("install", (evt) => {
+  self.skipWaiting(); // Activate immediately
+  evt.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
+  );
 });
 
-self.addEventListener("fetch", (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => response || fetch(e.request))
+// 2. Activate & Clean up old caches
+self.addEventListener("activate", (evt) => {
+  evt.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// 3. Fetch (Network First, then Cache)
+self.addEventListener("fetch", (evt) => {
+  evt.respondWith(
+    fetch(evt.request)
+      .then((res) => {
+        // Update cache with new version
+        const resClone = res.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(evt.request, resClone);
+        });
+        return res;
+      })
+      .catch(() => {
+        // If offline, use cache
+        return caches.match(evt.request);
+      })
   );
 });
