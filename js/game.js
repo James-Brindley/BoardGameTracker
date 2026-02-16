@@ -149,11 +149,10 @@ function renderTracker() {
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
     if (daySessions.length > 0 && (game.tracking.score || game.tracking.won)) {
-      // Check if any score exists
       const hasScore = daySessions.some(s => s.score != null);
 
       if (!hasScore && game.tracking.won) {
-        // Stack Mode: Wins/Losses Only
+        // Stack Mode
         const wins = daySessions.filter(s => s.won === true).length;
         const losses = daySessions.filter(s => s.won === false).length;
         let stackRow = `<div style="margin-top:2px;">`;
@@ -167,8 +166,8 @@ function renderTracker() {
           let rowHtml = `<div style="margin-top:2px; display:flex; align-items:center; gap:4px">`;
           if (game.tracking.won && s.won != null) {
             rowHtml += s.won 
-              ? `<span class="tooltip-tag tag-win">W</span>` 
-              : `<span class="tooltip-tag tag-loss">L</span>`;
+              ? `<span class="tooltip-win">W</span>` 
+              : `<span class="tooltip-loss">L</span>`;
           }
           if (game.tracking.score && s.score != null) {
             rowHtml += `<span class="tooltip-tag tag-score">${s.score}</span>`;
@@ -247,50 +246,44 @@ async function saveGame() {
 function renderBadges(allGames) {
     badgeContainer.innerHTML = "";
     
-    // Helper to determine color tier based on count (5-50)
-    const getTier = (val) => {
-        if (val >= 50) return "tier-legend";
-        if (val >= 40) return "tier-platinum";
-        if (val >= 30) return "tier-gold";
-        if (val >= 20) return "tier-silver";
-        return "tier-bronze"; // 5-19
-    };
-
     // 1. All-Time Rank
     const sorted = [...allGames].sort((a,b) => (b.plays||0) - (a.plays||0));
     const rank = sorted.findIndex(g => g.id === game.id);
-    if(rank === 0 && game.plays > 0) createBadge("All-Time #1", "Most Played", "tier-gold");
-    else if(rank === 1 && game.plays > 0) createBadge("All-Time #2", "2nd Place", "tier-silver");
-    else if(rank === 2 && game.plays > 0) createBadge("All-Time #3", "3rd Place", "tier-bronze");
+    if(rank === 0 && game.plays > 0) createBadge("All-Time #1", "Most Played", "rank-1");
+    else if(rank === 1 && game.plays > 0) createBadge("All-Time #2", "2nd Place", "rank-2");
+    else if(rank === 2 && game.plays > 0) createBadge("All-Time #3", "3rd Place", "rank-3");
 
-    // 2. Play Count (5, 10, 15... 50)
+    // 2. Play Count (Every 5 up to 50)
     const p = game.plays || 0;
     let bestPlay = 0;
-    for(let i=5; i<=50; i+=5) { if(p >= i) bestPlay = i; }
-    
+    // Find the highest step of 5 that is <= current plays
+    for(let i=50; i>=5; i-=5) { 
+        if(p >= i) { bestPlay = i; break; } 
+    }
     if(bestPlay > 0) {
-        createBadge("Veteran", `${bestPlay}+ Plays`, getTier(bestPlay));
+        createBadge("Veteran", `${bestPlay}+ Plays`, `tier-${bestPlay}`);
     }
 
-    // 3. Wins (5, 10... 50)
+    // 3. Wins (Every 5 up to 50)
     if (game.sessions) {
         const wins = game.sessions.filter(s => s.won === true).length;
         let bestWin = 0;
-        for(let i=5; i<=50; i+=5) { if(wins >= i) bestWin = i; }
-        
+        for(let i=50; i>=5; i-=5) { 
+            if(wins >= i) { bestWin = i; break; } 
+        }
         if(bestWin > 0) {
-            createBadge("Victor", `${bestWin}+ Wins`, getTier(bestWin));
+            createBadge("Victor", `${bestWin}+ Wins`, `tier-${bestWin}`);
         }
     }
 
-    // 4. Monthly Champion (Stacked)
+    // 4. Monthly Champion (Stacked + Tooltip)
     const myMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0, 7)));
     const currentMonthKey = new Date().toISOString().slice(0, 7);
     
     let wonMonths = [];
 
     myMonths.forEach(month => {
-        if (month >= currentMonthKey) return; // Skip current
+        if (month >= currentMonthKey) return;
 
         let maxPlays = 0;
         let bestGameId = null;
@@ -314,21 +307,24 @@ function renderBadges(allGames) {
     });
 
     if (wonMonths.length > 0) {
+        // Calculate Tier based on count
         let count = wonMonths.length;
-        let tierClass = "tier-bronze";
-        if (count >= 3) tierClass = "tier-silver";
-        if (count >= 5) tierClass = "tier-gold";
-        if (count >= 10) tierClass = "tier-legend";
-
-        const div = document.createElement("div");
-        div.className = `badge ${tierClass}`;
-        // Tooltip logic
-        div.title = "Months Won:\n" + wonMonths.join("\n");
-        div.style.cursor = "help"; 
+        let tierVal = 5;
+        if (count >= 50) tierVal = 50;
+        else if (count >= 40) tierVal = 40;
+        else if (count >= 30) tierVal = 30;
+        else if (count >= 20) tierVal = 20;
+        else if (count >= 15) tierVal = 15;
+        else if (count >= 10) tierVal = 10;
+        else if (count >= 5) tierVal = 5;
         
+        // Custom Tooltip Badge
+        const div = document.createElement("div");
+        div.className = `badge tier-${tierVal}`;
         div.innerHTML = `
             <div class="badge-title">Champion</div>
             <div class="badge-sub">x${count} Months</div>
+            <div class="badge-tooltip">Months Won:<br>${wonMonths.join("<br>")}</div>
         `;
         badgeContainer.appendChild(div);
     }
