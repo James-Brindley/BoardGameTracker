@@ -12,7 +12,7 @@ let view = new Date();
 async function renderAll() {
   const games = await getGames();
   
-  // 1. Monthly Stats Calculation
+  // Monthly Stats
   const key = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
   const mGames = games.map(g => ({
     ...g,
@@ -21,16 +21,12 @@ async function renderAll() {
       .reduce((a, [, v]) => a + v, 0)
   })).filter(g => g.monthPlays > 0).sort((a, b) => b.monthPlays - a.monthPlays);
 
-  // 2. All-Time Stats Calculation
+  // All-Time Stats
   const aGames = [...games].filter(g => (g.plays || 0) > 0).sort((a, b) => (b.plays || 0) - (a.plays || 0));
 
   renderTracker(games);
-  
-  // Render Monthly
   renderPodium(monthPodium, mGames, "monthPlays");
   renderList(monthRest, mGames, 3, 5, "monthPlays"); 
-
-  // Render All-Time
   renderPodium(allTimePodium, aGames, "plays");
   renderList(top10, aGames, 3, 10, "plays");
 }
@@ -41,7 +37,7 @@ function renderPodium(container, games, valueKey) {
     container.innerHTML = `<div style="width:100%; text-align:center; color:var(--subtext); padding:2rem;">No stats for this period</div>`;
     return;
   }
-  const podiumOrder = [1, 0, 2]; // 2nd, 1st, 3rd
+  const podiumOrder = [1, 0, 2];
   const heights = ["podium-2", "podium-1", "podium-3"];
 
   podiumOrder.forEach((idx, i) => {
@@ -121,7 +117,6 @@ function renderTracker(games) {
 
     cell.innerHTML = `<span class="day-number">${d}</span>`;
     
-    // Tooltip
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2, "0")}/${String(month + 1).padStart(2, "0")}`;
