@@ -21,6 +21,7 @@ async function render() {
   
   let games = await getGames();
 
+  // Safety Check
   if (!games || !Array.isArray(games)) {
       list.innerHTML = `<div class="card" style="text-align:center">Error loading games.</div>`;
       return;
@@ -35,19 +36,37 @@ async function render() {
   if (searchValue) {
     games = games.filter(g => g.name.toLowerCase().includes(searchValue));
   }
+
   if (!isNaN(playersValue)) {
-    games = games.filter(g => g.players?.min != null && g.players?.max != null && playersValue >= g.players.min && playersValue <= g.players.max);
+    games = games.filter(g =>
+      g.players?.min != null &&
+      g.players?.max != null &&
+      playersValue >= g.players.min &&
+      playersValue <= g.players.max
+    );
   }
+
   if (!isNaN(timeValue)) {
-    games = games.filter(g => g.playTime?.min != null && g.playTime?.max != null && timeValue >= g.playTime.min && timeValue <= g.playTime.max);
+    games = games.filter(g =>
+      g.playTime?.min != null &&
+      g.playTime?.max != null &&
+      timeValue >= g.playTime.min &&
+      timeValue <= g.playTime.max
+    );
   }
+
   if (!isNaN(ratingValue)) {
     games = games.filter(g => g.rating != null && g.rating >= ratingValue);
   }
+
   if (statusValue === "played") games = games.filter(g => g.plays > 0);
   if (statusValue === "unplayed") games = games.filter(g => g.plays === 0);
 
-  games.sort((a, b) => sort.value === "name" ? a.name.localeCompare(b.name) : (b[sort.value] || 0) - (a[sort.value] || 0));
+  games.sort((a, b) =>
+    sort.value === "name"
+      ? a.name.localeCompare(b.name)
+      : (b[sort.value] || 0) - (a[sort.value] || 0)
+  );
 
   list.innerHTML = "";
 
@@ -59,6 +78,7 @@ async function render() {
   games.forEach(g => {
     const card = document.createElement("div");
     card.className = "game-card";
+
     card.innerHTML = `
       <img src="${g.image || "https://via.placeholder.com/400"}" loading="lazy">
       <div class="card-header">
@@ -71,40 +91,16 @@ async function render() {
       </div>
       <div class="plays">${g.plays || 0} Plays</div>
     `;
-    card.onclick = () => { location.href = `game.html?id=${g.id}`; };
+
+    card.onclick = () => {
+      location.href = `game.html?id=${g.id}`;
+    };
+
     list.appendChild(card);
   });
 }
 
-// === BULLETPROOF BGG FETCH (Fallback Chain) ===
-async function fetchBGGData(path) {
-    // Tries multiple endpoints to bypass CORS and Cloudflare blocks automatically
-    const urls = [
-        `https://api.geekdo.com/xmlapi2/${path}`,
-        `https://boardgamegeek.com/xmlapi2/${path}`,
-        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(`https://boardgamegeek.com/xmlapi2/${path}`)}`
-    ];
-
-    for (const url of urls) {
-        try {
-            const res = await fetch(url);
-            if (res.status === 202) return "202"; // BGG Queue message
-            if (!res.ok) continue;
-            
-            const text = await res.text();
-            // If the response is HTML, we got blocked by anti-bot protections. Skip to next method.
-            if (text.toLowerCase().includes("<!doctype html") || text.toLowerCase().includes("cloudflare")) {
-                continue;
-            }
-            return text; // Successfully got XML
-        } catch (e) {
-            console.warn(`BGG Fetch failed for ${url}`, e);
-        }
-    }
-    return null; // All methods failed
-}
-
-// === NEW ADD GAME MODAL ===
+// === NEW ADD GAME MODAL (Split Layout, Preview, Toggles - NO BGG) ===
 addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -116,14 +112,7 @@ addBtn.onclick = () => {
       
       <div class="modal-split">
         <div class="modal-split-left">
-            <div class="input-header" style="margin-top:0;">Quick Fill (BGG)</div>
-            <div class="bgg-search-container">
-                <input id="bggInput" class="ui-input" placeholder="Search BoardGameGeek...">
-                <button id="bggBtn" class="secondary">Search</button>
-                <div id="bggResults" class="bgg-results"></div>
-            </div>
-
-            <div class="input-header">Game Details</div>
+            <div class="input-header" style="margin-top:0;">Game Details</div>
             <input id="newName" class="ui-input" placeholder="Game Name" style="margin-bottom:10px">
             <input id="newImage" class="ui-input" placeholder="Image URL (optional)" style="margin-bottom:10px">
 
@@ -174,6 +163,7 @@ addBtn.onclick = () => {
   `;
 
   document.body.appendChild(backdrop);
+  
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
 
   // --- LIVE PREVIEW LOGIC ---
@@ -196,118 +186,18 @@ addBtn.onclick = () => {
   const updatePreview = () => {
       preview.name.textContent = inputs.name.value.trim() || "Game Name";
       preview.img.src = inputs.img.value.trim() || "https://via.placeholder.com/400";
+      
       const pMinVal = inputs.pMin.value ? Number(inputs.pMin.value) : null;
       const pMaxVal = inputs.pMax.value ? Number(inputs.pMax.value) : null;
       preview.players.textContent = `👥 ${formatRange(pMinVal, pMaxVal)}`;
+
       const tMinVal = inputs.tMin.value ? Number(inputs.tMin.value) : null;
       const tMaxVal = inputs.tMax.value ? Number(inputs.tMax.value) : null;
       preview.time.textContent = `⏱ ${formatRange(tMinVal, tMaxVal, 'm')}`;
   };
 
+  // Bind all inputs to trigger preview update
   Object.values(inputs).forEach(input => input.addEventListener("input", updatePreview));
-
-  // --- BGG QUICK FILL ---
-  const bggInput = document.getElementById("bggInput");
-  const bggBtn = document.getElementById("bggBtn");
-  const bggResults = document.getElementById("bggResults");
-
-  bggBtn.onclick = async () => {
-      const query = bggInput.value.trim();
-      if (!query) return;
-      
-      bggBtn.textContent = "...";
-      bggResults.style.display = "block";
-      bggResults.innerHTML = `<div class="bgg-loading">Searching BGG...</div>`;
-      
-      try {
-          const text = await fetchBGGData(`search?query=${encodeURIComponent(query)}&type=boardgame`);
-          
-          if (text === "202") {
-              bggResults.innerHTML = `<div class="bgg-loading">BGG is queuing the data. Try again in 5s.</div>`;
-              setTimeout(() => { bggResults.style.display = "none"; }, 4000);
-              return;
-          }
-          if (!text) {
-              bggResults.innerHTML = `<div class="bgg-loading">Connection blocked by BGG.</div>`;
-              setTimeout(() => { bggResults.style.display = "none"; }, 3000);
-              return;
-          }
-
-          const xml = new DOMParser().parseFromString(text, "text/xml");
-          // Limit to top 15 results to prevent massive UI lists
-          const items = Array.from(xml.querySelectorAll("item")).slice(0, 15);
-
-          bggResults.innerHTML = "";
-
-          if (items.length === 0) {
-              bggResults.innerHTML = `<div class="bgg-loading">No exact matches found on BGG.</div>`;
-              setTimeout(() => { bggResults.style.display = "none"; }, 3000);
-              return;
-          }
-
-          items.forEach(item => {
-              const id = item.getAttribute("id");
-              const nameNode = item.querySelector("name");
-              const name = nameNode ? nameNode.getAttribute("value") : "Unknown";
-              const yearNode = item.querySelector("yearpublished");
-              const year = yearNode ? yearNode.getAttribute("value") : "N/A";
-              
-              const div = document.createElement("div");
-              div.className = "bgg-item";
-              div.innerHTML = `<span class="bgg-item-title">${name}</span><span class="bgg-item-year">${year}</span>`;
-              
-              div.onclick = async () => {
-                  bggResults.innerHTML = `<div class="bgg-loading">Fetching details...</div>`;
-                  try {
-                      const detText = await fetchBGGData(`thing?id=${id}`);
-                      
-                      if (detText === "202") {
-                          bggResults.innerHTML = `<div class="bgg-loading">Data queued. Click result again.</div>`;
-                          setTimeout(() => { bggResults.style.display = "none"; }, 3000);
-                          return;
-                      }
-                      if (!detText) throw new Error("Blocked");
-
-                      const detXml = new DOMParser().parseFromString(detText, "text/xml");
-                      const itm = detXml.querySelector("item");
-                      
-                      const primaryName = itm.querySelector("name[type='primary']")?.getAttribute("value") || name;
-                      const imageUrl = itm.querySelector("image")?.textContent || "";
-                      const minP = itm.querySelector("minplayers")?.getAttribute("value") || "";
-                      const maxP = itm.querySelector("maxplayers")?.getAttribute("value") || "";
-                      const minT = itm.querySelector("minplaytime")?.getAttribute("value") || "";
-                      const maxT = itm.querySelector("maxplaytime")?.getAttribute("value") || "";
-
-                      inputs.name.value = primaryName;
-                      inputs.img.value = imageUrl;
-                      inputs.pMin.value = minP;
-                      inputs.pMax.value = maxP;
-                      inputs.tMin.value = minT;
-                      inputs.tMax.value = maxT;
-                      
-                      updatePreview();
-                      bggResults.style.display = "none";
-                  } catch (e) {
-                      bggResults.innerHTML = `<div class="bgg-loading">Error fetching details.</div>`;
-                      setTimeout(() => { bggResults.style.display = "none"; }, 2000);
-                  }
-              };
-              bggResults.appendChild(div);
-          });
-      } catch (e) {
-          bggResults.innerHTML = `<div class="bgg-loading">System Error. Check connection.</div>`;
-          setTimeout(() => { bggResults.style.display = "none"; }, 2000);
-      } finally {
-          bggBtn.textContent = "Search";
-      }
-  };
-
-  document.addEventListener("click", (e) => {
-      const container = document.querySelector(".bgg-search-container");
-      if (container && !container.contains(e.target)) {
-          bggResults.style.display = "none";
-      }
-  });
 
   // --- SAVE LOGIC ---
   backdrop.querySelector("#saveNew").onclick = async () => {
