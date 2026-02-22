@@ -21,7 +21,6 @@ async function render() {
   
   let games = await getGames();
 
-  // Safety Check
   if (!games || !Array.isArray(games)) {
       list.innerHTML = `<div class="card" style="text-align:center">Error loading games.</div>`;
       return;
@@ -36,37 +35,19 @@ async function render() {
   if (searchValue) {
     games = games.filter(g => g.name.toLowerCase().includes(searchValue));
   }
-
   if (!isNaN(playersValue)) {
-    games = games.filter(g =>
-      g.players?.min != null &&
-      g.players?.max != null &&
-      playersValue >= g.players.min &&
-      playersValue <= g.players.max
-    );
+    games = games.filter(g => g.players?.min != null && g.players?.max != null && playersValue >= g.players.min && playersValue <= g.players.max);
   }
-
   if (!isNaN(timeValue)) {
-    games = games.filter(g =>
-      g.playTime?.min != null &&
-      g.playTime?.max != null &&
-      timeValue >= g.playTime.min &&
-      timeValue <= g.playTime.max
-    );
+    games = games.filter(g => g.playTime?.min != null && g.playTime?.max != null && timeValue >= g.playTime.min && timeValue <= g.playTime.max);
   }
-
   if (!isNaN(ratingValue)) {
     games = games.filter(g => g.rating != null && g.rating >= ratingValue);
   }
-
   if (statusValue === "played") games = games.filter(g => g.plays > 0);
   if (statusValue === "unplayed") games = games.filter(g => g.plays === 0);
 
-  games.sort((a, b) =>
-    sort.value === "name"
-      ? a.name.localeCompare(b.name)
-      : (b[sort.value] || 0) - (a[sort.value] || 0)
-  );
+  games.sort((a, b) => sort.value === "name" ? a.name.localeCompare(b.name) : (b[sort.value] || 0) - (a[sort.value] || 0));
 
   list.innerHTML = "";
 
@@ -78,7 +59,6 @@ async function render() {
   games.forEach(g => {
     const card = document.createElement("div");
     card.className = "game-card";
-
     card.innerHTML = `
       <img src="${g.image || "https://via.placeholder.com/400"}" loading="lazy">
       <div class="card-header">
@@ -91,13 +71,37 @@ async function render() {
       </div>
       <div class="plays">${g.plays || 0} Plays</div>
     `;
-
-    card.onclick = () => {
-      location.href = `game.html?id=${g.id}`;
-    };
-
+    card.onclick = () => { location.href = `game.html?id=${g.id}`; };
     list.appendChild(card);
   });
+}
+
+// === BULLETPROOF BGG FETCH (Fallback Chain) ===
+async function fetchBGGData(path) {
+    // Tries multiple endpoints to bypass CORS and Cloudflare blocks automatically
+    const urls = [
+        `https://api.geekdo.com/xmlapi2/${path}`,
+        `https://boardgamegeek.com/xmlapi2/${path}`,
+        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(`https://boardgamegeek.com/xmlapi2/${path}`)}`
+    ];
+
+    for (const url of urls) {
+        try {
+            const res = await fetch(url);
+            if (res.status === 202) return "202"; // BGG Queue message
+            if (!res.ok) continue;
+            
+            const text = await res.text();
+            // If the response is HTML, we got blocked by anti-bot protections. Skip to next method.
+            if (text.toLowerCase().includes("<!doctype html") || text.toLowerCase().includes("cloudflare")) {
+                continue;
+            }
+            return text; // Successfully got XML
+        } catch (e) {
+            console.warn(`BGG Fetch failed for ${url}`, e);
+        }
+    }
+    return null; // All methods failed
 }
 
 // === NEW ADD GAME MODAL ===
@@ -170,7 +174,6 @@ addBtn.onclick = () => {
   `;
 
   document.body.appendChild(backdrop);
-  
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
 
   // --- LIVE PREVIEW LOGIC ---
@@ -193,11 +196,9 @@ addBtn.onclick = () => {
   const updatePreview = () => {
       preview.name.textContent = inputs.name.value.trim() || "Game Name";
       preview.img.src = inputs.img.value.trim() || "https://via.placeholder.com/400";
-      
       const pMinVal = inputs.pMin.value ? Number(inputs.pMin.value) : null;
       const pMaxVal = inputs.pMax.value ? Number(inputs.pMax.value) : null;
       preview.players.textContent = `👥 ${formatRange(pMinVal, pMaxVal)}`;
-
       const tMinVal = inputs.tMin.value ? Number(inputs.tMin.value) : null;
       const tMaxVal = inputs.tMax.value ? Number(inputs.tMax.value) : null;
       preview.time.textContent = `⏱ ${formatRange(tMinVal, tMaxVal, 'm')}`;
@@ -205,7 +206,7 @@ addBtn.onclick = () => {
 
   Object.values(inputs).forEach(input => input.addEventListener("input", updatePreview));
 
-  // --- BULLETPROOF BGG QUICK FILL LOGIC ---
+  // --- BGG QUICK FILL ---
   const bggInput = document.getElementById("bggInput");
   const bggBtn = document.getElementById("bggBtn");
   const bggResults = document.getElementById("bggResults");
@@ -219,26 +220,28 @@ addBtn.onclick = () => {
       bggResults.innerHTML = `<div class="bgg-loading">Searching BGG...</div>`;
       
       try {
-          // 1. Construct the raw BGG URL
-          const bggUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame`;
+          const text = await fetchBGGData(`search?query=${encodeURIComponent(query)}&type=boardgame`);
           
-          // 2. Wrap it securely in the JSON proxy (this ignores browser CORS limits entirely)
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(bggUrl)}`;
-          
-          const res = await fetch(proxyUrl);
-          const data = await res.json();
-          
-          // data.contents contains the raw XML string from BGG
-          if (!data || !data.contents) throw new Error("No data returned from proxy");
+          if (text === "202") {
+              bggResults.innerHTML = `<div class="bgg-loading">BGG is queuing the data. Try again in 5s.</div>`;
+              setTimeout(() => { bggResults.style.display = "none"; }, 4000);
+              return;
+          }
+          if (!text) {
+              bggResults.innerHTML = `<div class="bgg-loading">Connection blocked by BGG.</div>`;
+              setTimeout(() => { bggResults.style.display = "none"; }, 3000);
+              return;
+          }
 
-          const xml = new DOMParser().parseFromString(data.contents, "text/xml");
-          const items = xml.querySelectorAll("item");
+          const xml = new DOMParser().parseFromString(text, "text/xml");
+          // Limit to top 15 results to prevent massive UI lists
+          const items = Array.from(xml.querySelectorAll("item")).slice(0, 15);
 
           bggResults.innerHTML = "";
 
           if (items.length === 0) {
-              bggResults.innerHTML = `<div class="bgg-loading">No results found on BGG.</div>`;
-              setTimeout(() => { bggResults.style.display = "none"; }, 2000);
+              bggResults.innerHTML = `<div class="bgg-loading">No exact matches found on BGG.</div>`;
+              setTimeout(() => { bggResults.style.display = "none"; }, 3000);
               return;
           }
 
@@ -256,15 +259,16 @@ addBtn.onclick = () => {
               div.onclick = async () => {
                   bggResults.innerHTML = `<div class="bgg-loading">Fetching details...</div>`;
                   try {
-                      const detBggUrl = `https://boardgamegeek.com/xmlapi2/thing?id=${id}`;
-                      const detProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(detBggUrl)}`;
+                      const detText = await fetchBGGData(`thing?id=${id}`);
                       
-                      const detRes = await fetch(detProxyUrl);
-                      const detData = await detRes.json();
-                      
-                      if (!detData || !detData.contents) throw new Error("Empty details");
+                      if (detText === "202") {
+                          bggResults.innerHTML = `<div class="bgg-loading">Data queued. Click result again.</div>`;
+                          setTimeout(() => { bggResults.style.display = "none"; }, 3000);
+                          return;
+                      }
+                      if (!detText) throw new Error("Blocked");
 
-                      const detXml = new DOMParser().parseFromString(detData.contents, "text/xml");
+                      const detXml = new DOMParser().parseFromString(detText, "text/xml");
                       const itm = detXml.querySelector("item");
                       
                       const primaryName = itm.querySelector("name[type='primary']")?.getAttribute("value") || name;
@@ -284,7 +288,6 @@ addBtn.onclick = () => {
                       updatePreview();
                       bggResults.style.display = "none";
                   } catch (e) {
-                      console.error("BGG Details Error:", e);
                       bggResults.innerHTML = `<div class="bgg-loading">Error fetching details.</div>`;
                       setTimeout(() => { bggResults.style.display = "none"; }, 2000);
                   }
@@ -292,8 +295,7 @@ addBtn.onclick = () => {
               bggResults.appendChild(div);
           });
       } catch (e) {
-          console.error("BGG Search Error:", e);
-          bggResults.innerHTML = `<div class="bgg-loading">Search Failed. Check connection.</div>`;
+          bggResults.innerHTML = `<div class="bgg-loading">System Error. Check connection.</div>`;
           setTimeout(() => { bggResults.style.display = "none"; }, 2000);
       } finally {
           bggBtn.textContent = "Search";
