@@ -100,7 +100,21 @@ async function render() {
   });
 }
 
-// === NEW ADD GAME MODAL (Split Layout, BGG Quick Fill, Preview, Toggles) ===
+// === BULLETPROOF BGG FETCH HELPER ===
+async function fetchBGG(url) {
+    try {
+        // Primary approach: wrap XML inside JSON to completely bypass strict browser blocking
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        return data.contents;
+    } catch (e) {
+        // Fallback proxy if the first one goes down
+        const res = await fetch(`https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`);
+        return await res.text();
+    }
+}
+
+// === NEW ADD GAME MODAL ===
 addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -206,7 +220,7 @@ addBtn.onclick = () => {
 
   Object.values(inputs).forEach(input => input.addEventListener("input", updatePreview));
 
-  // --- BGG QUICK FILL LOGIC (FIXED PROXY) ---
+  // --- BGG QUICK FILL LOGIC ---
   const bggInput = document.getElementById("bggInput");
   const bggBtn = document.getElementById("bggBtn");
   const bggResults = document.getElementById("bggResults");
@@ -220,15 +234,9 @@ addBtn.onclick = () => {
       bggResults.innerHTML = `<div class="bgg-loading">Searching BGG...</div>`;
       
       try {
-          // 1. Properly construct and encode the BGG URL
           const bggUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame`;
-          // 2. Wrap it securely in the AllOrigins proxy
-          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(bggUrl)}`;
+          const text = await fetchBGG(bggUrl);
           
-          const res = await fetch(proxyUrl);
-          if (!res.ok) throw new Error("Proxy error");
-          
-          const text = await res.text();
           const xml = new DOMParser().parseFromString(text, "text/xml");
           const items = xml.querySelectorAll("item");
 
@@ -254,14 +262,9 @@ addBtn.onclick = () => {
               div.onclick = async () => {
                   bggResults.innerHTML = `<div class="bgg-loading">Fetching details...</div>`;
                   try {
-                      // Do the exact same proxy wrapping for the details fetch
                       const detBggUrl = `https://boardgamegeek.com/xmlapi2/thing?id=${id}`;
-                      const detProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(detBggUrl)}`;
+                      const detText = await fetchBGG(detBggUrl);
                       
-                      const detRes = await fetch(detProxyUrl);
-                      if (!detRes.ok) throw new Error("Proxy error");
-                      
-                      const detText = await detRes.text();
                       const detXml = new DOMParser().parseFromString(detText, "text/xml");
                       const itm = detXml.querySelector("item");
                       
@@ -279,7 +282,7 @@ addBtn.onclick = () => {
                       inputs.tMin.value = minT;
                       inputs.tMax.value = maxT;
                       
-                      updatePreview(); // Trigger live preview update manually
+                      updatePreview();
                       bggResults.style.display = "none";
                   } catch (e) {
                       bggResults.innerHTML = `<div class="bgg-loading">Error fetching details.</div>`;
