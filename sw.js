@@ -1,4 +1,4 @@
-const CACHE_NAME = "gametracker-v1";
+const CACHE_NAME = "gametracker-v2"; // Updated to V2 to bust the cache!
 const ASSETS = [
   "/",
   "/index.html",
@@ -40,12 +40,10 @@ self.addEventListener("activate", (evt) => {
 });
 
 // 3. Fetch (Network First, then Cache)
-// This ensures you always see updates immediately when online.
 self.addEventListener("fetch", (evt) => {
   evt.respondWith(
     fetch(evt.request)
       .then((res) => {
-        // Clone response to update cache for next time
         const resClone = res.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(evt.request, resClone);
@@ -53,7 +51,6 @@ self.addEventListener("fetch", (evt) => {
         return res;
       })
       .catch(() => {
-        // If offline, try to serve from cache
         return caches.match(evt.request);
       })
   );
