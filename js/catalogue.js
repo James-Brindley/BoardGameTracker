@@ -220,8 +220,8 @@ addBtn.onclick = () => {
       bggResults.innerHTML = `<div class="bgg-loading">Searching BGG...</div>`;
       
       try {
-          // BGG XML API 2 Search
-          const res = await fetch(`https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame`);
+          // ADDED PROXY HERE to fix CORS block
+          const res = await fetch(`https://corsproxy.io/?https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame`);
           const text = await res.text();
           const xml = new DOMParser().parseFromString(text, "text/xml");
           const items = xml.querySelectorAll("item");
@@ -248,8 +248,8 @@ addBtn.onclick = () => {
               div.onclick = async () => {
                   bggResults.innerHTML = `<div class="bgg-loading">Fetching details...</div>`;
                   try {
-                      // Fetch specific game details
-                      const detRes = await fetch(`https://boardgamegeek.com/xmlapi2/thing?id=${id}`);
+                      // ADDED PROXY HERE to fix CORS block
+                      const detRes = await fetch(`https://corsproxy.io/?https://boardgamegeek.com/xmlapi2/thing?id=${id}`);
                       const detText = await detRes.text();
                       const detXml = new DOMParser().parseFromString(detText, "text/xml");
                       const itm = detXml.querySelector("item");
