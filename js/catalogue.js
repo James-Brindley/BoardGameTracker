@@ -206,7 +206,7 @@ addBtn.onclick = () => {
 
   Object.values(inputs).forEach(input => input.addEventListener("input", updatePreview));
 
-  // --- BGG QUICK FILL LOGIC ---
+  // --- BGG QUICK FILL LOGIC (FIXED PROXY) ---
   const bggInput = document.getElementById("bggInput");
   const bggBtn = document.getElementById("bggBtn");
   const bggResults = document.getElementById("bggResults");
@@ -220,8 +220,14 @@ addBtn.onclick = () => {
       bggResults.innerHTML = `<div class="bgg-loading">Searching BGG...</div>`;
       
       try {
-          // ADDED PROXY HERE to fix CORS block
-          const res = await fetch(`https://corsproxy.io/?https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame`);
+          // 1. Properly construct and encode the BGG URL
+          const bggUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame`;
+          // 2. Wrap it securely in the AllOrigins proxy
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(bggUrl)}`;
+          
+          const res = await fetch(proxyUrl);
+          if (!res.ok) throw new Error("Proxy error");
+          
           const text = await res.text();
           const xml = new DOMParser().parseFromString(text, "text/xml");
           const items = xml.querySelectorAll("item");
@@ -248,8 +254,13 @@ addBtn.onclick = () => {
               div.onclick = async () => {
                   bggResults.innerHTML = `<div class="bgg-loading">Fetching details...</div>`;
                   try {
-                      // ADDED PROXY HERE to fix CORS block
-                      const detRes = await fetch(`https://corsproxy.io/?https://boardgamegeek.com/xmlapi2/thing?id=${id}`);
+                      // Do the exact same proxy wrapping for the details fetch
+                      const detBggUrl = `https://boardgamegeek.com/xmlapi2/thing?id=${id}`;
+                      const detProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(detBggUrl)}`;
+                      
+                      const detRes = await fetch(detProxyUrl);
+                      if (!detRes.ok) throw new Error("Proxy error");
+                      
                       const detText = await detRes.text();
                       const detXml = new DOMParser().parseFromString(detText, "text/xml");
                       const itm = detXml.querySelector("item");
