@@ -100,21 +100,7 @@ async function render() {
   });
 }
 
-// === BULLETPROOF BGG FETCH HELPER ===
-async function fetchBGG(url) {
-    try {
-        // Primary approach: wrap XML inside JSON to completely bypass strict browser blocking
-        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-        const data = await res.json();
-        return data.contents;
-    } catch (e) {
-        // Fallback proxy if the first one goes down
-        const res = await fetch(`https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`);
-        return await res.text();
-    }
-}
-
-// === NEW ADD GAME MODAL ===
+// === NEW ADD GAME MODAL (Direct BGG Fetch) ===
 addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -220,7 +206,7 @@ addBtn.onclick = () => {
 
   Object.values(inputs).forEach(input => input.addEventListener("input", updatePreview));
 
-  // --- BGG QUICK FILL LOGIC ---
+  // --- DIRECT BGG QUICK FILL LOGIC ---
   const bggInput = document.getElementById("bggInput");
   const bggBtn = document.getElementById("bggBtn");
   const bggResults = document.getElementById("bggResults");
@@ -234,16 +220,20 @@ addBtn.onclick = () => {
       bggResults.innerHTML = `<div class="bgg-loading">Searching BGG...</div>`;
       
       try {
+          // DIRECT FETCH: No proxy needed, BGG allows direct API calls!
           const bggUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame`;
-          const text = await fetchBGG(bggUrl);
           
+          const res = await fetch(bggUrl);
+          if (!res.ok) throw new Error("Network error from BGG");
+          
+          const text = await res.text();
           const xml = new DOMParser().parseFromString(text, "text/xml");
           const items = xml.querySelectorAll("item");
 
           bggResults.innerHTML = "";
 
           if (items.length === 0) {
-              bggResults.innerHTML = `<div class="bgg-loading">No results found.</div>`;
+              bggResults.innerHTML = `<div class="bgg-loading">No results found on BGG.</div>`;
               setTimeout(() => { bggResults.style.display = "none"; }, 2000);
               return;
           }
@@ -262,9 +252,13 @@ addBtn.onclick = () => {
               div.onclick = async () => {
                   bggResults.innerHTML = `<div class="bgg-loading">Fetching details...</div>`;
                   try {
+                      // DIRECT FETCH for specific game details
                       const detBggUrl = `https://boardgamegeek.com/xmlapi2/thing?id=${id}`;
-                      const detText = await fetchBGG(detBggUrl);
                       
+                      const detRes = await fetch(detBggUrl);
+                      if (!detRes.ok) throw new Error("Error fetching game details");
+                      
+                      const detText = await detRes.text();
                       const detXml = new DOMParser().parseFromString(detText, "text/xml");
                       const itm = detXml.querySelector("item");
                       
@@ -282,7 +276,7 @@ addBtn.onclick = () => {
                       inputs.tMin.value = minT;
                       inputs.tMax.value = maxT;
                       
-                      updatePreview();
+                      updatePreview(); // Update right side immediately
                       bggResults.style.display = "none";
                   } catch (e) {
                       bggResults.innerHTML = `<div class="bgg-loading">Error fetching details.</div>`;
