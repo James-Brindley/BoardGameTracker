@@ -36,8 +36,8 @@ async function init() {
     return;
   }
 
-  // Set defaults
-  if (!game.tracking) game.tracking = { score: false, won: false };
+  // Set defaults including lowScore
+  if (!game.tracking) game.tracking = { score: false, lowScore: false, won: false };
   if (!game.sessions) game.sessions = [];
   if (!game.playHistory) game.playHistory = {};
 
@@ -75,28 +75,45 @@ function render(allGames = []) {
 
 function renderAdvancedStats() {
   const hasData = game.sessions && game.sessions.length > 0;
-  const showScore = game.tracking.score || (hasData && game.sessions.some(s => s.score != null));
+  
+  // Track logic
+  const showHighScore = game.tracking.score;
+  const showLowScore = game.tracking.lowScore;
   const showWon = game.tracking.won || (hasData && game.sessions.some(s => s.won != null));
 
   advancedStatsContainer.innerHTML = "";
   advancedStatsContainer.className = "advanced-stats-container";
+  advancedStatsContainer.style.flexWrap = 'wrap'; // Allow wrapping if tracking all 3
   
-  if (!showScore && !showWon) {
+  if (!showHighScore && !showLowScore && !showWon) {
     advancedStatsContainer.style.display = 'none';
     return;
   }
   
   advancedStatsContainer.style.display = 'flex';
 
-  if (showScore) {
-    const scores = game.sessions.filter(s => s.score != null).map(s => s.score);
-    const highScore = scores.length ? Math.max(...scores) : "—";
+  // Extract valid scores
+  const validScores = game.sessions.filter(s => s.score != null && s.score !== "").map(s => Number(s.score));
+
+  // HIGH SCORE WIDGET
+  if (showHighScore) {
+    const highScore = validScores.length ? Math.max(...validScores) : "—";
     const div = document.createElement('div');
     div.className = "stat-widget";
     div.innerHTML = `<div class="label">High Score</div><div class="value">${highScore}</div>`;
     advancedStatsContainer.appendChild(div);
   }
 
+  // LOW SCORE WIDGET
+  if (showLowScore) {
+    const lowScore = validScores.length ? Math.min(...validScores) : "—";
+    const div = document.createElement('div');
+    div.className = "stat-widget";
+    div.innerHTML = `<div class="label">Low Score</div><div class="value">${lowScore}</div>`;
+    advancedStatsContainer.appendChild(div);
+  }
+
+  // WIN RATE WIDGET
   if (showWon) {
     const validSessions = game.sessions.filter(s => s.won != null);
     const wins = validSessions.filter(s => s.won === true).length;
@@ -148,7 +165,7 @@ function renderTracker() {
     const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
     let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
 
-    if (daySessions.length > 0 && (game.tracking.score || game.tracking.won)) {
+    if (daySessions.length > 0 && (game.tracking.score || game.tracking.lowScore || game.tracking.won)) {
       const hasScore = daySessions.some(s => s.score != null);
 
       if (!hasScore && game.tracking.won) {
@@ -169,10 +186,10 @@ function renderTracker() {
               ? `<span class="tooltip-win">W</span>` 
               : `<span class="tooltip-loss">L</span>`;
           }
-          if (game.tracking.score && s.score != null) {
+          if ((game.tracking.score || game.tracking.lowScore) && s.score != null) {
             rowHtml += `<span class="tooltip-tag tag-score">${s.score}</span>`;
           }
-          if ((!game.tracking.won || s.won == null) && (!game.tracking.score || s.score == null)) {
+          if ((!game.tracking.won || s.won == null) && (!game.tracking.score && !game.tracking.lowScore || s.score == null)) {
             rowHtml += `<span style="font-size:0.7rem">Played</span>`;
           }
           rowHtml += `</div>`;
@@ -197,7 +214,7 @@ function renderTracker() {
 
 async function handlePlayClick(dateKey, delta) {
   if (delta === 1) {
-    if (game.tracking.score || game.tracking.won) {
+    if (game.tracking.score || game.tracking.lowScore || game.tracking.won) {
       showPlayModal(dateKey);
     } else {
       updatePlayCount(dateKey, 1);
@@ -246,10 +263,8 @@ async function saveGame() {
 function renderBadges(allGames) {
     badgeContainer.innerHTML = "";
     
-    // Helper: Determine Color Class (Up to 10 for Monthly)
-    // Maps 1..10 to 5..50 to use the same color CSS logic
     const getMonthTier = (count) => {
-        if (count >= 10) return "tier-50"; // Legend
+        if (count >= 10) return "tier-50"; 
         if (count >= 9) return "tier-45";
         if (count >= 8) return "tier-40";
         if (count >= 7) return "tier-35";
@@ -258,14 +273,10 @@ function renderBadges(allGames) {
         if (count >= 4) return "tier-20";
         if (count >= 3) return "tier-15";
         if (count >= 2) return "tier-10";
-        return "tier-5"; // 1 win
+        return "tier-5"; 
     };
 
-    // Helper: Determine Color Class (Up to 50 for Plays/Wins)
-    const getHighTier = (val) => {
-        // Just returns tier-X directly since we have classes for them now
-        return `tier-${val}`;
-    };
+    const getHighTier = (val) => { return `tier-${val}`; };
 
     // 1. All-Time Rank
     const sorted = [...allGames].sort((a,b) => (b.plays||0) - (a.plays||0));
@@ -277,7 +288,6 @@ function renderBadges(allGames) {
     // 2. Play Count (5, 10, 15... 50)
     const p = game.plays || 0;
     let bestPlay = 0;
-    // Find the highest step of 5 that is <= current plays
     for(let i=50; i>=5; i-=5) { 
         if(p >= i) { bestPlay = i; break; } 
     }
@@ -297,14 +307,14 @@ function renderBadges(allGames) {
         }
     }
 
-    // 4. Monthly Champion (Stacked + HTML Tooltip)
+    // 4. Monthly Champion
     const myMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0, 7)));
     const currentMonthKey = new Date().toISOString().slice(0, 7);
     
     let wonMonths = [];
 
     myMonths.forEach(month => {
-        if (month >= currentMonthKey) return; // Skip current
+        if (month >= currentMonthKey) return; 
 
         let maxPlays = 0;
         let bestGameId = null;
@@ -329,14 +339,12 @@ function renderBadges(allGames) {
 
     if (wonMonths.length > 0) {
         let count = wonMonths.length;
-        // Cap at 10 for coloring purposes
         let displayCount = count > 10 ? 10 : count;
         let tierClass = getMonthTier(displayCount);
 
         const div = document.createElement("div");
         div.className = `badge ${tierClass}`;
         
-        // HTML Tooltip Content
         const tooltipHtml = `
             <div class="badge-tooltip">
                 <div style="border-bottom:1px solid rgba(255,255,255,0.2); margin-bottom:4px; padding-bottom:2px;">MONTHS WON</div>
@@ -369,15 +377,54 @@ function showEditModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
   backdrop.innerHTML = `
-    <div class="modal"><div class="close-button">×</div><h2>Edit Game</h2>
-    <div class="input-header">Basic</div><input id="editName" class="ui-input" value="${game.name}">
-    <input id="editImage" class="ui-input" value="${game.image||''}" placeholder="Image URL" style="margin-top:10px">
-    <div class="input-header">Stats</div>
-    <div class="row"><input id="editPMin" class="ui-input" value="${game.players.min||''}"><input id="editPMax" class="ui-input" value="${game.players.max||''}"></div>
-    <div class="row"><input id="editTMin" class="ui-input" value="${game.playTime.min||''}"><input id="editTMax" class="ui-input" value="${game.playTime.max||''}"></div>
-    <div class="toggle-group" style="margin-top:10px"><label><input type="checkbox" id="editTrackScore" ${game.tracking.score?'checked':''}> Score</label><label><input type="checkbox" id="editTrackWon" ${game.tracking.won?'checked':''}> Win/Loss</label></div>
-    <div class="input-header">Review</div><input id="editRating" class="ui-input" value="${game.rating||''}" placeholder="0-10"><textarea id="editReview" style="margin-top:5px">${game.review||''}</textarea>
-    <button id="saveEdit" style="width:100%;margin-top:15px">Save</button><button id="deleteGameBtn" class="danger" style="width:100%;margin-top:10px">Delete</button></div>
+    <div class="modal">
+      <div class="close-button">×</div>
+      <h2>Edit Game</h2>
+      
+      <div class="input-header">Basic Info</div>
+      <input id="editName" class="ui-input" value="${game.name}" style="margin-bottom:10px;">
+      <input id="editImage" class="ui-input" value="${game.image||''}" placeholder="Image URL">
+      
+      <div class="input-header">Stats</div>
+      <div class="row">
+        <input id="editPMin" type="number" class="ui-input" value="${game.players.min||''}" placeholder="Min P">
+        <input id="editPMax" type="number" class="ui-input" value="${game.players.max||''}" placeholder="Max P">
+      </div>
+      <div class="row">
+        <input id="editTMin" type="number" class="ui-input" value="${game.playTime.min||''}" placeholder="Min T">
+        <input id="editTMax" type="number" class="ui-input" value="${game.playTime.max||''}" placeholder="Max T">
+      </div>
+      
+      <div class="input-header">Tracking Features</div>
+      <div class="toggle-row">
+          <span style="font-weight:600; font-size:0.9rem;">Track High Score</span>
+          <label class="toggle-switch">
+              <input type="checkbox" id="editTrackScore" ${game.tracking.score?'checked':''}>
+              <span class="toggle-slider"></span>
+          </label>
+      </div>
+      <div class="toggle-row">
+          <span style="font-weight:600; font-size:0.9rem;">Track Low Score</span>
+          <label class="toggle-switch">
+              <input type="checkbox" id="editTrackLowScore" ${game.tracking.lowScore?'checked':''}>
+              <span class="toggle-slider"></span>
+          </label>
+      </div>
+      <div class="toggle-row">
+          <span style="font-weight:600; font-size:0.9rem;">Track Win/Loss</span>
+          <label class="toggle-switch">
+              <input type="checkbox" id="editTrackWon" ${game.tracking.won?'checked':''}>
+              <span class="toggle-slider"></span>
+          </label>
+      </div>
+      
+      <div class="input-header">Review</div>
+      <input id="editRating" type="number" step="0.1" class="ui-input" value="${game.rating||''}" placeholder="Rating 0-10">
+      <textarea id="editReview" placeholder="Review..." style="margin-top:10px">${game.review||''}</textarea>
+      
+      <button id="saveEdit" style="width:100%; margin-top:15px">Save</button>
+      <button id="deleteGameBtn" class="danger" style="width:100%; margin-top:10px">Delete</button>
+    </div>
   `;
   backdrop.querySelector(".close-button").onclick=()=>backdrop.remove();
   backdrop.querySelector("#saveEdit").onclick=async()=>{
@@ -387,7 +434,14 @@ function showEditModal() {
       game.review=backdrop.querySelector("#editReview").value;
       game.players={min:backdrop.querySelector("#editPMin").value,max:backdrop.querySelector("#editPMax").value};
       game.playTime={min:backdrop.querySelector("#editTMin").value,max:backdrop.querySelector("#editTMax").value};
-      game.tracking={score:backdrop.querySelector("#editTrackScore").checked,won:backdrop.querySelector("#editTrackWon").checked};
+      
+      // Update tracking state
+      game.tracking={
+          score:backdrop.querySelector("#editTrackScore").checked,
+          lowScore:backdrop.querySelector("#editTrackLowScore").checked,
+          won:backdrop.querySelector("#editTrackWon").checked
+      };
+      
       await updateGame(game); backdrop.remove(); saveGame();
   };
   backdrop.querySelector("#deleteGameBtn").onclick=async()=>{if(confirm("Delete?")){await deleteGame(game.id);window.location.href="catalogue.html";}};
@@ -399,7 +453,7 @@ function showPlayModal(dateKey) {
     backdrop.className = "modal-backdrop";
     backdrop.innerHTML = `
       <div class="modal"><div class="close-button">×</div><h2>Log Play</h2><p style="text-align:center">${dateKey}</p>
-      ${game.tracking.score ? `<input id="logScore" class="ui-input" type="number" placeholder="Score">` : ''}
+      ${(game.tracking.score || game.tracking.lowScore) ? `<input id="logScore" class="ui-input" type="number" placeholder="Score">` : ''}
       ${game.tracking.won ? `<div style="display:flex;gap:10px;margin-top:10px"><button id="btnWin" style="flex:1" class="secondary">Won</button><button id="btnLoss" style="flex:1" class="secondary">Lost</button></div><input type="hidden" id="logWon">` : ''}
       <button id="confirmPlay" style="width:100%;margin-top:1rem">Save</button></div>
     `;
