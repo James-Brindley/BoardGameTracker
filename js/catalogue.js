@@ -21,7 +21,6 @@ async function render() {
   
   let games = await getGames();
 
-  // Safety Check
   if (!games || !Array.isArray(games)) {
       list.innerHTML = `<div class="card" style="text-align:center">Error loading games.</div>`;
       return;
@@ -36,37 +35,19 @@ async function render() {
   if (searchValue) {
     games = games.filter(g => g.name.toLowerCase().includes(searchValue));
   }
-
   if (!isNaN(playersValue)) {
-    games = games.filter(g =>
-      g.players?.min != null &&
-      g.players?.max != null &&
-      playersValue >= g.players.min &&
-      playersValue <= g.players.max
-    );
+    games = games.filter(g => g.players?.min != null && g.players?.max != null && playersValue >= g.players.min && playersValue <= g.players.max);
   }
-
   if (!isNaN(timeValue)) {
-    games = games.filter(g =>
-      g.playTime?.min != null &&
-      g.playTime?.max != null &&
-      timeValue >= g.playTime.min &&
-      timeValue <= g.playTime.max
-    );
+    games = games.filter(g => g.playTime?.min != null && g.playTime?.max != null && timeValue >= g.playTime.min && timeValue <= g.playTime.max);
   }
-
   if (!isNaN(ratingValue)) {
     games = games.filter(g => g.rating != null && g.rating >= ratingValue);
   }
-
   if (statusValue === "played") games = games.filter(g => g.plays > 0);
   if (statusValue === "unplayed") games = games.filter(g => g.plays === 0);
 
-  games.sort((a, b) =>
-    sort.value === "name"
-      ? a.name.localeCompare(b.name)
-      : (b[sort.value] || 0) - (a[sort.value] || 0)
-  );
+  games.sort((a, b) => sort.value === "name" ? a.name.localeCompare(b.name) : (b[sort.value] || 0) - (a[sort.value] || 0));
 
   list.innerHTML = "";
 
@@ -78,7 +59,6 @@ async function render() {
   games.forEach(g => {
     const card = document.createElement("div");
     card.className = "game-card";
-
     card.innerHTML = `
       <img src="${g.image || "https://via.placeholder.com/400"}" loading="lazy">
       <div class="card-header">
@@ -91,16 +71,12 @@ async function render() {
       </div>
       <div class="plays">${g.plays || 0} Plays</div>
     `;
-
-    card.onclick = () => {
-      location.href = `game.html?id=${g.id}`;
-    };
-
+    card.onclick = () => { location.href = `game.html?id=${g.id}`; };
     list.appendChild(card);
   });
 }
 
-// === NEW ADD GAME MODAL (Split Layout, Preview, Toggles - NO BGG) ===
+// === NEW ADD GAME MODAL ===
 addBtn.onclick = () => {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -128,9 +104,16 @@ addBtn.onclick = () => {
             
             <div class="input-header">Tracking Features</div>
             <div class="toggle-row">
-                <span style="font-weight:600; font-size:0.9rem;">Track Score</span>
+                <span style="font-weight:600; font-size:0.9rem;">Track High Score</span>
                 <label class="toggle-switch">
                     <input type="checkbox" id="trackScore">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <span style="font-weight:600; font-size:0.9rem;">Track Low Score</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="trackLowScore">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -196,7 +179,6 @@ addBtn.onclick = () => {
       preview.time.textContent = `⏱ ${formatRange(tMinVal, tMaxVal, 'm')}`;
   };
 
-  // Bind all inputs to trigger preview update
   Object.values(inputs).forEach(input => input.addEventListener("input", updatePreview));
 
   // --- SAVE LOGIC ---
@@ -221,6 +203,7 @@ addBtn.onclick = () => {
       playHistory: {},
       tracking: {
         score: document.getElementById("trackScore").checked,
+        lowScore: document.getElementById("trackLowScore").checked,
         won: document.getElementById("trackWon").checked
       }
     };
