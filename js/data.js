@@ -32,7 +32,8 @@ export async function getGames() {
     players: g.players || { min: null, max: null },
     playTime: g.play_time || { min: null, max: null },
     playHistory: g.play_history || {},
-    tracking: g.tracking_type || { score: false, won: false }, 
+    // Added lowScore to defaults
+    tracking: g.tracking_type || { score: false, lowScore: false, won: false }, 
     sessions: g.sessions || []
   }));
 }
@@ -93,7 +94,8 @@ export async function importGames(gamesArray) {
     play_time: g.playTime || g.play_time,
     play_history: g.playHistory || g.play_history,
     plays: g.plays,
-    tracking_type: g.tracking || { score: false, won: false },
+    // Added lowScore to defaults
+    tracking_type: g.tracking || { score: false, lowScore: false, won: false },
     sessions: g.sessions || []
   }));
   const { error } = await supabase.from('games').insert(formattedGames);
