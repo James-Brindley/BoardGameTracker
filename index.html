@@ -3,67 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stats</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <img src="logo.png" alt="Logo" class="site-logo" onclick="location.href='index.html'">
-  </div>
-  <div class="header-center">
-    <h1>Overview</h1>
-  </div>
-  <div class="header-right">
-    <nav class="desktop-nav">
-      <a href="index.html" class="active">Stats</a>
-      <a href="catalogue.html">Library</a>
-      <a href="settings.html">Settings</a>
-    </nav>
-    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-  </div>
-</header>
-
-<div class="mobile-nav-overlay" id="mobileNav">
-  <a href="index.html" class="active">Stats</a>
-  <a href="catalogue.html">Library</a>
-  <a href="settings.html">Settings</a>
-</div>
+<div id="nav-container"></div>
 
 <main>
-  <section class="card">
-    <div class="tracker-header">
-      <button id="prevMonth" class="secondary" style="padding:8px 16px;">←</button>
-      <h2 id="monthLabel" style="margin:0">Month</h2>
-      <button id="nextMonth" class="secondary" style="padding:8px 16px;">→</button>
-    </div>
+  <div class="page-title-row">
+    <h1 class="page-title">Dashboard 🚀</h1>
+    <p class="page-subtitle">Your board game collection at a glance.</p>
+  </div>
 
-    <div class="podium" id="monthPodium"></div>
-    <div id="monthRest"></div>
-
-    <div class="tracker-container">
-        <div class="tracker-grid small" id="globalTracker"></div>
+  <div class="quick-stats-grid">
+    <div class="stat-card">
+      <div class="stat-title">Total Plays</div>
+      <div class="stat-value" id="qs-plays">0</div>
     </div>
-  </section>
-
-  <section class="card">
-    <div class="tracker-header">
-      <h2>All-Time Leaders</h2>
+    <div class="stat-card">
+      <div class="stat-title">Unique Games</div>
+      <div class="stat-value" id="qs-unique">0</div>
     </div>
-    <div class="podium" id="allTimePodium"></div>
-    <div id="top10"></div>
-  </section>
+    <div class="stat-card">
+      <div class="stat-title">H-Index</div>
+      <div class="stat-value" id="qs-hindex">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Win Rate</div>
+      <div class="stat-value" id="qs-winrate">0%</div>
+    </div>
+  </div>
+
+  <div class="dashboard-layout">
+    <section class="card col-span-2">
+      <div class="tracker-header">
+        <button id="prevMonth" class="secondary icon-btn">‹</button>
+        <h2 id="monthLabel" style="margin:0; font-size:1.2rem;">Month</h2>
+        <button id="nextMonth" class="secondary icon-btn">›</button>
+      </div>
+      <div class="tracker-container" style="box-shadow:none; padding:0; border:none; margin-bottom:0;">
+          <div class="tracker-grid small" id="globalTracker"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="font-size:1.2rem; margin-bottom:1rem;">Recent Activity</h2>
+      <div id="recentActivityList" class="recent-list"></div>
+    </section>
+
+    <section class="card col-span-2">
+      <h2 style="font-size:1.2rem; margin-bottom:1rem; text-align:center;">Top Games This Month</h2>
+      <div class="podium" id="monthPodium"></div>
+    </section>
+
+    <section class="card">
+      <h2 style="font-size:1.2rem; margin-bottom:1rem;">All-Time Leaders</h2>
+      <div id="top10"></div>
+    </section>
+  </div>
 </main>
 
 <script type="module" src="js/theme.js"></script>
 <script type="module" src="js/stats.js"></script>
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>
