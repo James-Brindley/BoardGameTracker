@@ -12,7 +12,6 @@ let view = new Date();
 async function renderAll() {
   const games = await getGames();
   
-  // Quick Stats Calculation
   let totalPlays = 0;
   let uniquePlayed = 0;
   let totalWins = 0;
@@ -35,7 +34,6 @@ async function renderAll() {
     });
   });
 
-  // Calculate H-Index
   playCounts.sort((a,b) => b - a);
   let hIndex = 0;
   for(let i=0; i<playCounts.length; i++) {
@@ -45,17 +43,15 @@ async function renderAll() {
 
   const winRate = totalWLSessions > 0 ? Math.round((totalWins/totalWLSessions)*100) : 0;
 
-  // Update Hero Stats
   document.getElementById('qs-plays').textContent = totalPlays;
   document.getElementById('qs-unique').textContent = uniquePlayed;
   document.getElementById('qs-hindex').textContent = hIndex;
   document.getElementById('qs-winrate').textContent = winRate + '%';
 
-  // Render Recent Activity (Top 6)
   allSessions.sort((a,b) => b.timestamp - a.timestamp);
-  renderRecentActivity(allSessions.slice(0, 6));
+  // Slice to 10 so there's enough to fill the scrollable box height
+  renderRecentActivity(allSessions.slice(0, 10));
 
-  // Monthly Stats
   const key = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
   const mGames = games.map(g => ({
     ...g,
@@ -64,14 +60,11 @@ async function renderAll() {
       .reduce((a, [, v]) => a + v, 0)
   })).filter(g => g.monthPlays > 0).sort((a, b) => b.monthPlays - a.monthPlays);
 
-  // All-Time Stats
   const aGames = [...games].filter(g => (g.plays || 0) > 0).sort((a, b) => (b.plays || 0) - (a.plays || 0));
 
   renderTracker(games);
   renderPodium(monthPodium, mGames, "monthPlays");
   renderPodium(allTimePodium, aGames, "plays");
-  
-  // NOTE: Starts at index 3 so we show ranks 4-10!
   renderList(top10, aGames, 3, 10, "plays");
 }
 
@@ -86,7 +79,6 @@ function renderRecentActivity(recentSessions) {
     const row = document.createElement("div");
     row.className = "top10-row activity-row";
     
-    // Determine status badge
     let badgeHtml = `<span style="font-size:0.7rem; color:var(--subtext)">Played</span>`;
     if (session.won === true) badgeHtml = `<span style="color:var(--success); font-weight:800; font-size:0.8rem">WIN</span>`;
     if (session.won === false) badgeHtml = `<span style="color:var(--danger); font-weight:800; font-size:0.8rem">LOSS</span>`;
