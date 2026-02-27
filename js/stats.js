@@ -3,15 +3,57 @@ import { getGames } from "./data.js";
 const tracker = document.getElementById("globalTracker");
 const label = document.getElementById("monthLabel");
 const monthPodium = document.getElementById("monthPodium");
-const monthRest = document.getElementById("monthRest");
-const allTimePodium = document.getElementById("allTimePodium");
 const top10 = document.getElementById("top10");
+const recentActivityList = document.getElementById("recentActivityList");
 
 let view = new Date();
 
 async function renderAll() {
   const games = await getGames();
   
+  // Quick Stats Calculation
+  let totalPlays = 0;
+  let uniquePlayed = 0;
+  let totalWins = 0;
+  let totalWLSessions = 0;
+  const playCounts = [];
+  let allSessions = [];
+
+  games.forEach(g => {
+    const plays = g.plays || 0;
+    totalPlays += plays;
+    if (plays > 0) uniquePlayed++;
+    playCounts.push(plays);
+
+    (g.sessions || []).forEach(s => {
+      allSessions.push({ ...s, gameName: g.name, gameId: g.id, image: g.image });
+      if (s.won !== null && s.won !== undefined) {
+          totalWLSessions++;
+          if (s.won) totalWins++;
+      }
+    });
+  });
+
+  // Calculate H-Index
+  playCounts.sort((a,b) => b - a);
+  let hIndex = 0;
+  for(let i=0; i<playCounts.length; i++) {
+      if(playCounts[i] >= i + 1) hIndex = i + 1;
+      else break;
+  }
+
+  const winRate = totalWLSessions > 0 ? Math.round((totalWins/totalWLSessions)*100) : 0;
+
+  // Update Hero Stats
+  document.getElementById('qs-plays').textContent = totalPlays;
+  document.getElementById('qs-unique').textContent = uniquePlayed;
+  document.getElementById('qs-hindex').textContent = hIndex;
+  document.getElementById('qs-winrate').textContent = winRate + '%';
+
+  // Render Recent Activity (Top 5)
+  allSessions.sort((a,b) => b.timestamp - a.timestamp);
+  renderRecentActivity(allSessions.slice(0, 6));
+
   // Monthly Stats
   const key = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
   const mGames = games.map(g => ({
@@ -26,9 +68,44 @@ async function renderAll() {
 
   renderTracker(games);
   renderPodium(monthPodium, mGames, "monthPlays");
-  renderList(monthRest, mGames, 3, 5, "monthPlays"); 
-  renderPodium(allTimePodium, aGames, "plays");
-  renderList(top10, aGames, 3, 10, "plays");
+  renderList(top10, aGames, 0, 10, "plays");
+}
+
+function renderRecentActivity(recentSessions) {
+  recentActivityList.innerHTML = "";
+  if (recentSessions.length === 0) {
+    recentActivityList.innerHTML = `<div style="text-align:center; color:var(--subtext); padding:2rem 0;">No plays logged yet.</div>`;
+    return;
+  }
+
+  recentSessions.forEach(session => {
+    const row = document.createElement("div");
+    row.className = "top10-row activity-row";
+    
+    // Determine status badge (Win/Loss/Played)
+    let badgeHtml = `<span style="font-size:0.7rem; color:var(--subtext)">Played</span>`;
+    if (session.won === true) badgeHtml = `<span style="color:var(--success); font-weight:800; font-size:0.8rem">WIN</span>`;
+    if (session.won === false) badgeHtml = `<span style="color:var(--danger); font-weight:800; font-size:0.8rem">LOSS</span>`;
+    if (session.score != null) badgeHtml += ` <span style="font-size:0.7rem; background:rgba(120,120,128,0.1); padding:2px 6px; border-radius:4px; margin-left:4px;">Score: ${session.score}</span>`;
+
+    // Format Date nicely
+    const [y, m, d] = session.date.split('-');
+    const formattedDate = `${d}/${m}`;
+
+    row.innerHTML = `
+      <img src="${session.image || 'https://via.placeholder.com/200'}" loading="lazy" style="width:40px !important; height:40px !important;">
+      <div style="flex:1">
+        <div style="font-weight:700; font-size:0.95rem; line-height:1.2;">${session.gameName}</div>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+          <span style="font-size:0.75rem; color:var(--subtext);">${formattedDate}</span>
+          ${badgeHtml}
+        </div>
+      </div>
+      <div style="color:var(--accent); font-weight:800;">›</div>
+    `;
+    row.onclick = () => location.href = `game.html?id=${session.gameId}`;
+    recentActivityList.appendChild(row);
+  });
 }
 
 function renderPodium(container, games, valueKey) {
@@ -49,8 +126,8 @@ function renderPodium(container, games, valueKey) {
       <div class="rank-badge">${idx + 1}</div>
       <img src="${g.image || 'https://via.placeholder.com/400'}" loading="lazy">
       <div class="podium-info">
-        <div style="font-weight:700; font-size:0.9rem; line-height:1.2; margin-bottom:4px">${g.name}</div>
-        <div style="font-size:0.8rem; color:var(--subtext)">${g[valueKey]} plays</div>
+        <div style="font-weight:800; font-size:0.95rem; line-height:1.2; margin-bottom:4px">${g.name}</div>
+        <div style="font-size:0.8rem; color:var(--subtext); font-weight:600;">${g[valueKey]} Plays</div>
       </div>
     `;
     card.onclick = () => location.href = `game.html?id=${g.id}`;
@@ -64,10 +141,8 @@ function renderList(container, games, start, end, valueKey) {
   if(slice.length === 0) return;
 
   const wrapper = document.createElement("div");
-  // iOS grouped list style
-  wrapper.style.borderRadius = "12px";
+  wrapper.style.borderRadius = "16px";
   wrapper.style.overflow = "hidden";
-  wrapper.style.marginTop = "1rem";
   wrapper.style.border = "1px solid var(--border)";
 
   slice.forEach((g, i) => {
@@ -77,10 +152,10 @@ function renderList(container, games, start, end, valueKey) {
       <div class="top10-rank">${start + i + 1}</div>
       <img src="${g.image || 'https://via.placeholder.com/200'}" loading="lazy">
       <div style="flex:1">
-        <div style="font-weight:600">${g.name}</div>
-        <div style="font-size:0.8rem; color:var(--subtext)">${g[valueKey]} plays</div>
+        <div style="font-weight:700; font-size:0.95rem;">${g.name}</div>
+        <div style="font-size:0.8rem; color:var(--subtext); font-weight:600;">${g[valueKey]} plays</div>
       </div>
-      <div style="color:var(--subtext)">›</div>
+      <div style="color:var(--accent); font-weight:800;">›</div>
     `;
     row.onclick = () => location.href = `game.html?id=${g.id}`;
     wrapper.appendChild(row);
