@@ -50,7 +50,7 @@ async function renderAll() {
 
   allSessions.sort((a,b) => b.timestamp - a.timestamp);
   
-  // FIX: Sliced down to exactly 5 so it fits the box perfectly without scrolling
+  // FIX: Force slice to EXACTLY 5 games to avoid scroll bars and match calendar height
   renderRecentActivity(allSessions.slice(0, 5));
 
   const key = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
