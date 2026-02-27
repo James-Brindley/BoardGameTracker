@@ -54,7 +54,14 @@ function render(allGames = []) {
   image.src = game.image || "https://via.placeholder.com/800x360";
   plays.textContent = game.plays || 0;
   
-  ratingView.textContent = game.rating != null ? `${game.rating}/10` : "—";
+  // Add the star directly inside the badge text!
+  ratingView.textContent = game.rating != null ? `★ ${game.rating}` : "—";
+  
+  if (game.rating == null) {
+      ratingView.style.display = 'none'; // Hide the nice badge entirely if unrated
+  } else {
+      ratingView.style.display = 'inline-block';
+  }
   reviewView.textContent = game.review?.trim() || "No review logged.";
 
   if (game.playTime?.min != null) {
