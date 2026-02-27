@@ -36,9 +36,8 @@ async function init() {
     return;
   }
 
-  // Set defaults including status
   if (!game.tracking) game.tracking = { score: false, lowScore: false, won: false, status: "owned" };
-  if (!game.tracking.status) game.tracking.status = "owned"; // Retroactive fix for old saves
+  if (!game.tracking.status) game.tracking.status = "owned"; 
   if (!game.sessions) game.sessions = [];
   if (!game.playHistory) game.playHistory = {};
 
@@ -54,14 +53,14 @@ function render(allGames = []) {
   image.src = game.image || "https://via.placeholder.com/800x360";
   plays.textContent = game.plays || 0;
   
-  // Add the star directly inside the badge text!
-  ratingView.textContent = game.rating != null ? `★ ${game.rating}` : "—";
-  
-  if (game.rating == null) {
-      ratingView.style.display = 'none'; // Hide the nice badge entirely if unrated
-  } else {
+  // FIX: Matches the catalogue rating badge UI exactly
+  if (game.rating != null) {
+      ratingView.textContent = `★ ${game.rating}`;
       ratingView.style.display = 'inline-block';
+  } else {
+      ratingView.style.display = 'none';
   }
+  
   reviewView.textContent = game.review?.trim() || "No review logged.";
 
   if (game.playTime?.min != null) {
@@ -76,7 +75,6 @@ function render(allGames = []) {
       : `${game.players.min}`;
   } else { playerView.textContent = "—"; }
 
-  // Render Status Pill under title
   let statusContainer = document.getElementById("gameStatusPill");
   if (!statusContainer) {
       statusContainer = document.createElement("div");
@@ -86,8 +84,8 @@ function render(allGames = []) {
   }
   
   const sMap = { "owned": "Owned", "wishlist": "Wishlist", "friends": "Friend's Copy", "previously_owned": "Previously Owned" };
-  let sColor = "rgba(52,199,89,0.1)"; let tColor = "var(--success)"; // Owned Green
-  if (game.tracking.status === "wishlist") { sColor = "rgba(0,122,255,0.1)"; tColor = "var(--accent)"; }
+  let sColor = "rgba(16, 185, 129, 0.1)"; let tColor = "var(--success)"; // Owned Green
+  if (game.tracking.status === "wishlist") { sColor = "rgba(0,122,255,0.1)"; tColor = "#007AFF"; }
   else if (game.tracking.status === "friends" || game.tracking.status === "previously_owned") { sColor = "rgba(120,120,128,0.1)"; tColor = "var(--subtext)"; }
   
   statusContainer.innerHTML = `<span style="padding:4px 12px; border-radius:99px; font-size:0.8rem; font-weight:700; background:${sColor}; color:${tColor};">${sMap[game.tracking.status] || "Owned"}</span>`;
@@ -381,7 +379,6 @@ function createBadge(title, sub, tierClass) {
     badgeContainer.appendChild(el);
 }
 
-// Edit Modal updated with Status Dropdown
 function showEditModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -446,7 +443,10 @@ function showEditModal() {
   backdrop.querySelector("#saveEdit").onclick=async()=>{
       game.name=backdrop.querySelector("#editName").value;
       game.image=backdrop.querySelector("#editImage").value;
-      game.rating=parseFloat(backdrop.querySelector("#editRating").value);
+      
+      let ratVal = backdrop.querySelector("#editRating").value;
+      game.rating = ratVal ? parseFloat(ratVal) : null;
+      
       game.review=backdrop.querySelector("#editReview").value;
       game.players={min:backdrop.querySelector("#editPMin").value,max:backdrop.querySelector("#editPMax").value};
       game.playTime={min:backdrop.querySelector("#editTMin").value,max:backdrop.querySelector("#editTMax").value};
