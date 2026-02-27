@@ -12,30 +12,14 @@
   </script>
 </head>
 <body>
-<header>
-  <div class="header-left">
-    <img src="logo.png" alt="Logo" class="site-logo" onclick="location.href='index.html'">
-  </div>
-  <div class="header-center">
-    <h1>Settings</h1>
-  </div>
-  <div class="header-right">
-    <nav class="desktop-nav">
-      <a href="index.html">Stats</a>
-      <a href="catalogue.html">Library</a>
-      <a href="settings.html" class="active">Settings</a>
-    </nav>
-    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-  </div>
-</header>
 
-<div class="mobile-nav-overlay" id="mobileNav">
-  <a href="index.html">Stats</a>
-  <a href="catalogue.html">Library</a>
-  <a href="settings.html">Settings</a>
-</div>
+<div id="nav-container"></div>
 
 <main>
+  <div class="page-title-row">
+    <h1 class="page-title">Settings ⚙️</h1>
+  </div>
+
   <div class="card settings-section">
     <div class="settings-header">
         <h2>Appearance</h2>
@@ -71,8 +55,8 @@
         <h2>Account</h2>
     </div>
     <div class="settings-item" style="border-bottom: none;">
-        <span id="userEmail" style="color:var(--subtext)">Loading...</span>
-        <button id="logoutBtn" class="secondary" style="color:var(--danger)">Log Out</button>
+        <span id="userEmail" style="color:var(--subtext); font-weight:700;">Loading...</span>
+        <button id="logoutBtn" class="secondary" style="color:var(--danger); border-color:var(--danger);">Log Out</button>
     </div>
   </div>
 </main>
@@ -92,14 +76,6 @@
       // Logout
       document.getElementById('logoutBtn').onclick = async () => {
         if (confirm("Log out now?")) await logout();
-      };
-
-      // Theme
-      const themeToggle = document.getElementById("themeToggle");
-      themeToggle.onclick = () => {
-        const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        localStorage.setItem("theme", next);
-        document.documentElement.setAttribute("data-theme", next);
       };
 
       // Data Backup
@@ -140,9 +116,7 @@
 </script>
 <script type="module" src="js/theme.js"></script>
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>
