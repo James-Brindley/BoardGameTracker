@@ -82,7 +82,7 @@ body::after {
   background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
   z-index: -1;
   opacity: 0.6;
-  filter: blur(100px); /* Fixes the harsh edges! */
+  filter: blur(100px);
   animation: floatGlow 15s ease-in-out infinite alternate;
   pointer-events: none;
 }
@@ -107,7 +107,7 @@ header.site-header {
   background-color: var(--nav-bg); 
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); 
   border-bottom: 2px solid var(--border); 
-  padding: 0.8rem 1.5rem; 
+  padding: 0.8rem 2%; /* Reduced side padding for wider layout */
   display: grid; 
   grid-template-columns: 1fr minmax(200px, 400px) 1fr; 
   gap: 1.5rem;
@@ -121,6 +121,9 @@ header.site-header {
 .brand-logo:hover { transform: scale(1.05) rotate(-3deg); }
 .logo-icon { font-size: 1.6rem; }
 .logo-text { font-size: 1.2rem; font-weight: 900; letter-spacing: -0.5px; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+.back-link { display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--accent); font-weight: 800; font-size: 1rem; transition: transform 0.2s; }
+.back-link:hover { transform: translateX(-4px); }
 
 /* LIVE SEARCH BAR */
 .global-search-container { position: relative; width: 100%; display: flex; align-items: center; }
@@ -148,8 +151,8 @@ header.site-header {
 .mobile-nav-overlay a { padding: 14px; background: var(--bg); border-radius: 16px; text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; text-align: center; border: 2px solid var(--border); transition: all 0.2s; }
 .mobile-nav-overlay a.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 8px 20px var(--accent-glow); }
 
-/* LAYOUT */
-main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; min-height: 80vh; }
+/* LAYOUT (Wider max-width, less padding) */
+main { max-width: 1350px; margin: 0 auto; padding: 2.5rem 2%; min-height: 80vh; }
 .page-title-row { margin-bottom: 2rem; }
 .page-title { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 0.2rem; color: var(--text); }
 .page-subtitle { color: var(--subtext); font-weight: 600; font-size: 1rem; }
@@ -161,13 +164,11 @@ h2 { font-size: 1.6rem; font-weight: 900; margin-bottom: 1.2rem; letter-spacing:
 /* DASHBOARD GRID (Index) */
 .dashboard-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: stretch; }
 .col-span-2 { grid-column: span 2; }
-.all-time-split { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; } /* Vertically centered */
+.all-time-split { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; } /* Centers the podium vertically */
 
 .calendar-card { display: flex; flex-direction: column; justify-content: center; }
-.recent-card { display: flex; flex-direction: column; justify-content: flex-start; }
-.recent-list { flex-grow: 1; overflow-y: auto; max-height: 260px; padding-right: 6px; }
-.recent-list::-webkit-scrollbar { width: 6px; }
-.recent-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+.recent-card { display: flex; flex-direction: column; justify-content: center; } /* Centered dynamically */
+.recent-list { flex-grow: 1; } /* Removed restricted height & scroll so it fits content */
 
 /* QUICK STATS HERO */
 .quick-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
@@ -211,11 +212,19 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
 .filter-group { display: flex; flex-direction: column; }
 .filter-group label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--subtext); margin-bottom: 6px; }
 
-/* GAME PAGE */
+/* GAME PAGE (Restored UI) */
 .game-hero { text-align: center; margin-bottom: 2rem; position: relative; }
 .game-title { font-size: 3rem; font-weight: 900; margin: 1rem 0 0.5rem; letter-spacing: -1.5px; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .game-image { width: 100%; height: 400px; object-fit: cover; border-radius: 30px; box-shadow: var(--shadow-md); margin-bottom: 1rem; border: 4px solid var(--card); }
 .game-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+
+/* RESTORED STAT WIDGETS */
+.stat-widget { background: var(--card); padding: 1.5rem 1.2rem; border-radius: var(--radius); text-align: center; box-shadow: var(--shadow-sm); border: 2px solid var(--border); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.stat-widget:hover { transform: translateY(-5px) scale(1.03); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+.stat-widget .label { font-size: 0.75rem; color: var(--subtext); text-transform: uppercase; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
+.stat-widget .value { font-size: 1.8rem; font-weight: 900; color: var(--text); }
+.advanced-stats-container { display: flex; gap: 1rem; margin-top: 1rem; margin-bottom: 2.5rem; justify-content: center; flex-wrap: wrap; }
+.win-text { color: var(--success); } .loss-text { color: var(--danger); }
 
 /* TRACKER */
 .tracker-container { border-radius: var(--radius); padding: 1.5rem; }
@@ -237,19 +246,19 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
 .tooltip-win { color: #10B981; font-weight: 900; margin-right: 4px; }
 .tooltip-loss { color: #EF4444; font-weight: 900; margin-right: 4px; }
 
-/* PODIUMS */
-.podium { display: flex; justify-content: center; align-items: flex-end; gap: 1rem; margin: 1rem 0 0; min-height: 280px; }
+/* PODIUMS (Fixed sizing so they don't clip) */
+.podium { display: flex; justify-content: center; align-items: flex-end; gap: 1rem; margin: 1rem 0; height: 320px; }
 .podium-card { width: 30%; display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--card); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); cursor: pointer; border: 2px solid var(--border); position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .podium-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-md); border-color: var(--accent); z-index: 5; }
 .podium-card img { width: 100%; height: 110px; border-radius: 16px; object-fit: cover; margin-bottom: 1rem; transition: transform 0.4s; }
 .podium-card:hover img { transform: scale(1.08); }
 .rank-badge { font-size: 1.8rem; font-weight: 900; margin-bottom: 12px; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 8px 16px rgba(0,0,0,0.15); flex-shrink: 0; position: relative; z-index: 2; border: 3px solid var(--card); }
-/* Fixed heights to stop overflow */
-.podium-1 { height: 260px; order: 2; z-index: 2; border-color: #F5A623; background: linear-gradient(to bottom, var(--card), rgba(245, 166, 35, 0.05)); }
+
+.podium-1 { height: 320px; order: 2; z-index: 2; border-color: #F5A623; background: linear-gradient(to bottom, var(--card), rgba(245, 166, 35, 0.05)); }
 .podium-1 .rank-badge { background: linear-gradient(135deg, #FFDF00, #F5A623); color: #000; box-shadow: 0 8px 20px rgba(245, 166, 35, 0.4); }
-.podium-2 { height: 220px; order: 1; border-color: #A0A0A0; background: linear-gradient(to bottom, var(--card), rgba(160, 160, 160, 0.05)); }
+.podium-2 { height: 270px; order: 1; border-color: #A0A0A0; background: linear-gradient(to bottom, var(--card), rgba(160, 160, 160, 0.05)); }
 .podium-2 .rank-badge { background: linear-gradient(135deg, #E0E0E0, #A0A0A0); color: #000; }
-.podium-3 { height: 200px; order: 3; border-color: #A0522D; background: linear-gradient(to bottom, var(--card), rgba(160, 82, 45, 0.05)); }
+.podium-3 { height: 250px; order: 3; border-color: #A0522D; background: linear-gradient(to bottom, var(--card), rgba(160, 82, 45, 0.05)); }
 .podium-3 .rank-badge { background: linear-gradient(135deg, #E29453, #A0522D); color: #FFF; }
 
 /* LISTS & SETTINGS */
@@ -302,7 +311,7 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
 .badge-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -8px; border-width: 8px; border-style: solid; border-color: rgba(15, 23, 42, 0.95) transparent transparent transparent; }
 .badge:hover .badge-tooltip { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 
-/* BADGE TIER COLORS (Updated to warmer blends) */
+/* BADGE TIER COLORS */
 .tier-5  { background: linear-gradient(135deg, #cd7f32, #8d5524); border-color: #a0522d; }
 .tier-10 { background: linear-gradient(135deg, #d35400, #a04000); border-color: #e67e22; }
 .tier-15 { background: linear-gradient(135deg, #b03a2e, #7b241c); border-color: #cd6155; }
@@ -320,17 +329,17 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
 
 .login-container { max-width: 420px; margin: 10vh auto; text-align: center; }
 
-/* GLOBAL FOOTER */
+/* GLOBAL FOOTER (Expanded to match wider layout) */
 .site-footer {
   background: var(--card);
   border-top: 2px solid var(--border);
-  padding: 4rem 1.5rem 2rem;
+  padding: 4rem 2% 2rem;
   margin-top: 4rem;
   position: relative;
   z-index: 10;
 }
 .footer-content {
-  max-width: 1100px;
+  max-width: 1350px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -348,7 +357,7 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
   margin-top: 3rem;
   padding-top: 2rem;
   border-top: 1px solid var(--border);
-  max-width: 1100px;
+  max-width: 1350px;
   margin-left: auto;
   margin-right: auto;
 }
