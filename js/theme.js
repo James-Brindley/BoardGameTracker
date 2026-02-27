@@ -25,14 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="logo-text">Tracker</span>
       </a>
     `;
-    if (page === 'game.html') {
-      leftContent = `
-        <a href="catalogue.html" class="back-link">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          Library
-        </a>
-      `;
-    }
 
     navContainer.innerHTML = `
       <header class="site-header">
@@ -65,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  // 2. SEARCH BAR LOGIC (Only runs if not on login page)
+  // 2. SEARCH BAR LOGIC
   if (page !== "login.html") {
       const globalSearch = document.getElementById('globalSearch');
       const searchResults = document.getElementById('globalSearchResults');
@@ -128,7 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
        </div>
     </footer>
   `;
-  // Don't add footer on login screen
   if(page !== "login.html") document.body.insertAdjacentHTML('beforeend', footerHTML);
 
   // 4. MOBILE MENU & THEME TOGGLE
