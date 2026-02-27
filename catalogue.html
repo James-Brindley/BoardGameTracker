@@ -10,34 +10,17 @@
 </head>
 <body class="catalogue-page">
 
-<header>
-  <div class="header-left">
-    <img src="logo.png" alt="Logo" class="site-logo" onclick="location.href='index.html'">
-  </div>
-  <div class="header-center">
-    <h1>Library</h1>
-  </div>
-  <div class="header-right">
-    <nav class="desktop-nav">
-      <a href="index.html">Stats</a>
-      <a href="catalogue.html" class="active">Library</a>
-      <a href="settings.html">Settings</a>
-    </nav>
-    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-  </div>
-</header>
-
-<div class="mobile-nav-overlay" id="mobileNav">
-  <a href="index.html">Stats</a>
-  <a href="catalogue.html" class="active">Library</a>
-  <a href="settings.html">Settings</a>
-</div>
+<div id="nav-container"></div>
 
 <main>
+  <div class="page-title-row">
+    <h1 class="page-title">Library 📚</h1>
+  </div>
+
   <div class="catalogue-toolbar card">
     <div style="width:100%; display:flex; gap:10px;">
         <input id="search" class="ui-input" placeholder="Search games…">
-        <button id="addGame" style="white-space:nowrap;">＋ Add</button>
+        <button id="addGame" style="white-space:nowrap;">＋ Add Game</button>
     </div>
     
     <div style="width:100%; display:flex; gap:10px; overflow-x:auto; padding-bottom:5px;">
@@ -82,9 +65,7 @@
 <script type="module" src="js/theme.js"></script>
 <script type="module" src="js/catalogue.js"></script>
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>
