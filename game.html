@@ -3,41 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game</title>
+  <title>Game Details</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <a href="catalogue.html" style="text-decoration:none; color:var(--accent); font-weight:500; display:flex; align-items:center;">‹ Back</a>
-  </div>
-  <div class="header-center">
-    <h1 style="font-size:1rem; opacity:0.8;">Details</h1>
-  </div>
-  <div class="header-right">
-    <nav class="desktop-nav">
-      <a href="index.html">Stats</a>
-      <a href="catalogue.html">Library</a>
-      <a href="settings.html">Settings</a>
-    </nav>
-    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-  </div>
-</header>
-
-<div class="mobile-nav-overlay" id="mobileNav">
-  <a href="index.html">Stats</a>
-  <a href="catalogue.html">Library</a>
-  <a href="settings.html">Settings</a>
-</div>
+<div id="nav-container"></div>
 
 <main>
   <div class="game-hero">
     <img id="image" class="game-image">
     <h1 class="game-title" id="title"></h1>
-    <button id="editToggle" class="secondary" style="font-size:0.9rem; padding:8px 16px;">Edit Details</button>
+    <button id="editToggle" class="secondary" style="font-size:0.9rem; padding:10px 20px;">Edit Details</button>
   </div>
 
   <div class="game-stats-grid">
@@ -49,25 +28,25 @@
         <div class="label">Players</div>
         <div id="playerCount" class="value"></div>
     </div>
-    <div class="stat-widget">
-        <div class="label">Total Plays</div>
-        <div id="plays" class="value" style="color:var(--accent)"></div>
+    <div class="stat-widget" style="background:var(--accent-gradient); color:white; border:none;">
+        <div class="label" style="color:rgba(255,255,255,0.8);">Total Plays</div>
+        <div id="plays" class="value" style="color:white;"></div>
     </div>
   </div>
 
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-      <h2>Review</h2>
-      <span id="ratingView" style="font-weight:800; font-size:1.2rem; color:#FFD700;"></span>
+      <h2 style="margin:0;">Review</h2>
+      <span id="ratingView" style="font-weight:800; font-size:1.2rem; color:#FFD700; background:rgba(255,215,0,0.1); padding:4px 12px; border-radius:99px;"></span>
     </div>
     <p id="reviewView" style="color:var(--subtext); line-height:1.6;"></p>
   </div>
 
-  <div class="tracker-container">
+  <div class="tracker-container card">
     <div class="tracker-header">
-      <button id="prevMonth" class="secondary">←</button>
-      <strong id="monthLabel" style="font-size:1.1rem; font-weight:700;"></strong>
-      <button id="nextMonth" class="secondary">→</button>
+      <button id="prevMonth" class="secondary icon-btn">‹</button>
+      <strong id="monthLabel" style="font-size:1.2rem; font-weight:800;"></strong>
+      <button id="nextMonth" class="secondary icon-btn">›</button>
     </div>
     <div id="gameTracker" class="tracker-grid"></div>
   </div>
@@ -81,9 +60,7 @@
 <script type="module" src="js/theme.js"></script>
 <script type="module" src="js/game.js"></script>
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>
