@@ -40,14 +40,10 @@
     <div class="settings-header">
         <h2>Appearance</h2>
     </div>
-    <div class="settings-item">
+    <div class="settings-item" style="border-bottom: none;">
         <span>Dark Mode</span>
-        <button id="themeToggle" class="secondary">Toggle</button>
+        <button id="themeToggle" class="secondary">Toggle Theme</button>
     </div>
-    <div class="settings-header">
-        <span style="font-size:0.8rem; text-transform:uppercase; color:var(--subtext); font-weight:600;">Accent Color</span>
-    </div>
-    <div class="accent-picker" id="accentPicker"></div>
   </div>
 
   <div class="card settings-section">
@@ -64,7 +60,7 @@
         <button id="importData" class="secondary">Upload</button>
         <input id="importFile" type="file" accept="application/json" hidden>
     </div>
-    <div class="settings-item">
+    <div class="settings-item" style="border-bottom: none;">
         <span style="color:var(--danger)">Reset Library</span>
         <button id="resetData" class="danger">Delete All</button>
     </div>
@@ -74,9 +70,9 @@
     <div class="settings-header">
         <h2>Account</h2>
     </div>
-    <div class="settings-item">
+    <div class="settings-item" style="border-bottom: none;">
         <span id="userEmail" style="color:var(--subtext)">Loading...</span>
-        <button id="logoutBtn" style="background:rgba(120,120,128,0.2); color:var(--text)">Log Out</button>
+        <button id="logoutBtn" class="secondary" style="color:var(--danger)">Log Out</button>
     </div>
   </div>
 </main>
@@ -106,27 +102,7 @@
         document.documentElement.setAttribute("data-theme", next);
       };
 
-      // Accent Picker
-      const ACCENT_COLORS = ["#007AFF", "#FF3B30", "#FF9500", "#34C759", "#AF52DE", "#5856D6", "#FF2D55", "#A2845E"];
-      const picker = document.getElementById("accentPicker");
-      picker.innerHTML = ""; // Clear existing
-      
-      ACCENT_COLORS.forEach(color => {
-        const swatch = document.createElement("div");
-        swatch.className = "accent-swatch";
-        swatch.style.background = color;
-        if (localStorage.getItem("accent") === color) swatch.classList.add("active");
-        
-        swatch.onclick = () => {
-          document.documentElement.style.setProperty("--accent", color);
-          localStorage.setItem("accent", color);
-          document.querySelectorAll(".accent-swatch").forEach(s => s.classList.remove("active"));
-          swatch.classList.add("active");
-        };
-        picker.appendChild(swatch);
-      });
-
-      // Data
+      // Data Backup
       document.getElementById("exportData").onclick = async () => {
         const games = await getGames();
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ games }));
