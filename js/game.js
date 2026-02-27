@@ -36,8 +36,9 @@ async function init() {
     return;
   }
 
-  // Set defaults including lowScore
-  if (!game.tracking) game.tracking = { score: false, lowScore: false, won: false };
+  // Set defaults including status
+  if (!game.tracking) game.tracking = { score: false, lowScore: false, won: false, status: "owned" };
+  if (!game.tracking.status) game.tracking.status = "owned"; // Retroactive fix for old saves
   if (!game.sessions) game.sessions = [];
   if (!game.playHistory) game.playHistory = {};
 
@@ -68,6 +69,22 @@ function render(allGames = []) {
       : `${game.players.min}`;
   } else { playerView.textContent = "—"; }
 
+  // Render Status Pill under title
+  let statusContainer = document.getElementById("gameStatusPill");
+  if (!statusContainer) {
+      statusContainer = document.createElement("div");
+      statusContainer.id = "gameStatusPill";
+      statusContainer.style.marginBottom = "1.5rem";
+      title.after(statusContainer);
+  }
+  
+  const sMap = { "owned": "Owned", "wishlist": "Wishlist", "friends": "Friend's Copy", "previously_owned": "Previously Owned" };
+  let sColor = "rgba(52,199,89,0.1)"; let tColor = "var(--success)"; // Owned Green
+  if (game.tracking.status === "wishlist") { sColor = "rgba(0,122,255,0.1)"; tColor = "var(--accent)"; }
+  else if (game.tracking.status === "friends" || game.tracking.status === "previously_owned") { sColor = "rgba(120,120,128,0.1)"; tColor = "var(--subtext)"; }
+  
+  statusContainer.innerHTML = `<span style="padding:4px 12px; border-radius:99px; font-size:0.8rem; font-weight:700; background:${sColor}; color:${tColor};">${sMap[game.tracking.status] || "Owned"}</span>`;
+
   renderAdvancedStats();
   renderTracker();
   if (allGames.length > 0) renderBadges(allGames);
@@ -76,14 +93,13 @@ function render(allGames = []) {
 function renderAdvancedStats() {
   const hasData = game.sessions && game.sessions.length > 0;
   
-  // Track logic
   const showHighScore = game.tracking.score;
   const showLowScore = game.tracking.lowScore;
   const showWon = game.tracking.won || (hasData && game.sessions.some(s => s.won != null));
 
   advancedStatsContainer.innerHTML = "";
   advancedStatsContainer.className = "advanced-stats-container";
-  advancedStatsContainer.style.flexWrap = 'wrap'; // Allow wrapping if tracking all 3
+  advancedStatsContainer.style.flexWrap = 'wrap'; 
   
   if (!showHighScore && !showLowScore && !showWon) {
     advancedStatsContainer.style.display = 'none';
@@ -92,10 +108,8 @@ function renderAdvancedStats() {
   
   advancedStatsContainer.style.display = 'flex';
 
-  // Extract valid scores
   const validScores = game.sessions.filter(s => s.score != null && s.score !== "").map(s => Number(s.score));
 
-  // HIGH SCORE WIDGET
   if (showHighScore) {
     const highScore = validScores.length ? Math.max(...validScores) : "—";
     const div = document.createElement('div');
@@ -104,7 +118,6 @@ function renderAdvancedStats() {
     advancedStatsContainer.appendChild(div);
   }
 
-  // LOW SCORE WIDGET
   if (showLowScore) {
     const lowScore = validScores.length ? Math.min(...validScores) : "—";
     const div = document.createElement('div');
@@ -113,7 +126,6 @@ function renderAdvancedStats() {
     advancedStatsContainer.appendChild(div);
   }
 
-  // WIN RATE WIDGET
   if (showWon) {
     const validSessions = game.sessions.filter(s => s.won != null);
     const wins = validSessions.filter(s => s.won === true).length;
@@ -158,7 +170,6 @@ function renderTracker() {
     dayNum.textContent = d;
     cell.appendChild(dayNum);
 
-    // TOOLTIP STACKING LOGIC
     const tooltip = document.createElement("div");
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
@@ -169,7 +180,6 @@ function renderTracker() {
       const hasScore = daySessions.some(s => s.score != null);
 
       if (!hasScore && game.tracking.won) {
-        // Stack Mode
         const wins = daySessions.filter(s => s.won === true).length;
         const losses = daySessions.filter(s => s.won === false).length;
         let stackRow = `<div style="margin-top:2px;">`;
@@ -178,13 +188,10 @@ function renderTracker() {
         stackRow += `</div>`;
         content += stackRow;
       } else {
-        // Detailed Mode
         daySessions.forEach(s => {
           let rowHtml = `<div style="margin-top:2px; display:flex; align-items:center; gap:4px">`;
           if (game.tracking.won && s.won != null) {
-            rowHtml += s.won 
-              ? `<span class="tooltip-win">W</span>` 
-              : `<span class="tooltip-loss">L</span>`;
+            rowHtml += s.won ? `<span class="tooltip-win">W</span>` : `<span class="tooltip-loss">L</span>`;
           }
           if ((game.tracking.score || game.tracking.lowScore) && s.score != null) {
             rowHtml += `<span class="tooltip-tag tag-score">${s.score}</span>`;
@@ -278,14 +285,12 @@ function renderBadges(allGames) {
 
     const getHighTier = (val) => { return `tier-${val}`; };
 
-    // 1. All-Time Rank
     const sorted = [...allGames].sort((a,b) => (b.plays||0) - (a.plays||0));
     const rank = sorted.findIndex(g => g.id === game.id);
     if(rank === 0 && game.plays > 0) createBadge("All-Time #1", "Most Played", "rank-1");
     else if(rank === 1 && game.plays > 0) createBadge("All-Time #2", "2nd Place", "rank-2");
     else if(rank === 2 && game.plays > 0) createBadge("All-Time #3", "3rd Place", "rank-3");
 
-    // 2. Play Count (5, 10, 15... 50)
     const p = game.plays || 0;
     let bestPlay = 0;
     for(let i=50; i>=5; i-=5) { 
@@ -295,7 +300,6 @@ function renderBadges(allGames) {
         createBadge("Veteran", `${bestPlay}+ Plays`, getHighTier(bestPlay));
     }
 
-    // 3. Wins (5, 10... 50)
     if (game.sessions) {
         const wins = game.sessions.filter(s => s.won === true).length;
         let bestWin = 0;
@@ -307,10 +311,8 @@ function renderBadges(allGames) {
         }
     }
 
-    // 4. Monthly Champion
     const myMonths = new Set(Object.keys(game.playHistory).map(d => d.slice(0, 7)));
     const currentMonthKey = new Date().toISOString().slice(0, 7);
-    
     let wonMonths = [];
 
     myMonths.forEach(month => {
@@ -372,7 +374,7 @@ function createBadge(title, sub, tierClass) {
     badgeContainer.appendChild(el);
 }
 
-// Modal & Nav
+// Edit Modal updated with Status Dropdown
 function showEditModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -383,7 +385,14 @@ function showEditModal() {
       
       <div class="input-header">Basic Info</div>
       <input id="editName" class="ui-input" value="${game.name}" style="margin-bottom:10px;">
-      <input id="editImage" class="ui-input" value="${game.image||''}" placeholder="Image URL">
+      <input id="editImage" class="ui-input" value="${game.image||''}" placeholder="Image URL" style="margin-bottom:10px;">
+      
+      <select id="editStatus" class="ui-select" style="margin-bottom:10px;">
+          <option value="owned" ${game.tracking.status === 'owned' ? 'selected' : ''}>Collection: Owned</option>
+          <option value="wishlist" ${game.tracking.status === 'wishlist' ? 'selected' : ''}>Collection: Wishlist</option>
+          <option value="friends" ${game.tracking.status === 'friends' ? 'selected' : ''}>Collection: Friend's Copy</option>
+          <option value="previously_owned" ${game.tracking.status === 'previously_owned' ? 'selected' : ''}>Collection: Prev. Owned</option>
+      </select>
       
       <div class="input-header">Stats</div>
       <div class="row">
@@ -435,11 +444,11 @@ function showEditModal() {
       game.players={min:backdrop.querySelector("#editPMin").value,max:backdrop.querySelector("#editPMax").value};
       game.playTime={min:backdrop.querySelector("#editTMin").value,max:backdrop.querySelector("#editTMax").value};
       
-      // Update tracking state
       game.tracking={
           score:backdrop.querySelector("#editTrackScore").checked,
           lowScore:backdrop.querySelector("#editTrackLowScore").checked,
-          won:backdrop.querySelector("#editTrackWon").checked
+          won:backdrop.querySelector("#editTrackWon").checked,
+          status:backdrop.querySelector("#editStatus").value
       };
       
       await updateGame(game); backdrop.remove(); saveGame();
