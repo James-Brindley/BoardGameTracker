@@ -68,11 +68,11 @@ async function renderAll() {
   const aGames = [...games].filter(g => (g.plays || 0) > 0).sort((a, b) => (b.plays || 0) - (a.plays || 0));
 
   renderTracker(games);
+  renderPodium(monthPodium, mGames, "monthPlays");
+  renderPodium(allTimePodium, aGames, "plays");
   
-  // Render Podiums & Lists
-  renderPodium(monthPodium, mGames.slice(0, 3), "monthPlays");
-  renderPodium(allTimePodium, aGames.slice(0, 3), "plays"); // Top 1-3
-  renderList(top10, aGames, 3, 10, "plays"); // Places 4-10
+  // NOTE: Starts at index 3 so we show ranks 4-10!
+  renderList(top10, aGames, 3, 10, "plays");
 }
 
 function renderRecentActivity(recentSessions) {
@@ -86,18 +86,17 @@ function renderRecentActivity(recentSessions) {
     const row = document.createElement("div");
     row.className = "top10-row activity-row";
     
-    // Determine status badge (Win/Loss/Played)
+    // Determine status badge
     let badgeHtml = `<span style="font-size:0.7rem; color:var(--subtext)">Played</span>`;
     if (session.won === true) badgeHtml = `<span style="color:var(--success); font-weight:800; font-size:0.8rem">WIN</span>`;
     if (session.won === false) badgeHtml = `<span style="color:var(--danger); font-weight:800; font-size:0.8rem">LOSS</span>`;
     if (session.score != null) badgeHtml += ` <span style="font-size:0.7rem; background:rgba(120,120,128,0.1); padding:2px 6px; border-radius:4px; margin-left:4px;">Score: ${session.score}</span>`;
 
-    // Format Date nicely
     const [y, m, d] = session.date.split('-');
     const formattedDate = `${d}/${m}`;
 
     row.innerHTML = `
-      <img src="${session.image || 'https://via.placeholder.com/200'}" loading="lazy" style="width:40px !important; height:40px !important;">
+      <img src="${session.image || 'https://via.placeholder.com/200'}" loading="lazy" style="width:44px !important; height:44px !important; margin-right:1rem;">
       <div style="flex:1">
         <div style="font-weight:700; font-size:0.95rem; line-height:1.2;">${session.gameName}</div>
         <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
@@ -114,7 +113,7 @@ function renderRecentActivity(recentSessions) {
 
 function renderPodium(container, games, valueKey) {
   container.innerHTML = "";
-  if (!games || !games.length) {
+  if (!games.length) {
     container.innerHTML = `<div style="width:100%; text-align:center; color:var(--subtext); padding:2rem;">No stats for this period</div>`;
     return;
   }
@@ -142,15 +141,12 @@ function renderPodium(container, games, valueKey) {
 function renderList(container, games, start, end, valueKey) {
   container.innerHTML = "";
   const slice = games.slice(start, end);
-  if(slice.length === 0) {
-      container.innerHTML = `<div style="text-align:center; color:var(--subtext); padding:2rem 0;">Not enough games played yet.</div>`;
-      return;
-  }
+  if(slice.length === 0) return;
 
   const wrapper = document.createElement("div");
   wrapper.style.borderRadius = "16px";
   wrapper.style.overflow = "hidden";
-  wrapper.style.border = "1px solid var(--border)";
+  wrapper.style.border = "2px solid var(--border)";
 
   slice.forEach((g, i) => {
     const row = document.createElement("div");
