@@ -3,6 +3,7 @@ import { getGames } from "./data.js";
 const tracker = document.getElementById("globalTracker");
 const label = document.getElementById("monthLabel");
 const monthPodium = document.getElementById("monthPodium");
+const allTimePodium = document.getElementById("allTimePodium");
 const top10 = document.getElementById("top10");
 const recentActivityList = document.getElementById("recentActivityList");
 
@@ -50,7 +51,7 @@ async function renderAll() {
   document.getElementById('qs-hindex').textContent = hIndex;
   document.getElementById('qs-winrate').textContent = winRate + '%';
 
-  // Render Recent Activity (Top 5)
+  // Render Recent Activity (Top 6)
   allSessions.sort((a,b) => b.timestamp - a.timestamp);
   renderRecentActivity(allSessions.slice(0, 6));
 
@@ -67,8 +68,11 @@ async function renderAll() {
   const aGames = [...games].filter(g => (g.plays || 0) > 0).sort((a, b) => (b.plays || 0) - (a.plays || 0));
 
   renderTracker(games);
-  renderPodium(monthPodium, mGames, "monthPlays");
-  renderList(top10, aGames, 0, 10, "plays");
+  
+  // Render Podiums & Lists
+  renderPodium(monthPodium, mGames.slice(0, 3), "monthPlays");
+  renderPodium(allTimePodium, aGames.slice(0, 3), "plays"); // Top 1-3
+  renderList(top10, aGames, 3, 10, "plays"); // Places 4-10
 }
 
 function renderRecentActivity(recentSessions) {
@@ -110,7 +114,7 @@ function renderRecentActivity(recentSessions) {
 
 function renderPodium(container, games, valueKey) {
   container.innerHTML = "";
-  if (!games.length) {
+  if (!games || !games.length) {
     container.innerHTML = `<div style="width:100%; text-align:center; color:var(--subtext); padding:2rem;">No stats for this period</div>`;
     return;
   }
@@ -138,7 +142,10 @@ function renderPodium(container, games, valueKey) {
 function renderList(container, games, start, end, valueKey) {
   container.innerHTML = "";
   const slice = games.slice(start, end);
-  if(slice.length === 0) return;
+  if(slice.length === 0) {
+      container.innerHTML = `<div style="text-align:center; color:var(--subtext); padding:2rem 0;">Not enough games played yet.</div>`;
+      return;
+  }
 
   const wrapper = document.createElement("div");
   wrapper.style.borderRadius = "16px";
