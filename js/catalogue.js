@@ -9,6 +9,7 @@ const filterPlayers = document.getElementById("filterPlayers");
 const filterTime = document.getElementById("filterTime");
 const filterRating = document.getElementById("filterRating");
 const filterPlayed = document.getElementById("filterPlayed");
+const filterStatus = document.getElementById("filterStatus");
 
 function formatRange(min, max, suffix="") {
   if (min == null && max == null) return "—";
@@ -30,7 +31,16 @@ async function render() {
   const playersValue = parseInt(filterPlayers.value);
   const timeValue = parseInt(filterTime.value);
   const ratingValue = parseFloat(filterRating.value);
-  const statusValue = filterPlayed.value;
+  const playedValue = filterPlayed.value;
+  const statusValue = filterStatus ? filterStatus.value : "all";
+
+  // Filter Status
+  if (statusValue !== "all") {
+    games = games.filter(g => {
+        const s = (g.tracking && g.tracking.status) ? g.tracking.status : "owned";
+        return s === statusValue;
+    });
+  }
 
   if (searchValue) {
     games = games.filter(g => g.name.toLowerCase().includes(searchValue));
@@ -44,8 +54,8 @@ async function render() {
   if (!isNaN(ratingValue)) {
     games = games.filter(g => g.rating != null && g.rating >= ratingValue);
   }
-  if (statusValue === "played") games = games.filter(g => g.plays > 0);
-  if (statusValue === "unplayed") games = games.filter(g => g.plays === 0);
+  if (playedValue === "played") games = games.filter(g => g.plays > 0);
+  if (playedValue === "unplayed") games = games.filter(g => g.plays === 0);
 
   games.sort((a, b) => sort.value === "name" ? a.name.localeCompare(b.name) : (b[sort.value] || 0) - (a[sort.value] || 0));
 
@@ -59,10 +69,17 @@ async function render() {
   games.forEach(g => {
     const card = document.createElement("div");
     card.className = "game-card";
+
+    // Little badge for non-owned games
+    const stat = (g.tracking && g.tracking.status) ? g.tracking.status : "owned";
+    let statusBadge = "";
+    if (stat === "wishlist") statusBadge = `<span style="font-size:0.65rem; background:rgba(0,122,255,0.1); color:var(--accent); padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">Wishlist</span>`;
+    else if (stat === "friends") statusBadge = `<span style="font-size:0.65rem; background:rgba(120,120,128,0.1); color:var(--subtext); padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">Friend's</span>`;
+
     card.innerHTML = `
       <img src="${g.image || "https://via.placeholder.com/400"}" loading="lazy">
-      <div class="card-header">
-        <strong>${g.name}</strong>
+      <div class="card-header" style="align-items:center;">
+        <strong>${g.name}${statusBadge}</strong>
         ${g.rating ? `<span class="rating-badge">★ ${g.rating}</span>` : ''}
       </div>
       <div class="card-stats">
@@ -71,7 +88,11 @@ async function render() {
       </div>
       <div class="plays">${g.plays || 0} Plays</div>
     `;
-    card.onclick = () => { location.href = `game.html?id=${g.id}`; };
+
+    card.onclick = () => {
+      location.href = `game.html?id=${g.id}`;
+    };
+
     list.appendChild(card);
   });
 }
@@ -91,6 +112,13 @@ addBtn.onclick = () => {
             <div class="input-header" style="margin-top:0;">Game Details</div>
             <input id="newName" class="ui-input" placeholder="Game Name" style="margin-bottom:10px">
             <input id="newImage" class="ui-input" placeholder="Image URL (optional)" style="margin-bottom:10px">
+            
+            <select id="newStatus" class="ui-select" style="margin-bottom:10px;">
+                <option value="owned">Collection: Owned</option>
+                <option value="wishlist">Collection: Wishlist</option>
+                <option value="friends">Collection: Friend's Copy</option>
+                <option value="previously_owned">Collection: Previously Owned</option>
+            </select>
 
             <div class="row">
                 <input id="pMin" type="number" class="ui-input" placeholder="Min Players">
@@ -204,7 +232,8 @@ addBtn.onclick = () => {
       tracking: {
         score: document.getElementById("trackScore").checked,
         lowScore: document.getElementById("trackLowScore").checked,
-        won: document.getElementById("trackWon").checked
+        won: document.getElementById("trackWon").checked,
+        status: document.getElementById("newStatus").value // Save new status
       }
     };
 
@@ -220,5 +249,6 @@ filterPlayers.oninput = render;
 filterTime.oninput = render;
 filterRating.oninput = render;
 filterPlayed.onchange = render;
+if(filterStatus) filterStatus.onchange = render;
 
 render();
