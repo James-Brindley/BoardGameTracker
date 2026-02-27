@@ -49,8 +49,9 @@ async function renderAll() {
   document.getElementById('qs-winrate').textContent = winRate + '%';
 
   allSessions.sort((a,b) => b.timestamp - a.timestamp);
-  // Slice to 10 so there's enough to fill the scrollable box height
-  renderRecentActivity(allSessions.slice(0, 10));
+  
+  // FIX: Sliced down to exactly 5 so it fits the box perfectly without scrolling
+  renderRecentActivity(allSessions.slice(0, 5));
 
   const key = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
   const mGames = games.map(g => ({
