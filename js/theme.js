@@ -1,3 +1,5 @@
+import { getGames } from './data.js';
+
 /* ---------- THEME ---------- */
 const savedTheme = localStorage.getItem("theme") || "light";
 document.documentElement.setAttribute("data-theme", savedTheme);
@@ -9,7 +11,7 @@ function toggleTheme() {
   document.documentElement.setAttribute("data-theme", next);
 }
 
-/* ---------- CENTRALIZED NAVIGATION & SEARCH & FOOTER ---------- */
+/* ---------- GLOBAL HEADER, SEARCH & FOOTER ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   const navContainer = document.getElementById("nav-container");
   const path = window.location.pathname;
@@ -37,15 +39,13 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="header-left">
           ${leftContent}
         </div>
-        
         <div class="header-center">
-            <div class="global-search-wrapper">
+            <div class="global-search-container">
                 <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Search library...">
-                <div id="globalSearchResults" class="global-search-results"></div>
+                <input type="text" id="globalSearch" placeholder="Search your library...">
+                <div class="global-search-results" id="globalSearchResults"></div>
             </div>
         </div>
-
         <div class="header-right">
           <nav class="desktop-nav">
             <a href="index.html" class="${page === 'index.html' || page === '' ? 'active' : ''}">Dashboard</a>
@@ -65,37 +65,73 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  // 2. INJECT FOOTER
-  if (!document.getElementById("site-footer")) {
-      const footerHTML = `
-        <footer class="site-footer" id="site-footer">
-          <div class="footer-content">
-              <div class="footer-section">
-                  <h3>🎲 Game Tracker</h3>
-                  <p>Your personal board game collection and stat tracking dashboard. Level up your game nights.</p>
-              </div>
-              <div class="footer-section">
-                  <h3>Quick Links</h3>
-                  <a href="index.html">Dashboard</a>
-                  <a href="catalogue.html">Game Library</a>
-                  <a href="settings.html">Account Settings</a>
-              </div>
-              <div class="footer-section">
-                  <h3>Connect</h3>
-                  <a href="#">X / Twitter</a>
-                  <a href="#">Discord Server</a>
-                  <a href="#">GitHub Repo</a>
-              </div>
-          </div>
-          <div class="footer-bottom">
-              &copy; ${new Date().getFullYear()} Game Tracker. All rights reserved.
-          </div>
-        </footer>
-      `;
-      document.body.insertAdjacentHTML('beforeend', footerHTML);
+  // 2. SEARCH BAR LOGIC (Only runs if not on login page)
+  if (page !== "login.html") {
+      const globalSearch = document.getElementById('globalSearch');
+      const searchResults = document.getElementById('globalSearchResults');
+      let allGamesCache = null;
+
+      if (globalSearch && searchResults) {
+          globalSearch.addEventListener('input', async (e) => {
+              const query = e.target.value.toLowerCase().trim();
+              if (!query) { searchResults.style.display = 'none'; return; }
+              
+              if (!allGamesCache) allGamesCache = await getGames();
+              
+              const matches = allGamesCache.filter(g => g.name.toLowerCase().includes(query)).slice(0, 3);
+              
+              if (matches.length > 0) {
+                  searchResults.innerHTML = matches.map(g => `
+                      <div class="search-result-item" onclick="window.location.href='game.html?id=${g.id}'">
+                          <img src="${g.image || 'https://via.placeholder.com/50'}" alt="">
+                          <span>${g.name}</span>
+                      </div>
+                  `).join('');
+                  searchResults.style.display = 'block';
+              } else {
+                  searchResults.innerHTML = `<div class="search-result-empty">No games found</div>`;
+                  searchResults.style.display = 'block';
+              }
+          });
+
+          document.addEventListener('click', (e) => {
+              if (!e.target.closest('.global-search-container')) {
+                  searchResults.style.display = 'none';
+              }
+          });
+      }
   }
 
-  // 3. MOBILE MENU LOGIC
+  // 3. INJECT FOOTER
+  const footerHTML = `
+    <footer class="site-footer">
+       <div class="footer-content">
+          <div class="footer-col">
+             <h3>Game Tracker 🎲</h3>
+             <p>Your personal board game collection manager and detailed stat tracker. Keep rolling!</p>
+          </div>
+          <div class="footer-col">
+             <h3>Navigation</h3>
+             <a href="index.html">Dashboard</a>
+             <a href="catalogue.html">Library</a>
+             <a href="settings.html">Settings</a>
+          </div>
+          <div class="footer-col">
+             <h3>Community</h3>
+             <a href="#">BGG Profile</a>
+             <a href="#">Discord Server</a>
+             <a href="#">Report a Bug</a>
+          </div>
+       </div>
+       <div class="footer-bottom">
+          &copy; ${new Date().getFullYear()} Game Tracker. Created for the love of the table.
+       </div>
+    </footer>
+  `;
+  // Don't add footer on login screen
+  if(page !== "login.html") document.body.insertAdjacentHTML('beforeend', footerHTML);
+
+  // 4. MOBILE MENU & THEME TOGGLE
   const btn = document.getElementById("mobileMenuBtn");
   const nav = document.getElementById("mobileNav");
   if (btn && nav) {
@@ -108,51 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
   }
-
-  // 4. GLOBAL SEARCH LOGIC
-  const searchInput = document.getElementById("globalSearchInput");
-  const resultsBox = document.getElementById("globalSearchResults");
-  let allGamesCache = null;
-
-  if (searchInput && resultsBox) {
-      searchInput.addEventListener("input", async (e) => {
-          const query = e.target.value.toLowerCase().trim();
-          if (!query) { resultsBox.style.display = 'none'; return; }
-
-          if (!allGamesCache) {
-              try {
-                  const { getGames } = await import('./data.js');
-                  allGamesCache = await getGames();
-              } catch (err) { return; }
-          }
-
-          const matches = allGamesCache.filter(g => g.name.toLowerCase().includes(query)).slice(0, 3);
-          
-          if (matches.length > 0) {
-              resultsBox.innerHTML = matches.map(g => `
-                  <a href="game.html?id=${g.id}" class="search-result-item">
-                      <img src="${g.image || 'https://via.placeholder.com/50'}">
-                      <div>
-                          <div class="title">${g.name}</div>
-                          <div class="plays">${g.plays || 0} plays</div>
-                      </div>
-                  </a>
-              `).join('');
-          } else {
-              resultsBox.innerHTML = '<div class="search-no-results">No matches found.</div>';
-          }
-          resultsBox.style.display = 'block';
-      });
-
-      // Close dropdown if clicking outside
-      document.addEventListener("click", (e) => {
-          if (!e.target.closest('.global-search-wrapper')) {
-              resultsBox.style.display = 'none';
-          }
-      });
-  }
-  
-  // Theme Toggle (Settings page)
   const themeBtn = document.getElementById("themeToggle");
   if (themeBtn) themeBtn.onclick = toggleTheme;
 });
