@@ -34,7 +34,6 @@ async function render() {
   const playedValue = filterPlayed.value;
   const statusValue = filterStatus ? filterStatus.value : "all";
 
-  // Filter Status
   if (statusValue !== "all") {
     games = games.filter(g => {
         const s = (g.tracking && g.tracking.status) ? g.tracking.status : "owned";
@@ -42,18 +41,10 @@ async function render() {
     });
   }
 
-  if (searchValue) {
-    games = games.filter(g => g.name.toLowerCase().includes(searchValue));
-  }
-  if (!isNaN(playersValue)) {
-    games = games.filter(g => g.players?.min != null && g.players?.max != null && playersValue >= g.players.min && playersValue <= g.players.max);
-  }
-  if (!isNaN(timeValue)) {
-    games = games.filter(g => g.playTime?.min != null && g.playTime?.max != null && timeValue >= g.playTime.min && timeValue <= g.playTime.max);
-  }
-  if (!isNaN(ratingValue)) {
-    games = games.filter(g => g.rating != null && g.rating >= ratingValue);
-  }
+  if (searchValue) games = games.filter(g => g.name.toLowerCase().includes(searchValue));
+  if (!isNaN(playersValue)) games = games.filter(g => g.players?.min != null && g.players?.max != null && playersValue >= g.players.min && playersValue <= g.players.max);
+  if (!isNaN(timeValue)) games = games.filter(g => g.playTime?.min != null && g.playTime?.max != null && timeValue >= g.playTime.min && timeValue <= g.playTime.max);
+  if (!isNaN(ratingValue)) games = games.filter(g => g.rating != null && g.rating >= ratingValue);
   if (playedValue === "played") games = games.filter(g => g.plays > 0);
   if (playedValue === "unplayed") games = games.filter(g => g.plays === 0);
 
@@ -70,10 +61,9 @@ async function render() {
     const card = document.createElement("div");
     card.className = "game-card";
 
-    // Little badge for non-owned games
     const stat = (g.tracking && g.tracking.status) ? g.tracking.status : "owned";
     let statusBadge = "";
-    if (stat === "wishlist") statusBadge = `<span style="font-size:0.65rem; background:rgba(0,122,255,0.1); color:var(--accent); padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">Wishlist</span>`;
+    if (stat === "wishlist") statusBadge = `<span style="font-size:0.65rem; background:rgba(0,122,255,0.1); color:#007AFF; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">Wishlist</span>`;
     else if (stat === "friends") statusBadge = `<span style="font-size:0.65rem; background:rgba(120,120,128,0.1); color:var(--subtext); padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">Friend's</span>`;
 
     card.innerHTML = `
@@ -89,10 +79,7 @@ async function render() {
       <div class="plays">${g.plays || 0} Plays</div>
     `;
 
-    card.onclick = () => {
-      location.href = `game.html?id=${g.id}`;
-    };
-
+    card.onclick = () => location.href = `game.html?id=${g.id}`;
     list.appendChild(card);
   });
 }
@@ -130,23 +117,20 @@ addBtn.onclick = () => {
                 <input id="tMax" type="number" class="ui-input" placeholder="Max Time (m)">
             </div>
             
-            <div class="input-header">Tracking Features</div>
-            <div class="toggle-row">
-                <span style="font-weight:600; font-size:0.9rem;">Track High Score</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="trackScore">
-                    <span class="toggle-slider"></span>
-                </label>
+            <div class="input-header">Custom Tracking Metrics</div>
+            
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <input id="metricName" class="ui-input" placeholder="e.g. Points, Position" style="flex:1; padding:10px 14px;">
+                <select id="metricType" class="ui-select" style="width:110px; padding:10px;">
+                    <option value="highest">Highest</option>
+                    <option value="lowest">Lowest</option>
+                </select>
+                <button id="addMetricBtn" class="secondary" style="padding:10px 16px;">Add</button>
             </div>
+            <div id="metricTags" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;"></div>
+
             <div class="toggle-row">
-                <span style="font-weight:600; font-size:0.9rem;">Track Low Score</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="trackLowScore">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="toggle-row">
-                <span style="font-weight:600; font-size:0.9rem;">Track Win/Loss</span>
+                <span style="font-weight:700; font-size:0.95rem;">Track Win/Loss</span>
                 <label class="toggle-switch">
                     <input type="checkbox" id="trackWon">
                     <span class="toggle-slider"></span>
@@ -157,7 +141,7 @@ addBtn.onclick = () => {
         <div class="modal-split-right">
             <div class="input-header" style="margin-top:0;">Live Preview</div>
             <div class="game-card" style="pointer-events:none; width:100%; height:auto;">
-                <img id="previewImage" src="https://via.placeholder.com/400" style="height:150px; border-bottom:1px solid var(--border);">
+                <img id="previewImage" src="https://via.placeholder.com/400" style="height:150px; border-bottom:2px solid var(--border);">
                 <div class="card-header" style="padding:0.8rem 1rem 0.5rem;">
                     <strong id="previewName">Game Name</strong>
                 </div>
@@ -174,8 +158,39 @@ addBtn.onclick = () => {
   `;
 
   document.body.appendChild(backdrop);
-  
   backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
+
+  // --- DYNAMIC METRICS LOGIC ---
+  let customMetrics = [];
+  const metricName = backdrop.querySelector("#metricName");
+  const metricType = backdrop.querySelector("#metricType");
+  const metricTags = backdrop.querySelector("#metricTags");
+  const addMetricBtn = backdrop.querySelector("#addMetricBtn");
+
+  const renderMetrics = () => {
+      metricTags.innerHTML = customMetrics.map((m, i) => `
+          <span style="display:flex; align-items:center; gap:8px; background:rgba(120,120,128,0.1); padding:6px 12px; border-radius:12px; font-size:0.8rem; font-weight:700;">
+              ${m.name} <span style="opacity:0.6; font-size:0.7rem;">(${m.bestIs})</span>
+              <span class="remove-metric" data-idx="${i}" style="cursor:pointer; color:var(--danger); font-size:1.1rem; line-height:1;">×</span>
+          </span>
+      `).join("");
+
+      backdrop.querySelectorAll(".remove-metric").forEach(btn => {
+          btn.onclick = (e) => {
+              customMetrics.splice(e.target.dataset.idx, 1);
+              renderMetrics();
+          };
+      });
+  };
+
+  addMetricBtn.onclick = (e) => {
+      e.preventDefault();
+      const n = metricName.value.trim();
+      if(!n) return;
+      customMetrics.push({ name: n, bestIs: metricType.value });
+      metricName.value = "";
+      renderMetrics();
+  };
 
   // --- LIVE PREVIEW LOGIC ---
   const inputs = {
@@ -197,11 +212,9 @@ addBtn.onclick = () => {
   const updatePreview = () => {
       preview.name.textContent = inputs.name.value.trim() || "Game Name";
       preview.img.src = inputs.img.value.trim() || "https://via.placeholder.com/400";
-      
       const pMinVal = inputs.pMin.value ? Number(inputs.pMin.value) : null;
       const pMaxVal = inputs.pMax.value ? Number(inputs.pMax.value) : null;
       preview.players.textContent = `👥 ${formatRange(pMinVal, pMaxVal)}`;
-
       const tMinVal = inputs.tMin.value ? Number(inputs.tMin.value) : null;
       const tMaxVal = inputs.tMax.value ? Number(inputs.tMax.value) : null;
       preview.time.textContent = `⏱ ${formatRange(tMinVal, tMaxVal, 'm')}`;
@@ -230,10 +243,9 @@ addBtn.onclick = () => {
       },
       playHistory: {},
       tracking: {
-        score: document.getElementById("trackScore").checked,
-        lowScore: document.getElementById("trackLowScore").checked,
+        metrics: customMetrics,
         won: document.getElementById("trackWon").checked,
-        status: document.getElementById("newStatus").value // Save new status
+        status: document.getElementById("newStatus").value
       }
     };
 
