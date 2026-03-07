@@ -107,7 +107,7 @@ header.site-header {
   background-color: var(--nav-bg); 
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); 
   border-bottom: 2px solid var(--border); 
-  padding: 0.8rem 4%; /* PERFECT MIDDLE GROUND PADDING */
+  padding: 0.8rem 4%; 
   display: grid; 
   grid-template-columns: 1fr minmax(200px, 400px) 1fr; 
   gap: 1.5rem;
@@ -144,7 +144,7 @@ header.site-header {
 .desktop-nav a:hover { color: var(--text); }
 .desktop-nav a.active { background: var(--card); color: var(--accent); box-shadow: 0 4px 12px var(--shadow-sm); }
 
-/* MOBILE HAMBURGER BUTTON (Stripped of glows and transforms) */
+/* MOBILE HAMBURGER BUTTON */
 .mobile-menu-btn { 
     display: none; 
     background: transparent !important; 
@@ -172,7 +172,7 @@ header.site-header {
 .mobile-nav-overlay a { padding: 14px; background: var(--bg); border-radius: 16px; text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; text-align: center; border: 2px solid var(--border); transition: all 0.2s; }
 .mobile-nav-overlay a.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 8px 20px var(--accent-glow); }
 
-/* LAYOUT (Perfect middle ground: 1200px max, 4% padding) */
+/* LAYOUT */
 main { max-width: 1200px; margin: 0 auto; padding: 2.5rem 4%; min-height: 80vh; }
 .page-title-row { margin-bottom: 2rem; }
 .page-title { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 0.2rem; color: var(--text); }
@@ -266,7 +266,7 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
 .tooltip-win { color: #10B981; font-weight: 900; margin-right: 4px; }
 .tooltip-loss { color: #EF4444; font-weight: 900; margin-right: 4px; }
 
-/* STANDARD PODIUMS (Taller to prevent clipping) */
+/* STANDARD PODIUMS */
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 1rem; margin: 1rem 0; height: 380px; }
 .podium-card { width: 30%; display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--card); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); cursor: pointer; border: 2px solid var(--border); position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .podium-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-md); border-color: var(--accent); z-index: 5; }
@@ -284,9 +284,9 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
 /* ALL-TIME STACKED PODIUM OVERRIDE (For Desktop) */
 @media (min-width: 769px) {
   #allTimePodium.podium {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
       height: auto;
       min-height: 0;
       align-items: stretch;
@@ -295,29 +295,32 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
   #allTimePodium .podium-card {
       width: 100%;
       height: auto !important;
-  }
-  
-  /* Make 1st place massive across the top */
-  #allTimePodium .podium-1 {
-      grid-column: 1 / -1;
-      order: 1; 
       flex-direction: row;
       justify-content: flex-start;
       text-align: left;
       padding: 1.5rem 2rem;
   }
-  #allTimePodium .podium-1 img {
-      width: 110px;
-      height: 110px;
+  
+  #allTimePodium .podium-card img {
+      width: 90px;
+      height: 90px;
       margin-bottom: 0;
       margin-right: 2rem;
   }
-  #allTimePodium .podium-1 .rank-badge { margin: 0 1.5rem 0 0; }
-  #allTimePodium .podium-1 .podium-info { flex: 1; }
+  #allTimePodium .podium-1 img { width: 110px; height: 110px; }
+  
+  #allTimePodium .podium-card .rank-badge { margin: 0 1.5rem 0 0; }
+  #allTimePodium .podium-card .podium-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  
   #allTimePodium .podium-1 .podium-info div:first-child { font-size: 1.5rem !important; margin-bottom: 8px !important; }
   #allTimePodium .podium-1 .podium-info div:last-child { font-size: 1rem !important; }
 
-  /* 2nd and 3rd sit underneath */
+  #allTimePodium .podium-2 .podium-info div:first-child,
+  #allTimePodium .podium-3 .podium-info div:first-child { font-size: 1.3rem !important; margin-bottom: 4px !important; }
+  #allTimePodium .podium-2 .podium-info div:last-child,
+  #allTimePodium .podium-3 .podium-info div:last-child { font-size: 0.95rem !important; }
+
+  #allTimePodium .podium-1 { order: 1; }
   #allTimePodium .podium-2 { order: 2; }
   #allTimePodium .podium-3 { order: 3; }
 }
@@ -440,7 +443,8 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
   .podium-card img { width: 75px; height: 75px; margin-bottom: 0; margin-right: 1.2rem; border-radius: 12px; }
   .rank-badge { width: 40px; height: 40px; font-size: 1.2rem; margin: 0 1rem 0 0; }
   
-  /* Disable stacked mode on mobile */
+  /* Disable stacked mode on mobile for all time */
+  #allTimePodium.podium { display: flex; }
   #allTimePodium .podium-1 { grid-column: auto; flex-direction: row; padding: 1.2rem; justify-content: flex-start; }
   #allTimePodium .podium-1 img { width: 75px; height: 75px; margin-right: 1.2rem; }
   #allTimePodium .podium-1 .podium-info div:first-child { font-size: 0.95rem !important; margin-bottom: 4px !important; }
