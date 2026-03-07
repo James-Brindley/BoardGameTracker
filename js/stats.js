@@ -49,8 +49,6 @@ async function renderAll() {
   document.getElementById('qs-winrate').textContent = winRate + '%';
 
   allSessions.sort((a,b) => b.timestamp - a.timestamp);
-  
-  // FIX: Force slice to EXACTLY 5 games to avoid scroll bars and match calendar height
   renderRecentActivity(allSessions.slice(0, 5));
 
   const key = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
@@ -83,7 +81,13 @@ function renderRecentActivity(recentSessions) {
     let badgeHtml = `<span style="font-size:0.7rem; color:var(--subtext)">Played</span>`;
     if (session.won === true) badgeHtml = `<span style="color:var(--success); font-weight:800; font-size:0.8rem">WIN</span>`;
     if (session.won === false) badgeHtml = `<span style="color:var(--danger); font-weight:800; font-size:0.8rem">LOSS</span>`;
-    if (session.score != null) badgeHtml += ` <span style="font-size:0.7rem; background:rgba(120,120,128,0.1); padding:2px 6px; border-radius:4px; margin-left:4px;">Score: ${session.score}</span>`;
+    
+    // Check the new results object dynamically
+    if (session.results && Object.keys(session.results).length > 0) {
+        Object.entries(session.results).forEach(([k, v]) => {
+            badgeHtml += ` <span style="font-size:0.7rem; background:rgba(120,120,128,0.1); padding:2px 6px; border-radius:4px; margin-left:4px;">${k}: ${v}</span>`;
+        });
+    }
 
     const [y, m, d] = session.date.split('-');
     const formattedDate = `${d}/${m}`;
@@ -104,6 +108,7 @@ function renderRecentActivity(recentSessions) {
   });
 }
 
+// ...rest of the podium/tracker code remains exactly the same
 function renderPodium(container, games, valueKey) {
   container.innerHTML = "";
   if (!games.length) {
