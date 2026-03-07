@@ -286,44 +286,45 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
   #allTimePodium.podium {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
-      height: auto;
+      gap: 1.2rem;
+      height: 100%; /* Force it to stretch and exactly match the height of the 4-10 list! */
       min-height: 0;
       align-items: stretch;
       margin: 0;
   }
   #allTimePodium .podium-card {
       width: 100%;
-      height: auto !important;
+      height: auto; /* Remove the fixed 380px/etc height */
       flex-direction: row;
+      align-items: center; /* Vertically center everything inside the growing box */
       justify-content: flex-start;
       text-align: left;
-      border-radius: 16px;
+      padding: 1.5rem 2rem;
   }
   
-  #allTimePodium .podium-card .podium-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  #allTimePodium .podium-card img {
+      width: 90px;
+      height: 90px;
+      margin-bottom: 0;
+      margin-right: 2rem;
+  }
+  #allTimePodium .podium-1 img { width: 110px; height: 110px; }
   
-  /* Make 1st place prominent but fitting */
-  #allTimePodium .podium-1 { padding: 1.5rem; order: 1; }
-  #allTimePodium .podium-1 img { width: 80px; height: 80px; margin-bottom: 0; margin-right: 1.5rem; border-radius: 14px; }
-  #allTimePodium .podium-1 .rank-badge { width: 44px; height: 44px; font-size: 1.4rem; margin: 0 1.2rem 0 0; }
-  #allTimePodium .podium-1 .podium-info div:first-child { font-size: 1.2rem !important; margin-bottom: 4px !important; }
-  #allTimePodium .podium-1 .podium-info div:last-child { font-size: 0.9rem !important; }
+  #allTimePodium .podium-card .rank-badge { margin: 0 1.5rem 0 0; }
+  #allTimePodium .podium-card .podium-info { display: flex; flex-direction: column; justify-content: center; }
+  
+  #allTimePodium .podium-1 .podium-info div:first-child { font-size: 1.6rem !important; margin-bottom: 8px !important; }
+  #allTimePodium .podium-1 .podium-info div:last-child { font-size: 1.1rem !important; }
 
-  /* 2nd and 3rd match the list 4-10 scale closer */
-  #allTimePodium .podium-2 { order: 2; padding: 1.2rem; }
-  #allTimePodium .podium-3 { order: 3; padding: 1.2rem; }
-
-  #allTimePodium .podium-2 img,
-  #allTimePodium .podium-3 img { width: 60px; height: 60px; margin-bottom: 0; margin-right: 1.2rem; border-radius: 12px; }
-  
-  #allTimePodium .podium-2 .rank-badge,
-  #allTimePodium .podium-3 .rank-badge { width: 38px; height: 38px; font-size: 1.2rem; margin: 0 1rem 0 0; }
-  
   #allTimePodium .podium-2 .podium-info div:first-child,
-  #allTimePodium .podium-3 .podium-info div:first-child { font-size: 1.05rem !important; margin-bottom: 2px !important; }
+  #allTimePodium .podium-3 .podium-info div:first-child { font-size: 1.3rem !important; margin-bottom: 4px !important; }
   #allTimePodium .podium-2 .podium-info div:last-child,
-  #allTimePodium .podium-3 .podium-info div:last-child { font-size: 0.85rem !important; }
+  #allTimePodium .podium-3 .podium-info div:last-child { font-size: 0.95rem !important; }
+
+  /* Magic Layout Distribution */
+  #allTimePodium .podium-1 { order: 1; flex: 1.5; } /* Make 1st place 50% taller than the rest */
+  #allTimePodium .podium-2 { order: 2; flex: 1; }
+  #allTimePodium .podium-3 { order: 3; flex: 1; }
 }
 
 /* LISTS & SETTINGS */
@@ -444,8 +445,9 @@ button.danger { background: var(--danger); box-shadow: 0 8px 20px var(--danger-g
   .podium-card img { width: 75px; height: 75px; margin-bottom: 0; margin-right: 1.2rem; border-radius: 12px; }
   .rank-badge { width: 40px; height: 40px; font-size: 1.2rem; margin: 0 1rem 0 0; }
   
-  /* Disable stacked mode on mobile for all time */
-  #allTimePodium.podium { display: flex; }
+  /* Disable flex/stacked mode on mobile so it looks normal */
+  #allTimePodium.podium { display: flex; flex-direction: column; height: auto; }
+  #allTimePodium .podium-1, #allTimePodium .podium-2, #allTimePodium .podium-3 { flex: none; }
   #allTimePodium .podium-1 { grid-column: auto; flex-direction: row; padding: 1.2rem; justify-content: flex-start; }
   #allTimePodium .podium-1 img { width: 75px; height: 75px; margin-right: 1.2rem; }
   #allTimePodium .podium-1 .podium-info div:first-child { font-size: 0.95rem !important; margin-bottom: 4px !important; }
