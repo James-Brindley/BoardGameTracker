@@ -16,26 +16,52 @@ export async function logout() {
   window.location.href = 'login.html';
 }
 
-// 1. GET GAMES
+// 1. GET GAMES (Includes seamless backward-compatibility migration!)
 export async function getGames() {
   await checkAuth();
   const { data, error } = await supabase.from('games').select('*');
   if (error) return [];
 
-  return data.map(g => ({
-    id: g.id,
-    name: g.name,
-    image: g.image,
-    rating: g.rating,
-    review: g.review,
-    plays: g.plays,
-    players: g.players || { min: null, max: null },
-    playTime: g.play_time || { min: null, max: null },
-    playHistory: g.play_history || {},
-    // Added status to defaults
-    tracking: g.tracking_type || { score: false, lowScore: false, won: false, status: "owned" }, 
-    sessions: g.sessions || []
-  }));
+  return data.map(g => {
+    let t = g.tracking_type || { won: false, status: "owned", metrics: [] };
+    if (!t.metrics) t.metrics = [];
+
+    // SAFE MIGRATION: Convert old toggle-based data to new custom metrics
+    if (t.score) {
+      if (!t.metrics.find(m => m.name === "Score")) t.metrics.push({ name: "Score", bestIs: "highest" });
+      delete t.score;
+    }
+    if (t.lowScore) {
+      if (!t.metrics.find(m => m.name === "Low Score")) t.metrics.push({ name: "Low Score", bestIs: "lowest" });
+      delete t.lowScore;
+    }
+
+    let sessions = g.sessions || [];
+    sessions = sessions.map(sess => {
+      if (!sess.results) sess.results = {};
+      // SAFE MIGRATION: Move old s.score into the new s.results dictionary
+      if (sess.score != null) {
+        let targetName = t.metrics.length > 0 ? t.metrics[0].name : "Score";
+        sess.results[targetName] = sess.score;
+        delete sess.score;
+      }
+      return sess;
+    });
+
+    return {
+      id: g.id,
+      name: g.name,
+      image: g.image,
+      rating: g.rating,
+      review: g.review,
+      plays: g.plays,
+      players: g.players || { min: null, max: null },
+      playTime: g.play_time || { min: null, max: null },
+      playHistory: g.play_history || {},
+      tracking: t, 
+      sessions: sessions
+    };
+  });
 }
 
 // 2. ADD GAME
@@ -94,8 +120,7 @@ export async function importGames(gamesArray) {
     play_time: g.playTime || g.play_time,
     play_history: g.playHistory || g.play_history,
     plays: g.plays,
-    // Added status to defaults
-    tracking_type: g.tracking || { score: false, lowScore: false, won: false, status: "owned" },
+    tracking_type: g.tracking || { won: false, status: "owned", metrics: [] },
     sessions: g.sessions || []
   }));
   const { error } = await supabase.from('games').insert(formattedGames);
