@@ -86,11 +86,28 @@ function render(allGames = []) {
   if (game.tracking.status === "wishlist") { sColor = "rgba(0,122,255,0.1)"; tColor = "#007AFF"; }
   else if (game.tracking.status === "friends" || game.tracking.status === "previously_owned") { sColor = "rgba(120,120,128,0.1)"; tColor = "var(--subtext)"; }
   
-  statusContainer.innerHTML = `<span style="padding:4px 12px; border-radius:99px; font-size:0.8rem; font-weight:700; background:${sColor}; color:${tColor};">${sMap[game.tracking.status] || "Owned"}</span>`;
+  statusContainer.innerHTML = `<span style="padding:4px 12px; border-radius:99px; font-size:0.8rem; font-weight:800; background:${sColor}; color:${tColor};">${sMap[game.tracking.status] || "Owned"}</span>`;
 
   renderAdvancedStats();
   renderTracker();
   if (allGames.length > 0) renderBadges(allGames);
+}
+
+// Global helper to find the best values for highlighting
+function getBestValues() {
+    const bests = {};
+    if (game.tracking.metrics) {
+        game.tracking.metrics.forEach(m => {
+            const validVals = game.sessions
+                .map(s => s.results && s.results[m.name])
+                .filter(v => v != null && v !== "")
+                .map(Number);
+            if (validVals.length > 0) {
+                bests[m.name] = m.bestIs === "highest" ? Math.max(...validVals) : Math.min(...validVals);
+            }
+        });
+    }
+    return bests;
 }
 
 function renderAdvancedStats() {
@@ -108,8 +125,9 @@ function renderAdvancedStats() {
   }
   
   advancedStatsContainer.style.display = 'flex';
+  const bestValues = getBestValues();
 
-  // DYNAMIC METRICS WIDGETS (with Tie Counts!)
+  // DYNAMIC METRICS WIDGETS (with Tie Counts & Gold Highlighting!)
   if (hasMetrics) {
       game.tracking.metrics.forEach(metric => {
           const validVals = game.sessions
@@ -118,15 +136,19 @@ function renderAdvancedStats() {
               .map(Number);
 
           if (validVals.length > 0) {
-              const best = metric.bestIs === "highest" ? Math.max(...validVals) : Math.min(...validVals);
+              const best = bestValues[metric.name];
               const count = validVals.filter(v => v === best).length;
               
               // Display tie count if it happened more than once
-              const countHtml = count > 1 ? `<span style="font-size:0.6em; opacity:0.8; font-weight:700; margin-left:6px;">(x${count})</span>` : "";
+              const countHtml = count > 1 ? `<span style="font-size:0.55em; opacity:0.9; font-weight:800; margin-left:6px; color:var(--subtext);">(x${count})</span>` : "";
 
               const div = document.createElement('div');
               div.className = "stat-widget";
-              div.innerHTML = `<div class="label">Best ${metric.name}</div><div class="value">${best}${countHtml}</div>`;
+              div.style.borderColor = "rgba(245, 166, 35, 0.4)"; // Subtle gold border
+              div.innerHTML = `
+                <div class="label">Best ${metric.name}</div>
+                <div class="value" style="color: #F5A623; text-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);">${best}${countHtml}</div>
+              `;
               advancedStatsContainer.appendChild(div);
           }
       });
@@ -160,6 +182,7 @@ function renderTracker() {
   
   if(monthLabel) monthLabel.textContent = view.toLocaleString("default", { month: "long", year: "numeric" });
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const bestValues = getBestValues();
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
@@ -179,33 +202,52 @@ function renderTracker() {
     tooltip.className = "tracker-tooltip";
     const formattedDate = `${String(d).padStart(2,"0")}/${String(month+1).padStart(2,"0")}`;
     const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
-    let content = `<strong style="display:block; margin-bottom:4px">${formattedDate}</strong>`;
+    let content = `<strong style="display:block; margin-bottom:6px; font-size:0.9rem;">${formattedDate}</strong>`;
 
-    if (daySessions.length > 0 && (game.tracking.metrics.length > 0 || game.tracking.won)) {
-      const hasResults = daySessions.some(s => s.results && Object.keys(s.results).length > 0);
+    // Safe-Guard: Check if there's any historical data AT ALL, even if tracking is currently disabled
+    const hasHistoricalData = daySessions.some(s => s.won != null || (s.results && Object.keys(s.results).length > 0));
 
-      if (!hasResults && game.tracking.won) {
+    if (daySessions.length > 0 && (game.tracking.metrics.length > 0 || game.tracking.won || hasHistoricalData)) {
+      const hasResultsToday = daySessions.some(s => s.results && Object.keys(s.results).length > 0);
+
+      // Stack simple Win/Loss to save space if NO detailed stats exist for ANY game today
+      if (!hasResultsToday && game.tracking.won) {
         const wins = daySessions.filter(s => s.won === true).length;
         const losses = daySessions.filter(s => s.won === false).length;
-        let stackRow = `<div style="margin-top:2px;">`;
+        let stackRow = `<div>`;
         if (wins > 0) stackRow += `<span class="tooltip-win">W</span> x${wins} `;
         if (losses > 0) stackRow += `<span class="tooltip-loss">L</span> x${losses}`;
         stackRow += `</div>`;
         content += stackRow;
       } else {
-        daySessions.forEach(s => {
-          let rowHtml = `<div style="margin-top:4px; display:flex; align-items:center; flex-wrap:wrap; gap:4px">`;
-          if (game.tracking.won && s.won != null) {
+        // Build Individual Retaining Boxes for each session
+        daySessions.forEach((s, idx) => {
+          let rowHtml = `<div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:6px 10px; margin-bottom:6px; display:flex; align-items:center; flex-wrap:wrap; gap:6px;">`;
+          
+          if (daySessions.length > 1) {
+              rowHtml += `<span style="font-size:0.65rem; color:rgba(255,255,255,0.5); font-weight:900;">#${idx+1}</span>`;
+          }
+
+          if (s.won != null) {
             rowHtml += s.won ? `<span class="tooltip-win">W</span>` : `<span class="tooltip-loss">L</span>`;
           }
+
           if (s.results && Object.keys(s.results).length > 0) {
             Object.entries(s.results).forEach(([k, v]) => {
-                rowHtml += `<span style="font-size:0.7rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; margin-right:2px;">${k}: ${v}</span>`;
+                // Gold Highlight Logic inside tooltip
+                const isBest = bestValues[k] !== undefined && Number(v) === bestValues[k];
+                const styleStr = isBest 
+                    ? `color:#F5A623; border-color:#F5A623; font-weight:900; box-shadow: 0 2px 8px rgba(245,166,35,0.2);` 
+                    : `color:white; border-color:rgba(255,255,255,0.15);`;
+
+                rowHtml += `<span style="font-size:0.7rem; background:rgba(0,0,0,0.25); border:1px solid transparent; padding:3px 8px; border-radius:6px; ${styleStr}">${k}: ${v}</span>`;
             });
           }
-          if ((!game.tracking.won || s.won == null) && (!s.results || Object.keys(s.results).length === 0)) {
-            rowHtml += `<span style="font-size:0.7rem">Played</span>`;
+          
+          if ((s.won == null) && (!s.results || Object.keys(s.results).length === 0)) {
+            rowHtml += `<span style="font-size:0.7rem; color:rgba(255,255,255,0.6);">Played</span>`;
           }
+          
           rowHtml += `</div>`;
           content += rowHtml;
         });
@@ -232,19 +274,156 @@ async function handlePlayClick(dateKey, delta) {
       showPlayModal(dateKey);
     } else {
       updatePlayCount(dateKey, 1);
-      game.sessions.push({ date: dateKey, timestamp: Date.now() });
+      game.sessions.push({ date: dateKey, timestamp: Date.now(), results: {} });
       await saveGame();
     }
     return;
   }
+  
+  // Right-Click handling now OPENS THE MANAGE MODAL to view/edit/delete
   const daySessions = (game.sessions || []).filter(s => s.date === dateKey);
-  if (daySessions.length <= 1) {
-    removeSessionDirectly(dateKey, daySessions[0]); 
-  } else {
-    // If identical, remove last. If complex, just remove last for now to avoid messy deep equality checks.
-    removeSessionDirectly(dateKey, daySessions[daySessions.length - 1]);
+  if (daySessions.length > 0) {
+      showManagePlaysModal(dateKey, daySessions);
   }
 }
+
+// --- NEW "MANAGE PLAYS" MODAL (View/Delete/Edit specific sessions) ---
+function showManagePlaysModal(dateKey, sessions) {
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
+
+    let sessionListHtml = sessions.map((s, i) => {
+        let desc = `Play #${i + 1}`;
+        let badges = "";
+        
+        if (s.won != null) badges += s.won ? `<span style="color:var(--success); font-weight:800; margin-left:8px;">WIN</span>` : `<span style="color:var(--danger); font-weight:800; margin-left:8px;">LOSS</span>`;
+        if (s.results && Object.keys(s.results).length > 0) {
+            badges += `<span style="color:var(--subtext); font-size:0.8rem; margin-left:8px;">(${Object.entries(s.results).map(([k,v])=>`${k}: ${v}`).join(', ')})</span>`;
+        }
+
+        return `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); padding:12px; border-radius:12px; margin-bottom:10px; border:2px solid var(--border);">
+            <div style="font-size:0.95rem; font-weight:700; flex:1;">${desc} ${badges}</div>
+            <div style="display:flex; gap:8px;">
+                <button class="secondary icon-btn edit-session-btn" data-idx="${i}" style="padding:6px 12px !important; font-size:0.8rem;">Edit</button>
+                <button class="danger icon-btn delete-session-btn" data-idx="${i}" style="padding:6px 12px !important; font-size:0.8rem;">Delete</button>
+            </div>
+        </div>`;
+    }).join("");
+
+    backdrop.innerHTML = `
+      <div class="modal wide">
+        <div class="close-button">×</div>
+        <h2 style="margin-bottom:0.5rem; font-size:1.5rem;">Manage Plays</h2>
+        <p style="color:var(--subtext); margin-bottom:1.5rem; font-weight:700;">Date: ${dateKey}</p>
+        ${sessionListHtml}
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
+
+    // Delete Button Logic
+    backdrop.querySelectorAll(".delete-session-btn").forEach(btn => {
+        btn.onclick = async (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            if(confirm("Delete this session?")) {
+                await removeSessionDirectly(dateKey, sessions[idx]);
+                backdrop.remove();
+            }
+        };
+    });
+
+    // Edit Button Logic -> Chains into Edit Modal
+    backdrop.querySelectorAll(".edit-session-btn").forEach(btn => {
+        btn.onclick = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            backdrop.remove();
+            showEditSessionModal(dateKey, sessions[idx]);
+        };
+    });
+}
+
+// --- NEW "EDIT SPECIFIC SESSION" MODAL ---
+function showEditSessionModal(dateKey, sessionObj) {
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
+
+    // Build inputs for currently tracked metrics AND historically recorded metrics in this session
+    const metricNames = new Set();
+    game.tracking.metrics.forEach(m => metricNames.add(m.name));
+    if (sessionObj.results) Object.keys(sessionObj.results).forEach(k => metricNames.add(k));
+
+    let dynamicInputsHtml = Array.from(metricNames).map(name => `
+        <div style="margin-bottom:12px;">
+            <label style="font-size:0.75rem; font-weight:800; color:var(--subtext); text-transform:uppercase; display:block; margin-bottom:4px; margin-left:4px;">${name}</label>
+            <input class="ui-input edit-metric-input" data-name="${name}" type="number" value="${sessionObj.results?.[name] !== undefined ? sessionObj.results[name] : ''}" placeholder="Value for ${name}">
+        </div>
+    `).join('');
+
+    const trackWonHistory = game.tracking.won || sessionObj.won != null;
+
+    backdrop.innerHTML = `
+      <div class="modal">
+        <div class="close-button">×</div>
+        <h2 style="margin-bottom:0.5rem;">Edit Session</h2>
+        <p style="text-align:center; color:var(--subtext); margin-bottom:1.5rem; font-weight:700;">${dateKey}</p>
+
+        ${dynamicInputsHtml}
+
+        ${trackWonHistory ? `
+        <div style="display:flex;gap:10px;margin-top:15px;margin-bottom:10px;">
+            <button id="editBtnWin" style="flex:1" class="secondary">Won</button>
+            <button id="editBtnLoss" style="flex:1" class="secondary">Lost</button>
+        </div><input type="hidden" id="editLogWon" value="${sessionObj.won === true ? 'true' : (sessionObj.won === false ? 'false' : '')}">` : ''}
+
+        <button id="confirmEditPlay" style="width:100%;margin-top:1.5rem">Save Changes</button>
+      </div>
+    `;
+
+    document.body.appendChild(backdrop);
+    backdrop.querySelector(".close-button").onclick = () => backdrop.remove();
+
+    if (trackWonHistory) {
+        const btnWin = backdrop.querySelector("#editBtnWin");
+        const btnLoss = backdrop.querySelector("#editBtnLoss");
+        const inp = backdrop.querySelector("#editLogWon");
+
+        const updateWonUI = () => {
+            if (inp.value === "true") {
+                btnWin.style.background="var(--success)"; btnWin.style.color="white"; btnWin.style.borderColor="var(--success)";
+                btnLoss.style.background="var(--bg)"; btnLoss.style.color="var(--text)"; btnLoss.style.borderColor="var(--border)";
+            } else if (inp.value === "false") {
+                btnLoss.style.background="var(--danger)"; btnLoss.style.color="white"; btnLoss.style.borderColor="var(--danger)";
+                btnWin.style.background="var(--bg)"; btnWin.style.color="var(--text)"; btnWin.style.borderColor="var(--border)";
+            } else {
+                btnWin.style.background="var(--bg)"; btnWin.style.color="var(--text)"; btnWin.style.borderColor="var(--border)";
+                btnLoss.style.background="var(--bg)"; btnLoss.style.color="var(--text)"; btnLoss.style.borderColor="var(--border)";
+            }
+        };
+        updateWonUI();
+
+        // Allows toggling off if clicked twice
+        btnWin.onclick = () => { inp.value = inp.value === "true" ? "" : "true"; updateWonUI(); };
+        btnLoss.onclick = () => { inp.value = inp.value === "false" ? "" : "false"; updateWonUI(); };
+    }
+
+    backdrop.querySelector("#confirmEditPlay").onclick = async () => {
+        let newResults = {};
+        backdrop.querySelectorAll(".edit-metric-input").forEach(inp => {
+            if(inp.value !== "") newResults[inp.dataset.name] = Number(inp.value);
+        });
+
+        const w = backdrop.querySelector("#editLogWon")?.value;
+        const wonVal = w === "true" ? true : (w === "false" ? false : null);
+
+        sessionObj.results = newResults;
+        sessionObj.won = wonVal;
+
+        await saveGame();
+        backdrop.remove();
+    };
+}
+
 
 async function removeSessionDirectly(dateKey, sessionObj) {
   if (sessionObj) {
@@ -272,9 +451,10 @@ async function saveGame() {
   render(allGames);
 }
 
-// === BADGES === (unchanged)
+// === BADGES ===
 function renderBadges(allGames) {
     badgeContainer.innerHTML = "";
+    
     const getMonthTier = (count) => {
         if (count >= 10) return "tier-50"; 
         if (count >= 9) return "tier-45";
@@ -359,7 +539,7 @@ function createBadge(title, sub, tierClass) {
     badgeContainer.appendChild(el);
 }
 
-// EDIT MODAL (Updated for Dynamic Metrics)
+// EDIT GAME MODAL 
 function showEditModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -465,7 +645,7 @@ function showEditModal() {
   backdrop.querySelector("#deleteGameBtn").onclick=async()=>{if(confirm("Delete?")){await deleteGame(game.id);window.location.href="catalogue.html";}};
 }
 
-// LOG PLAY MODAL (Generates inputs dynamically)
+// LOG PLAY MODAL 
 function showPlayModal(dateKey) {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
@@ -478,7 +658,7 @@ function showPlayModal(dateKey) {
       <div class="modal">
         <div class="close-button">×</div>
         <h2 style="margin-bottom:0.5rem;">Log Play</h2>
-        <p style="text-align:center; color:var(--subtext); margin-bottom:1.5rem;">${dateKey}</p>
+        <p style="text-align:center; color:var(--subtext); margin-bottom:1.5rem; font-weight:700;">${dateKey}</p>
         
         ${dynamicInputsHtml}
         
