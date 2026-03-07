@@ -25,13 +25,38 @@ async function renderAll() {
     if (plays > 0) uniquePlayed++;
     playCounts.push(plays);
 
+    // 1. Tally up detailed sessions
+    const sessionCountsByDate = {};
     (g.sessions || []).forEach(s => {
+      sessionCountsByDate[s.date] = (sessionCountsByDate[s.date] || 0) + 1;
       allSessions.push({ ...s, gameName: g.name, gameId: g.id, image: g.image });
+      
       if (s.won !== null && s.won !== undefined) {
           totalWLSessions++;
           if (s.won) totalWins++;
       }
     });
+
+    // 2. Reconstruct "Ghost" plays (older plays logged without a detailed session object)
+    if (g.playHistory) {
+        Object.entries(g.playHistory).forEach(([dateStr, count]) => {
+            const trackedCount = sessionCountsByDate[dateStr] || 0;
+            const missing = count - trackedCount;
+            if (missing > 0) {
+                for (let i = 0; i < missing; i++) {
+                    // Give it a generic midday timestamp so it sorts properly
+                    const fallbackTimestamp = new Date(`${dateStr}T12:00:00`).getTime();
+                    allSessions.push({
+                        date: dateStr,
+                        timestamp: fallbackTimestamp,
+                        gameName: g.name,
+                        gameId: g.id,
+                        image: g.image
+                    });
+                }
+            }
+        });
+    }
   });
 
   playCounts.sort((a,b) => b - a);
@@ -48,7 +73,13 @@ async function renderAll() {
   document.getElementById('qs-hindex').textContent = hIndex;
   document.getElementById('qs-winrate').textContent = winRate + '%';
 
-  allSessions.sort((a,b) => b.timestamp - a.timestamp);
+  // Safe sorting fallback if timestamp is missing on very old data
+  allSessions.sort((a,b) => {
+      const timeB = b.timestamp || new Date(`${b.date}T12:00:00`).getTime();
+      const timeA = a.timestamp || new Date(`${a.date}T12:00:00`).getTime();
+      return timeB - timeA;
+  });
+  
   renderRecentActivity(allSessions.slice(0, 5));
 
   const key = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, "0")}`;
@@ -82,15 +113,14 @@ function renderRecentActivity(recentSessions) {
     if (session.won === true) badgeHtml = `<span style="color:var(--success); font-weight:800; font-size:0.8rem">WIN</span>`;
     if (session.won === false) badgeHtml = `<span style="color:var(--danger); font-weight:800; font-size:0.8rem">LOSS</span>`;
     
-    // Check the new results object dynamically
     if (session.results && Object.keys(session.results).length > 0) {
         Object.entries(session.results).forEach(([k, v]) => {
             badgeHtml += ` <span style="font-size:0.7rem; background:rgba(120,120,128,0.1); padding:2px 6px; border-radius:4px; margin-left:4px;">${k}: ${v}</span>`;
         });
     }
 
-    const [y, m, d] = session.date.split('-');
-    const formattedDate = `${d}/${m}`;
+    const parts = session.date.split('-');
+    const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}` : session.date;
 
     row.innerHTML = `
       <img src="${session.image || 'https://via.placeholder.com/200'}" loading="lazy" style="width:44px !important; height:44px !important; margin-right:1rem;">
@@ -108,7 +138,6 @@ function renderRecentActivity(recentSessions) {
   });
 }
 
-// ...rest of the podium/tracker code remains exactly the same
 function renderPodium(container, games, valueKey) {
   container.innerHTML = "";
   if (!games.length) {
